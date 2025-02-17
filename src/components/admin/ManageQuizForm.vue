@@ -21,7 +21,7 @@ const options = ref<QuizOption[]>([
 ]);
 const successMessage = ref<string>("");
 const errorMessage = ref<string>("");
-const isEditing = computed(() => !!props.quiz?._id); // Determines edit mode
+const isEditing = computed(() => !!props.quiz?._id);
 
 // Fetch topics from the API
 onMounted(async () => {
@@ -120,7 +120,7 @@ const submitQuiz = async () => {
     if (isEditing.value && props.quiz?._id) {
       // **EDIT MODE**
       response = await api.put(`/quizzes/${props.quiz._id}`, {
-        topic: selectedTopic.value, // ✅ Use "topic" instead of "topic_id"
+        topic: selectedTopic.value,
         question: question.value,
         options: options.value.map(opt => ({
           text: opt.text,
@@ -150,58 +150,6 @@ const submitQuiz = async () => {
     errorMessage.value = "Failed to submit quiz.";
   }
 };
-// Submit the form (Create or Update quiz)
-// const submitQuiz = async () => {
-//   try {
-//     successMessage.value = "";
-//     errorMessage.value = "";
-
-//     // Validate input
-//     if (!selectedTopic.value || !question.value || options.value.length < 2) {
-//       errorMessage.value = "All fields are required, and you need at least two options.";
-//       return;
-//     }
-
-//     // Ensure at least one correct option
-//     if (!options.value.some((option) => option.isCorrect)) {
-//       errorMessage.value = "At least one option must be marked as correct.";
-//       return;
-//     }
-
-//     console.log("📥 Sending Quiz Data:", {
-//       topic: selectedTopic.value,
-//       question: question.value,
-//       options: options.value,
-//     });
-
-//     let response;
-//     if (isEditing.value && props.quiz?._id) {
-//       // **EDIT MODE**
-//       response = await api.put(`/quizzes/${props.quiz._id}`, {
-//         topic_id: selectedTopic.value,
-//         question: question.value,
-//         options: options.value,
-//       });
-//       console.log("✅ Quiz Updated:", response.data);
-//       successMessage.value = "✅ Quiz updated successfully!";
-//     } else {
-//       // **ADD MODE**
-//       response = await api.post("/quizzes", {
-//         topic_id: selectedTopic.value,
-//         question: question.value,
-//         options: options.value,
-//       });
-//       console.log("✅ Quiz Added:", response.data);
-//       successMessage.value = "✅ Quiz added successfully!";
-//     }
-
-//     emit("quizUpdated"); // Refresh quiz list
-//     resetForm();
-//   } catch (error) {
-//     console.error("❌ Error Submitting Quiz:", error);
-//     errorMessage.value = "Failed to submit quiz.";
-//   }
-// };
 
 // Close form
 const closeForm = () => {
