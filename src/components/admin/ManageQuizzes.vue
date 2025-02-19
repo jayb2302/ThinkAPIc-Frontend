@@ -14,29 +14,39 @@ onMounted(() => {
 });
 
 // Automatically update the displayed quiz list
-watch(() => quizStore.quizzes, (newQuizzes) => {
-  console.log("✅ Quizzes Updated:", newQuizzes);
-});
+watch(
+  () => quizStore.quizzes,
+  (newQuizzes) => {
+    console.log("✅ Quizzes Updated:", newQuizzes);
+  }
+);
 
 // Open edit mode
 const editQuiz = (quiz: Quiz) => {
-  selectedQuiz.value = quiz; 
+  selectedQuiz.value = {
+    ...quiz,
+    options: quiz.options.map((opt, index) => ({
+      _id: opt._id || "",
+      text: opt.text || "",
+      isCorrect: opt.isCorrect ?? false,
+      order: opt.order ?? index + 1, 
+    })),
+  };
   showForm.value = true;
 };
 
 // Handle quiz submission (refresh list after adding/editing)
 const handleQuizUpdated = async (updatedQuiz: Quiz) => {
-  
   if (!updatedQuiz) return;
 
   // Find the existing quiz and update the store
-  const updatedQuizzes = quizStore.quizzes.map(q =>
+  const updatedQuizzes = quizStore.quizzes.map((q) =>
     q._id === updatedQuiz._id ? updatedQuiz : q
   );
 
   // Assign the new array to trigger Vue's reactivity
   quizStore.quizzes = updatedQuizzes;
-  await quizStore.fetchQuizzes(); 
+  await quizStore.fetchQuizzes();
   showForm.value = false;
   selectedQuiz.value = null;
 };
@@ -45,7 +55,7 @@ const handleQuizUpdated = async (updatedQuiz: Quiz) => {
 const deleteQuiz = async (quizId: string) => {
   if (confirm("Are you sure you want to delete this quiz?")) {
     await quizStore.deleteQuizById(quizId);
-    await quizStore.fetchQuizzes(); 
+    await quizStore.fetchQuizzes();
   }
 };
 

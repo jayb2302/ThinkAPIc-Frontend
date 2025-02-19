@@ -3,6 +3,7 @@ export interface QuizOption {
   _id?: string;
   text: string;
   isCorrect: boolean;
+  order: number;
 }
 
 export interface Quiz {

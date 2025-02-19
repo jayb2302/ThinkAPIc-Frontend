@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
+import draggable from "vuedraggable";
 import { useUserStore } from "../../stores/userStore";
 import api from "../../services/api";
 import type { Quiz, QuizOption } from "../../types/Quiz";
@@ -15,10 +16,7 @@ const props = defineProps<{ quiz?: Quiz | null }>();
 const topics = ref<Topic[]>([]);
 const selectedTopic = ref<string>("");
 const question = ref<string>("");
-const options = ref<QuizOption[]>([
-  { text: "", isCorrect: false },
-  { text: "", isCorrect: false },
-]);
+const options = ref<QuizOption[]>([]);
 const successMessage = ref<string>("");
 const errorMessage = ref<string>("");
 const isEditing = computed(() => !!props.quiz?._id);
@@ -40,8 +38,9 @@ const resetForm = () => {
   selectedTopic.value = "";
   question.value = "";
   options.value = [
-    { _id: "", text: "", isCorrect: false }, 
-    { _id: "", text: "", isCorrect: false }];
+    { _id: "", text: "", isCorrect: false, order: 1 },
+    { _id: "", text: "", isCorrect: false, order: 2 },
+  ];
 };
 
 // Watch for quiz changes & populate form when editing
@@ -51,10 +50,10 @@ watch(
     if (newQuiz) {
       selectedTopic.value = newQuiz.topic?._id || "";
       question.value = newQuiz.question;
-      options.value = newQuiz.options.map((opt) => ({
-        _id: opt._id || "",
+      options.value = newQuiz.options.map((opt, index) => ({
         text: opt.text,
         isCorrect: opt.isCorrect,
+        order: opt.order ?? index + 1, 
       }));
     } else {
       resetForm();
@@ -65,7 +64,12 @@ watch(
 
 // Add more options
 const addOption = () => {
-  options.value.push({ _id: "", text: "", isCorrect: false });
+  options.value.push({
+    _id: "",
+    text: "",
+    isCorrect: false,
+    order: options.value.length + 1,
+  });
 };
 
 // Remove an option (at least 2 required)
@@ -110,9 +114,9 @@ const submitQuiz = async () => {
     console.log("📤 Sending Quiz Data:", {
       topic: selectedTopic.value,
       question: question.value,
-      options: options.value.map(opt => ({
+      options: options.value.map((opt) => ({
         text: opt.text,
-        isCorrect: opt.isCorrect
+        isCorrect: opt.isCorrect,
       })),
     });
 
@@ -122,9 +126,9 @@ const submitQuiz = async () => {
       response = await api.put(`/quizzes/${props.quiz._id}`, {
         topic: selectedTopic.value,
         question: question.value,
-        options: options.value.map(opt => ({
+        options: options.value.map((opt) => ({
           text: opt.text,
-          isCorrect: opt.isCorrect
+          isCorrect: opt.isCorrect,
         })),
       });
       console.log("✅ Quiz Updated:", response.data);
@@ -134,15 +138,15 @@ const submitQuiz = async () => {
       response = await api.post("/quizzes", {
         topic: selectedTopic.value,
         question: question.value,
-        options: options.value.map(opt => ({
+        options: options.value.map((opt) => ({
           text: opt.text,
-          isCorrect: opt.isCorrect
+          isCorrect: opt.isCorrect,
         })),
       });
       console.log("✅ Quiz Added:", response.data);
       successMessage.value = "✅ Quiz added successfully!";
     }
-    
+
     emit("quizUpdated", response.data);
     resetForm();
   } catch (error) {
@@ -180,25 +184,62 @@ const closeForm = () => {
       </select>
 
       <label class="block mb-2">Question:</label>
-      <input v-model="question" type="text" class="border p-2 w-full mb-4" placeholder="Enter Question" required />
+      <input
+        v-model="question"
+        type="text"
+        class="border p-2 w-full mb-4"
+        placeholder="Enter Question"
+        required
+      />
 
-      <div v-for="(option, index) in options" :key="index" class="mb-2">
-        <input v-model="option.text" type="text" class="border p-2 w-4/5" placeholder="Enter Option" required />
-        <input v-model="option.isCorrect" type="checkbox" class="ml-2" />
-        <span class="ml-1">Correct</span>
-        <button type="button" @click="removeOption(index)" class="ml-2 text-red-500">Remove</button>
-      </div>
-
-      <button type="button" @click="addOption" class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4">
+      <draggable v-model="options" item-key="order">
+        <template #item="{ element }">
+          <div class="drag-item flex items-center space-x-2">
+            <span class="cursor-move">☰</span>
+            <input
+              v-model="element.text"
+              type="text"
+              class="border p-2 w-4/5"
+              placeholder="Enter Option"
+              required
+            />
+            <input v-model="element.isCorrect" type="checkbox" class="ml-2" />
+            <span class="ml-1">Correct</span>
+            <button
+              type="button"
+              @click="removeOption(options.indexOf(element))"
+              class="text-red-500"
+            >
+              ❌
+            </button>
+          </div>
+        </template>
+      </draggable>
+      <button
+        type="button"
+        @click="addOption"
+        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
+      >
         ➕ Add Option
       </button>
 
-      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md">
+      <button
+        type="submit"
+        class="bg-green-500 text-white px-4 py-2 rounded-md"
+      >
         {{ isEditing ? "Update Quiz" : "Submit Quiz" }}
       </button>
-      <button type="button" @click="closeForm" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
+      <button
+        type="button"
+        @click="closeForm"
+        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
+      >
+        Cancel
+      </button>
 
-      <p v-if="successMessage" class="text-green-500 mt-4">{{ successMessage }}</p>
+      <p v-if="successMessage" class="text-green-500 mt-4">
+        {{ successMessage }}
+      </p>
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>
   </div>
