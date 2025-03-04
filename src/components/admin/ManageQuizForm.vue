@@ -37,10 +37,17 @@ onMounted(async () => {
 const resetForm = () => {
   selectedTopic.value = "";
   question.value = "";
-  options.value = [
-    { _id: "", text: "", isCorrect: false, order: 1 },
-    { _id: "", text: "", isCorrect: false, order: 2 },
-  ];
+  options.value = prepareOptions([]);
+};
+
+// Prepare options for the form
+const prepareOptions = (opts: QuizOption[] = []) => {
+  return (opts.length ? opts : Array(2).fill(null)).map((opt, index) => ({
+    _id: opt?._id || "",
+    text: opt?.text || "",
+    isCorrect: opt?.isCorrect ?? false,
+    order: opt?.order ?? index + 1,
+  }));
 };
 
 // Watch for quiz changes & populate form when editing
@@ -50,11 +57,7 @@ watch(
     if (newQuiz) {
       selectedTopic.value = newQuiz.topic?._id || "";
       question.value = newQuiz.question;
-      options.value = newQuiz.options.map((opt, index) => ({
-        text: opt.text,
-        isCorrect: opt.isCorrect,
-        order: opt.order ?? index + 1, 
-      }));
+      options.value = prepareOptions(newQuiz.options);
     } else {
       resetForm();
     }
@@ -74,84 +77,51 @@ const addOption = () => {
 
 // Remove an option (at least 2 required)
 const removeOption = (index: number) => {
-  if (options.value.length > 2) {
-    options.value.splice(index, 1);
-  }
+  if (options.value.length > 2) { options.value.splice(index, 1); }
+};
+
+// ✅ Function to validate the form
+const validateForm = () => {
+  const validations = [
+    { condition: !selectedTopic.value, message: "Please select a topic." },
+    { condition: !question.value.trim(), message: "Question cannot be empty." },
+    { condition: options.value.length < 2, message: "At least two options are required." },
+    { condition: !options.value.some((opt) => opt.isCorrect), message: "At least one option must be marked as correct." }
+  ];
+
+  return validations.find((v) => v.condition)?.message || null;
 };
 const submitQuiz = async () => {
+  successMessage.value = "";
+  errorMessage.value = "";
+
+  const validationError = validateForm();
+  if (validationError) {
+    errorMessage.value = validationError;
+    return;
+  }
+
+  const quizData = {
+    topic: selectedTopic.value,
+    question: question.value,
+    options: options.value.map(({ text, isCorrect }) => ({ text, isCorrect })),
+  };
+
   try {
-    successMessage.value = "";
-    errorMessage.value = "";
-
-    // ✅ Validate topic selection
-    if (!selectedTopic.value) {
-      console.error("❌ No topic selected!", selectedTopic.value);
-      errorMessage.value = "Please select a topic.";
-      return;
-    }
-
-    // ✅ Validate question input
-    if (!question.value.trim()) {
-      console.error("❌ Question is empty!");
-      errorMessage.value = "Question cannot be empty.";
-      return;
-    }
-
-    // ✅ Validate options
-    if (!options.value || options.value.length < 2) {
-      console.error("❌ Invalid Options:", options.value);
-      errorMessage.value = "At least two options are required.";
-      return;
-    }
-
-    // ✅ Ensure at least one correct option
-    if (!options.value.some((option) => option.isCorrect)) {
-      console.error("❌ No correct option selected!");
-      errorMessage.value = "At least one option must be marked as correct.";
-      return;
-    }
-
-    console.log("📤 Sending Quiz Data:", {
-      topic: selectedTopic.value,
-      question: question.value,
-      options: options.value.map((opt) => ({
-        text: opt.text,
-        isCorrect: opt.isCorrect,
-      })),
-    });
-
     let response;
     if (isEditing.value && props.quiz?._id) {
-      // **EDIT MODE**
-      response = await api.put(`/quizzes/${props.quiz._id}`, {
-        topic: selectedTopic.value,
-        question: question.value,
-        options: options.value.map((opt) => ({
-          text: opt.text,
-          isCorrect: opt.isCorrect,
-        })),
-      });
-      console.log("✅ Quiz Updated:", response.data);
+      response = await api.put(`/quizzes/${props.quiz._id}`, quizData);
       successMessage.value = "✅ Quiz updated successfully!";
     } else {
-      // **ADD MODE**
-      response = await api.post("/quizzes", {
-        topic: selectedTopic.value,
-        question: question.value,
-        options: options.value.map((opt) => ({
-          text: opt.text,
-          isCorrect: opt.isCorrect,
-        })),
-      });
-      console.log("✅ Quiz Added:", response.data);
+      response = await api.post("/quizzes", quizData);
       successMessage.value = "✅ Quiz added successfully!";
     }
 
     emit("quizUpdated", response.data);
     resetForm();
   } catch (error) {
-    console.error("❌ Error Submitting Quiz:", error);
     errorMessage.value = "Failed to submit quiz.";
+    console.error("❌ Error Submitting Quiz:", error);
   }
 };
 
