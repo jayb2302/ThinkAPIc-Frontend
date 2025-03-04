@@ -1,51 +1,63 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useQuizStore } from "../../stores/quizStore";
 import ManageQuizForm from "./ManageQuizForm.vue";
-import type { Quiz } from "../../types/Quiz";
+import type { Quiz, QuizOption } from "../../types/Quiz";
 
 const quizStore = useQuizStore();
 const showForm = ref(false);
 const selectedQuiz = ref<Quiz | null>(null);
+const successMessage = ref<string | null>(null);
 
 // Fetch quizzes on component mount
 onMounted(() => {
   quizStore.fetchQuizzes();
 });
 
-// Automatically update the displayed quiz list
-watch(() => quizStore.quizzes, (newQuizzes) => {
-  console.log("✅ Quizzes Updated:", newQuizzes);
-});
+// Computed property instead of watch() for better performance
+//// - computed() automatically updates when quizStore.quizzes changes
+//// - More efficient since it only recalculates when needed
+const quizList = computed(() => quizStore.quizzes);
 
+// Function to prepare quiz for editing
+const prepareQuizForEdit = (quiz: Quiz) => ({
+  ...quiz,
+  options: quiz.options.map((opt: QuizOption, index: number) => ({
+    _id: opt._id || "",
+    text: opt.text || "",
+    isCorrect: opt.isCorrect ?? false,
+    order: opt.order ?? index + 1,
+  })),
+});
 // Open edit mode
 const editQuiz = (quiz: Quiz) => {
-  selectedQuiz.value = quiz; 
+  selectedQuiz.value = prepareQuizForEdit(quiz);
   showForm.value = true;
 };
 
 // Handle quiz submission (refresh list after adding/editing)
-const handleQuizUpdated = async (updatedQuiz: Quiz) => {
-  
-  if (!updatedQuiz) return;
-
-  // Find the existing quiz and update the store
-  const updatedQuizzes = quizStore.quizzes.map(q =>
-    q._id === updatedQuiz._id ? updatedQuiz : q
-  );
-
-  // Assign the new array to trigger Vue's reactivity
-  quizStore.quizzes = updatedQuizzes;
-  await quizStore.fetchQuizzes(); 
+//
+const handleQuizUpdated = async () => {
+  await quizStore.fetchQuizzes();
+  successMessage.value = "✅ Quiz updated successfully!";
   showForm.value = false;
   selectedQuiz.value = null;
+
+  setTimeout(() => {
+    successMessage.value = null;
+  }, 3000);
 };
 
 // Delete quiz
 const deleteQuiz = async (quizId: string) => {
   if (confirm("Are you sure you want to delete this quiz?")) {
     await quizStore.deleteQuizById(quizId);
-    await quizStore.fetchQuizzes(); 
+    await quizStore.fetchQuizzes();
+    successMessage.value = "✅ Quiz deleted successfully!";
+
+    setTimeout(() => {
+      successMessage.value = null;
+    }, 3000);
   }
 };
 
@@ -57,6 +69,10 @@ const closeForm = () => {
 </script>
 
 <template>
+    <!-- ✅ Success Message -->
+    <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
+      {{ successMessage }}
+    </div>
   <div class="p-6 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
@@ -87,7 +103,7 @@ const closeForm = () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="quiz in quizStore.quizzes" :key="quiz._id" class="border-b">
+        <tr v-for="quiz in quizList" :key="quiz._id" class="border-b">
           <td class="border px-4 py-2">{{ quiz.question }}</td>
           <td class="border px-4 py-2">
             {{ quiz.topic?.title || "No Topic" }}
