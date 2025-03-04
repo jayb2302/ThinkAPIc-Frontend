@@ -1,67 +1,73 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { getQuizzes, getQuizById, getQuizzesByTopic, addQuiz, updateQuiz, deleteQuiz } from "../services/quizService";
+import {
+  getQuizzes,
+  getQuizById,
+  getQuizzesByTopic,
+  addQuiz,
+  updateQuiz,
+  deleteQuiz,
+} from "../services/quizService";
 import type { Quiz, QuizOption } from "../types/Quiz";
 
 export const useQuizStore = defineStore("quizzes", () => {
   const quizzes = ref<Quiz[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-  
+
+  // 🔹 Format options consistently
+  const formatOptions = (options: QuizOption[]) =>
+    options.map((opt, index) => ({
+      _id: opt._id || "",
+      text: opt.text.trim(),
+      isCorrect: Boolean(opt.isCorrect),
+      order: opt.order ?? index + 1, // Assign order if missing
+    }));
+
+  // 🔹 Update quizzes in store efficiently
+  const updateStore = (quiz: Quiz) => {
+    const index = quizzes.value.findIndex((q) => q._id === quiz._id);
+    if (index !== -1) {
+      quizzes.value[index] = quiz; // Update existing quiz
+    } else {
+      quizzes.value.push(quiz); // Add new quiz
+    }
+  };
+
+  // 🔹 Handle API errors
+  const handleError = (message: string, err: unknown) => {
+    console.error(`❌ ${message}:`, err);
+    error.value = message;
+  };
+
   // ✅ Fetch all quizzes
   const fetchQuizzes = async () => {
-    loading.value = true;
-    error.value = null;
     try {
-      let data: Quiz[] = await getQuizzes(); // ✅ Ensure `data` is an array of `Quiz`
-  
-      // ✅ Explicitly define `quiz`, `opt`, and `index` types
-      data = data.map((quiz: Quiz) => ({
+      loading.value = true;
+      const data = await getQuizzes();
+      quizzes.value = data.map((quiz: Quiz) => ({
         ...quiz,
-        options: quiz.options.map((opt: QuizOption, index: number) => ({
-          _id: opt._id || "",
-          text: opt.text || "",
-          isCorrect: opt.isCorrect ?? false,
-          order: opt.order ?? index + 1, // ✅ Assign order if missing
-        })),
+        options: formatOptions(quiz.options),
       }));
-  
-      quizzes.value = data;
     } catch (err) {
-      console.error("❌ Error fetching quizzes:", err);
-      error.value = "Failed to load quizzes.";
+      handleError("Failed to load quizzes", err);
     } finally {
       loading.value = false;
     }
   };
 
-  // ✅ Fetch a single quiz by ID
+  // ✅ Fetch a single quiz
   const fetchQuizById = async (id: string) => {
-    loading.value = true;
-    error.value = null;
     try {
-      let quiz = await getQuizById(id);
-
+      loading.value = true;
+      const quiz = await getQuizById(id);
       if (quiz) {
-        // ✅ Assign order if missing
-        quiz = {
-          ...quiz,
-          options: quiz.options.map((opt: QuizOption, index: number) => ({
-            _id: opt._id || "",
-            text: opt.text || "",
-            isCorrect: opt.isCorrect ?? false,
-            order: opt.order ?? index + 1, 
-          })),
-        };
-
-        if (!quizzes.value.some(q => q._id === quiz._id)) {
-          quizzes.value.push(quiz); 
-        }
+        const formattedQuiz = { ...quiz, options: formatOptions(quiz.options) };
+        updateStore(formattedQuiz);
+        return formattedQuiz;
       }
-      return quiz;
     } catch (err) {
-      console.error("❌ Error fetching quiz:", err);
-      error.value = "Failed to load quiz.";
+      handleError("Failed to load quiz", err);
     } finally {
       loading.value = false;
     }
@@ -69,95 +75,38 @@ export const useQuizStore = defineStore("quizzes", () => {
 
   // ✅ Fetch quizzes by topic
   const fetchQuizzesByTopic = async (topicId: string) => {
-    loading.value = true;
-    error.value = null;
     try {
-      let data: Quiz[] = await getQuizzesByTopic(topicId);
-
-      // ✅ Assign order if missing
-      data = data.map((quiz: Quiz) => ({
+      loading.value = true;
+      const data = await getQuizzesByTopic(topicId);
+      quizzes.value = data.map((quiz: Quiz) => ({
         ...quiz,
-        options: quiz.options.map((opt: QuizOption, index: number) => ({
-          _id: opt._id || "",
-          text: opt.text || "",
-          isCorrect: opt.isCorrect ?? false,
-          order: opt.order ?? index + 1, 
-        })),
+        options: formatOptions(quiz.options),
       }));
-
-      quizzes.value = data;
     } catch (err) {
-      console.error("❌ Error fetching quizzes by topic:", err);
-      error.value = "Failed to load quizzes.";
+      handleError("Failed to load quizzes by topic", err);
     } finally {
       loading.value = false;
     }
   };
 
-  // ✅ Create a new quiz
-  const createQuiz = async (quizData: Omit<Quiz, "_id" | "createdAt" | "updatedAt">) => {
-    loading.value = true;
-    error.value = null;
+  // ✅ Save quiz (Create or Update)
+  const saveQuiz = async (
+    id: string | null,
+    quizData: Omit<Quiz, "_id" | "createdAt" | "updatedAt">
+  ) => {
     try {
-      // ✅ Assign order to options before creating
-      const formattedQuizData = {
+      loading.value = true;
+      const formattedQuiz = {
         ...quizData,
-        options: quizData.options.map((opt: QuizOption, index: number) => ({
-          text: opt.text.trim(),
-          isCorrect: Boolean(opt.isCorrect),
-          order: opt.order ?? index + 1, 
-        })),
+        options: formatOptions(quizData.options),
       };
-
-      const newQuiz = await addQuiz(formattedQuizData);
-      if (!quizzes.value.some(q => q._id === newQuiz._id)) {
-        quizzes.value = [...quizzes.value, newQuiz];
-      }
-      return newQuiz;
+      const response = id
+        ? await updateQuiz(id, formattedQuiz)
+        : await addQuiz(formattedQuiz);
+      if (response) updateStore(response);
+      return response;
     } catch (err) {
-      console.error("❌ Error adding quiz:", err);
-      error.value = "Failed to add quiz.";
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  // ✅ Update an existing quiz
-  const updateQuizById = async (id: string, quizData: Omit<Quiz, "_id" | "createdAt" | "updatedAt">) => {
-    loading.value = true;
-    error.value = null;
-    try {
-      // ✅ Ensure order is assigned
-      const formattedQuizData = {
-        ...quizData,
-        options: quizData.options.map((opt: QuizOption, index: number) => ({
-          text: opt.text.trim(),
-          isCorrect: Boolean(opt.isCorrect),
-          order: opt.order ?? index + 1, 
-        })),
-      };
-
-      const updatedQuiz = await updateQuiz(id, formattedQuizData);
-      if (updatedQuiz) {
-        const index = quizzes.value.findIndex(q => q._id === id);
-        if (index !== -1) {
-          quizzes.value = [
-            ...quizzes.value.slice(0, index),
-            updatedQuiz,
-            ...quizzes.value.slice(index + 1)
-          ];
-        } else {
-          console.warn("⚠️ Updated quiz not found in store, refetching quizzes.");
-          await fetchQuizzes(); 
-        }
-      } else {
-        console.warn("⚠️ Updated quiz returned null, fetching fresh data.");
-        await fetchQuizzes(); 
-      }
-      return updatedQuiz;
-    } catch (err) {
-      console.error("❌ Error updating quiz:", err);
-      error.value = "Failed to update quiz.";
+      handleError(`Failed to ${id ? "update" : "add"} quiz`, err);
     } finally {
       loading.value = false;
     }
@@ -165,18 +114,12 @@ export const useQuizStore = defineStore("quizzes", () => {
 
   // ✅ Delete a quiz
   const deleteQuizById = async (id: string) => {
-    loading.value = true;
-    error.value = null;
     try {
-      const quizExists = quizzes.value.some(q => q._id === id);
-      if (!quizExists) {
-        console.warn("⚠️ Trying to delete a quiz that doesn't exist in state.");
-      }
+      loading.value = true;
       await deleteQuiz(id);
       quizzes.value = quizzes.value.filter((quiz) => quiz._id !== id);
     } catch (err) {
-      console.error("❌ Error deleting quiz:", err);
-      error.value = "Failed to delete quiz.";
+      handleError("Failed to delete quiz", err);
     } finally {
       loading.value = false;
     }
@@ -189,8 +132,7 @@ export const useQuizStore = defineStore("quizzes", () => {
     fetchQuizzes,
     fetchQuizById,
     fetchQuizzesByTopic,
-    createQuiz,
-    updateQuizById,
-    deleteQuizById
+    saveQuiz,
+    deleteQuizById,
   };
 });
