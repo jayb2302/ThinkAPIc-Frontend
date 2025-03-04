@@ -39,8 +39,13 @@ const editQuiz = (quiz: Quiz) => {
 //
 const handleQuizUpdated = async () => {
   await quizStore.fetchQuizzes();
+  successMessage.value = "✅ Quiz updated successfully!";
   showForm.value = false;
   selectedQuiz.value = null;
+
+  setTimeout(() => {
+    successMessage.value = null;
+  }, 3000);
 };
 
 // Delete quiz
@@ -48,6 +53,11 @@ const deleteQuiz = async (quizId: string) => {
   if (confirm("Are you sure you want to delete this quiz?")) {
     await quizStore.deleteQuizById(quizId);
     await quizStore.fetchQuizzes();
+    successMessage.value = "✅ Quiz deleted successfully!";
+
+    setTimeout(() => {
+      successMessage.value = null;
+    }, 3000);
   }
 };
 
@@ -59,11 +69,11 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md">
     <!-- ✅ Success Message -->
     <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
       {{ successMessage }}
     </div>
+  <div class="p-6 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
     <button
