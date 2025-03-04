@@ -2,7 +2,7 @@
 
 ### 🚀 Admin Panel for Managing Quizzes, Topics, and Courses
 
-This is the **frontend** for ThinkAPIc, a platform designed to help web development students prepare for exams. It provides an **admin panel** where users can manage **course topics, quizzes, and study materials**. Built with **Vue 3 and Vite**, it integrates seamlessly with the ThinkAPIc REST API.
+This is the **frontend** for ThinkAPIc, a platform designed to help web development students prepare for exams. It provides an **admin panel** where admin/teacher can manage **course topics, quizzes, and study materials**. Built with **Vue 3 and Vite**, it integrates with the ThinkAPIc REST API.
 
 ## 🌟 Features
 - 📌 **Quiz Management** – Create, update, and delete quizzes.
