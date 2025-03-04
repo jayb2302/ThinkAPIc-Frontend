@@ -38,32 +38,31 @@ const resetForm = () => {
   isEditing.value = false;
 };
 
+const setTopicFields = (topic: Topic) => {
+  title.value = topic.title;
+  week.value = topic.week || 4;
+  summary.value = topic.summary || "Topic Summary";
+  keyPoints.value = topic.key_points || [];
+  resources.value = topic.resources || [];
+};
+
+const ensureCoursesLoaded = async () => {
+  if (!courseStore.courses.length) await courseStore.fetchCourses();
+};
+
+const extractCourseId = (course: string | { _id: string } | null): string | null =>
+  course && typeof course === "object" ? course._id : course || null;
+
 // Watch for existing topic (edit mode)
 watch(
   () => props.topic,
   async (newTopic) => {
-    if (newTopic) {
-      isEditing.value = true;
-      title.value = newTopic.title;
-      week.value = newTopic.week || 4;
-      summary.value = newTopic.summary || "Topic Summary";
+    if (!newTopic) return resetForm();
 
-      // ✅ Ensure courses are loaded before assigning selectedCourse
-      if (!courseStore.courses.length) {
-        await courseStore.fetchCourses();
-      }
-
-      // ✅ Assign the correct course ID
-      selectedCourse.value =
-        typeof newTopic.course === "object"
-          ? newTopic.course._id // If course is an object, get its ID
-          : newTopic.course || null; // If course is just an ID string
-
-      keyPoints.value = newTopic.key_points || [];
-      resources.value = newTopic.resources || [];
-    } else {
-      resetForm();
-    }
+    isEditing.value = true;
+    setTopicFields(newTopic);
+    await ensureCoursesLoaded();
+    selectedCourse.value = extractCourseId(newTopic.course);
   },
   { immediate: true }
 );
@@ -95,47 +94,72 @@ const removeResource = (index: number) => {
 };
 
 // ✅ Submit topic
+const validateForm = (): boolean => {
+  const isInvalid = [
+    !title.value,
+    week.value === null || isNaN(Number(week.value)),
+    !summary.value,
+    !selectedCourse.value,
+  ].some(Boolean);
+
+  if (isInvalid) {
+    errorMessage.value = "All fields are required.";
+    return false;
+  }
+
+  return true;
+};
+
+const getTopicData = () => ({
+  title: title.value,
+  week: week.value,
+  summary: summary.value,
+  course: selectedCourse.value,
+  key_points: keyPoints.value,
+  resources: resources.value,
+});
+
+const handleApiResponse = (message: string) => {
+  successMessage.value = message;
+  emit("topicUpdated");
+  resetForm();
+};
+
 const submitTopic = async () => {
   try {
-    successMessage.value = "";
-    errorMessage.value = "";
+    resetMessages();
+    if (!validateForm()) return;
 
-    if (!title.value || week.value === null || isNaN(week.value) || !summary.value || !selectedCourse.value) {
-      errorMessage.value = "All fields are required.";
-      return;
-    }
+    console.log("📤 Submitting Topic:", getTopicData());
 
-    const topicData = {
-      title: title.value,
-      week: week.value,
-      summary: summary.value,
-      course: selectedCourse.value,
-      key_points: keyPoints.value,
-      resources: resources.value,
-    };
-
-    console.log("📤 Submitting Topic:", topicData);
-
-    let response;
-    if (isEditing.value && props.topic?._id) {
-      response = await api.put(`/topics/${props.topic._id}`, topicData);
-      successMessage.value = "✅ Topic updated successfully!";
-    } else {
-      response = await api.post("/topics", topicData);
-      successMessage.value = "✅ Topic added successfully!";
-    }
-
-    emit("topicUpdated", response.data); 
-    resetForm();
-  } catch (error: any) {
-    console.error("❌ Error submitting topic:", error);
-
-    if (error.response && error.response.data) {
-      errorMessage.value = error.response.data.error || "Failed to submit topic.";
-    } else {
-      errorMessage.value = "Something went wrong. Please try again.";
-    }
+    await saveTopic();
+    handleApiResponse(getSuccessMessage());
+  } catch (error) {
+    handleError(error);
   }
+};
+
+// 🔹 Reset success & error messages
+const resetMessages = () => {
+  successMessage.value = "";
+  errorMessage.value = "";
+};
+
+// 🔹 Make API request based on edit mode
+const saveTopic = async () => {
+  const url = isEditing.value ? `/topics/${props.topic!._id}` : "/topics";
+  const method = isEditing.value ? "put" : "post";
+  return api[method](url, getTopicData());
+};
+
+// 🔹 Get the appropriate success message
+const getSuccessMessage = () =>
+  isEditing.value ? "✅ Topic updated successfully!" : "✅ Topic added successfully!";
+
+// 🔹 Handle API errors
+const handleError = (error: any) => {
+  console.error("❌ Error submitting topic:", error);
+  errorMessage.value = error.response?.data?.error || "Something went wrong. Please try again.";
 };
 
 // Close form
