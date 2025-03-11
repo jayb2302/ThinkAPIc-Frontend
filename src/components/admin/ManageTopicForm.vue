@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import api from "../../services/api";
 import { useCourseStore } from "../../stores/courseStore";
 import type { Topic } from "../../types/Topic";
 
 const emit = defineEmits(["close", "topicUpdated"]);
 
-const props = defineProps<{ topic?: Topic | null }>();
+const props = defineProps<{ topic?: Topic | null; courseId?: string | null }>();
 const courseStore = useCourseStore();
 const title = ref("");
 const week = ref<number | null>(null);
@@ -25,12 +25,18 @@ onMounted(async () => {
   await courseStore.fetchCourses();
 });
 
+const selectedCourseTitle = computed(() => {
+  return (
+    courseStore.courses.find((course) => course._id === selectedCourse.value)
+      ?.title || ""
+  );
+});
 // Reset form
 const resetForm = () => {
   title.value = "";
-  week.value = null;
+  week.value = 1;
   summary.value = "";
-  selectedCourse.value = null;
+  selectedCourse.value = courseStore.courses[0]?._id ?? null;
   keyPoints.value = [];
   newKeyPoint.value = "";
   resources.value = [];
@@ -40,7 +46,7 @@ const resetForm = () => {
 
 const setTopicFields = (topic: Topic) => {
   title.value = topic.title;
-  week.value = topic.week || 4;
+  week.value = topic.week;
   summary.value = topic.summary || "Topic Summary";
   keyPoints.value = topic.key_points || [];
   resources.value = topic.resources || [];
@@ -50,19 +56,28 @@ const ensureCoursesLoaded = async () => {
   if (!courseStore.courses.length) await courseStore.fetchCourses();
 };
 
-const extractCourseId = (course: string | { _id: string } | null): string | null =>
-  course && typeof course === "object" ? course._id : course || null;
+// const extractCourseId = (
+//   course: string | { _id: string } | null
+// ): string | null =>
+//   course && typeof course === "object" ? course._id : course || null;
 
 // Watch for existing topic (edit mode)
 watch(
   () => props.topic,
   async (newTopic) => {
-    if (!newTopic) return resetForm();
-
+    if (!newTopic) {
+      resetForm();
+      isEditing.value = false;
+      selectedCourse.value = props.courseId ?? null;
+      return;
+    }
     isEditing.value = true;
     setTopicFields(newTopic);
     await ensureCoursesLoaded();
-    selectedCourse.value = extractCourseId(newTopic.course);
+    selectedCourse.value =
+      newTopic.course && typeof newTopic.course === "object"
+        ? newTopic.course._id
+        : newTopic.course;
   },
   { immediate: true }
 );
@@ -154,12 +169,15 @@ const saveTopic = async () => {
 
 // 🔹 Get the appropriate success message
 const getSuccessMessage = () =>
-  isEditing.value ? "✅ Topic updated successfully!" : "✅ Topic added successfully!";
+  isEditing.value
+    ? "✅ Topic updated successfully!"
+    : "✅ Topic added successfully!";
 
 // 🔹 Handle API errors
 const handleError = (error: any) => {
   console.error("❌ Error submitting topic:", error);
-  errorMessage.value = error.response?.data?.error || "Something went wrong. Please try again.";
+  errorMessage.value =
+    error.response?.data?.error || "Something went wrong. Please try again.";
 };
 
 // Close form
@@ -171,51 +189,134 @@ const closeForm = () => {
 
 <template>
   <div class="p-6 bg-white shadow rounded-md">
-    <h1 class="text-2xl font-bold mb-4">{{ isEditing ? "Edit Topic" : "Add New Topic" }}</h1>
+    <h1 class="text-2xl font-bold mb-4">
+      {{ isEditing ? "Edit Topic" : "Add New Topic" }}
+    </h1>
 
     <form @submit.prevent="submitTopic" class="p-4 shadow-md rounded-md">
       <label class="block mb-2">Topic Title:</label>
-      <input v-model="title" type="text" class="border p-2 w-full mb-4" required />
+      <input
+        v-model="title"
+        type="text"
+        class="border p-2 w-full mb-4"
+        required
+      />
 
       <label class="block mb-2">Week:</label>
-      <input v-model="week" type="number" class="border p-2 w-full mb-4" required />
+      <input
+        v-model="week"
+        type="number"
+        class="border p-2 w-full mb-4"
+        required
+      />
 
       <label class="block mb-2">Summary:</label>
-      <textarea v-model="summary" class="border p-2 w-full mb-4" required></textarea>
+      <textarea
+        v-model="summary"
+        class="border p-2 w-full mb-4"
+        required
+      ></textarea>
 
       <label class="block mb-2">Select Course:</label>
-      <select v-model="selectedCourse" class="border p-2 w-full mb-4">
+      <select v-model="selectedCourseTitle" class="border p-2 w-full mb-4">
         <option disabled value="">-- Choose a course --</option>
-        <option v-for="course in courseStore.courses" :key="course._id" :value="course._id">
+        <option
+          v-for="course in courseStore.courses"
+          :key="course._id"
+          :value="course._id"
+        >
           {{ course.title }}
         </option>
       </select>
 
       <!-- Key Points -->
       <label class="block mb-2">Key Points:</label>
-      <div v-for="(point, index) in keyPoints" :key="index" class="flex items-center mb-2">
+      <div
+        v-for="(point, index) in keyPoints"
+        :key="index"
+        class="flex items-center mb-2"
+      >
         <span class="flex-grow">{{ point }}</span>
-        <button type="button" @click="removeKeyPoint(index)" class="text-red-500 ml-2">❌</button>
+        <button
+          type="button"
+          @click="removeKeyPoint(index)"
+          class="text-red-500 ml-2"
+        >
+          ❌
+        </button>
       </div>
-      <input v-model="newKeyPoint" type="text" class="border p-2 w-full mb-2" placeholder="Add a key point" />
-      <button type="button" @click="addKeyPoint" class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4">➕ Add Key Point</button>
+      <input
+        v-model="newKeyPoint"
+        type="text"
+        class="border p-2 w-full mb-2"
+        placeholder="Add a key point"
+      />
+      <button
+        type="button"
+        @click="addKeyPoint"
+        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
+      >
+        ➕ Add Key Point
+      </button>
 
       <!-- Resources -->
       <label class="block mb-2">Resources:</label>
-      <div v-for="(resource, index) in resources" :key="index" class="flex items-center mb-2">
-        <span class="flex-grow">{{ resource.title }} - <a :href="resource.link" target="_blank" class="text-blue-500">{{ resource.link }}</a></span>
-        <button type="button" @click="removeResource(index)" class="text-red-500 ml-2">❌</button>
+      <div
+        v-for="(resource, index) in resources"
+        :key="index"
+        class="flex items-center mb-2"
+      >
+        <span class="flex-grow"
+          >{{ resource.title }} -
+          <a :href="resource.link" target="_blank" class="text-blue-500">{{
+            resource.link
+          }}</a></span
+        >
+        <button
+          type="button"
+          @click="removeResource(index)"
+          class="text-red-500 ml-2"
+        >
+          ❌
+        </button>
       </div>
-      <input v-model="newResource.title" type="text" class="border p-2 w-full mb-2" placeholder="Resource title" />
-      <input v-model="newResource.link" type="text" class="border p-2 w-full mb-2" placeholder="Resource link" />
-      <button type="button" @click="addResource" class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4">➕ Add Resource</button>
+      <input
+        v-model="newResource.title"
+        type="text"
+        class="border p-2 w-full mb-2"
+        placeholder="Resource title"
+      />
+      <input
+        v-model="newResource.link"
+        type="text"
+        class="border p-2 w-full mb-2"
+        placeholder="Resource link"
+      />
+      <button
+        type="button"
+        @click="addResource"
+        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
+      >
+        ➕ Add Resource
+      </button>
 
-      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md">
+      <button
+        type="submit"
+        class="bg-green-500 text-white px-4 py-2 rounded-md"
+      >
         {{ isEditing ? "Update Topic" : "Submit Topic" }}
       </button>
-      <button type="button" @click="closeForm" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</button>
+      <button
+        type="button"
+        @click="closeForm"
+        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
+      >
+        Cancel
+      </button>
 
-      <p v-if="successMessage" class="text-green-500 mt-4">{{ successMessage }}</p>
+      <p v-if="successMessage" class="text-green-500 mt-4">
+        {{ successMessage }}
+      </p>
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>
   </div>

@@ -20,5 +20,19 @@ export const useCourseStore = defineStore('courses', () => {
     }
   };
 
-  return { courses, loading, error, fetchCourses };
+  // delete course
+  const deleteCourse = async (id: string) => {
+    loading.value = true;
+    try {
+      await deleteCourse(id);
+      courses.value = courses.value.filter((course) => course._id !== id);
+    } catch (err) {
+      console.error('Error deleting course:', err);
+      error.value = 'Failed to delete course';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  return { courses, loading, error, fetchCourses, deleteCourse };
 });
