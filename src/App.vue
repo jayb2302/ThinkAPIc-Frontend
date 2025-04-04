@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import Home from '@/pages/Home.vue'
-import QuizList from '@/components/quizzes/QuizList.vue'
+
 </script>
 
 <template>
