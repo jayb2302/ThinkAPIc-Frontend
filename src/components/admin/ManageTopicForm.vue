@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import api from "../../services/api";
 import { useCourseStore } from "../../stores/courseStore";
 import type { Topic } from "../../types/Topic";
@@ -11,7 +11,7 @@ const courseStore = useCourseStore();
 const title = ref("");
 const week = ref<number | null>(null);
 const summary = ref("");
-const selectedCourse = ref<string | null>(null);
+const selectedCourse = ref<string | null>(props.courseId || null);
 const keyPoints = ref<string[]>([]);
 const newKeyPoint = ref("");
 const resources = ref<{ title: string; link: string }[]>([]);
@@ -25,12 +25,6 @@ onMounted(async () => {
   await courseStore.fetchCourses();
 });
 
-const selectedCourseTitle = computed(() => {
-  return (
-    courseStore.courses.find((course) => course._id === selectedCourse.value)
-      ?.title || ""
-  );
-});
 // Reset form
 const resetForm = () => {
   title.value = "";
@@ -66,18 +60,28 @@ watch(
   () => props.topic,
   async (newTopic) => {
     if (!newTopic) {
+      // When there's no topic, reset the form and initialize courseId
       resetForm();
       isEditing.value = false;
       selectedCourse.value = props.courseId ?? null;
-      return;
+    } else {
+      // When there's an existing topic (edit mode)
+      isEditing.value = true;
+      setTopicFields(newTopic);
+      await ensureCoursesLoaded();
+      selectedCourse.value = newTopic.course._id;
     }
-    isEditing.value = true;
-    setTopicFields(newTopic);
-    await ensureCoursesLoaded();
-    selectedCourse.value =
-      newTopic.course && typeof newTopic.course === "object"
-        ? newTopic.course._id
-        : newTopic.course;
+  },
+  { immediate: true }
+);
+
+// Watch for courseId to ensure selectedCourse is set correctly when creating a new topic
+watch(
+  () => props.courseId,
+  (newCourseId) => {
+    if (newCourseId) {
+      selectedCourse.value = newCourseId;
+    }
   },
   { immediate: true }
 );
@@ -134,9 +138,9 @@ const getTopicData = () => ({
   resources: resources.value,
 });
 
-const handleApiResponse = (message: string) => {
+const handleApiResponse = (newTopic: Topic, message: string) => {
   successMessage.value = message;
-  emit("topicUpdated");
+  emit("topicUpdated", newTopic);
   resetForm();
 };
 
@@ -147,8 +151,9 @@ const submitTopic = async () => {
 
     console.log("📤 Submitting Topic:", getTopicData());
 
-    await saveTopic();
-    handleApiResponse(getSuccessMessage());
+    const savedTopic = await saveTopic();
+    await courseStore.fetchCourses();
+    handleApiResponse(savedTopic, getSuccessMessage());
   } catch (error) {
     handleError(error);
   }
@@ -161,10 +166,11 @@ const resetMessages = () => {
 };
 
 // 🔹 Make API request based on edit mode
-const saveTopic = async () => {
+const saveTopic = async (): Promise<Topic> => {
   const url = isEditing.value ? `/topics/${props.topic!._id}` : "/topics";
   const method = isEditing.value ? "put" : "post";
-  return api[method](url, getTopicData());
+  const response = await api[method](url, getTopicData());
+  return response.data;
 };
 
 // 🔹 Get the appropriate success message
@@ -218,7 +224,7 @@ const closeForm = () => {
       ></textarea>
 
       <label class="block mb-2">Select Course:</label>
-      <select v-model="selectedCourseTitle" class="border p-2 w-full mb-4">
+      <select v-model="selectedCourse" class="border p-2 w-full mb-4">
         <option disabled value="">-- Choose a course --</option>
         <option
           v-for="course in courseStore.courses"

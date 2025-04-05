@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, type Ref } from "vue";
-import api from "../../services/api";
+import { ref, watch, onMounted, type Ref, nextTick } from "vue";
+import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import type { Course } from "../../types/Course";
-import type { Topic } from "../../types/Topic";
-import ManageTopicForm from "./ManageTopicForm.vue";
-import { computed } from "vue";
 
 // Emits and props
-const emit = defineEmits(["close", "courseUpdated"]);
+const emit = defineEmits(["close", "courseUpdated", "successMessage", "update:showTopicForm"]);
 const props = defineProps<{ course?: Course | null }>();
 const topicStore = useTopicStore();
+const courseStore = useCourseStore();
 
 // Form state
 const title = ref("");
@@ -25,29 +23,15 @@ const newSkill = ref("");
 const competencies = ref<string[]>([]);
 const newCompetency = ref("");
 const selectedTopics = ref<string[]>([]);
-const successMessage = ref("");
+const successMessage = ref<string>("");
 const errorMessage = ref("");
 const isEditing = ref(false);
 const showTopicForm = ref(false);
-const newCourseId = ref<string | null>(null);
+const createdCourseId = ref<string | null>(null);
 
 // Fetch topics on mount
 onMounted(async () => {
   await topicStore.fetchTopics();
-});
-
-const availableTopics = computed(() => {
-  if (isEditing.value && props.course?.topics) {
-    return topicStore.topics.filter((topic) =>
-      props.course?.topics.includes(topic._id)
-    );
-  }
-
-  if (!isEditing.value) {
-    return []; 
-  }
-
-  return topicStore.topics;
 });
 
 // **Reset Form**
@@ -81,6 +65,10 @@ watch(
       selectedTopics.value = Array.isArray(newCourse.topics)
         ? [...newCourse.topics]
         : [];
+      nextTick(() => {
+        showTopicForm.value = true;
+      });
+      emit('update:showTopicForm', true);
     } else {
       resetForm();
     }
@@ -116,64 +104,45 @@ const removeItem = (list: Ref<string[]>, index: number) => {
   list.value.splice(index, 1);
 };
 
-// **Handle New Topic Creation**
-const handleTopicCreated = (newTopic: Topic) => {
-  topicStore.topics.push(newTopic);
-  selectedTopics.value.push(newTopic._id);
-  showTopicForm.value = false;
-};
-
-// **Validate Form**
-const validateForm = () => {
-  if (
-    !title.value ||
-    !description.value ||
-    !teacher.value ||
-    scope.value === null ||
-    semester.value === null
-  ) {
-    errorMessage.value = "All fields are required.";
-    return false;
-  }
-  return true;
-};
-
 // **Submit Course**
+const buildCourseData = () => ({
+  title: title.value,
+  description: description.value,
+  teacher: teacher.value,
+  scope: String(scope.value),
+  semester: String(semester.value),
+  learningObjectives: learningObjectives.value,
+  skills: skills.value,
+  competencies: competencies.value,
+  topics: selectedTopics.value,
+});
+
 const submitCourse = async () => {
   try {
     successMessage.value = "";
     errorMessage.value = "";
 
-    if (!validateForm()) return;
-
-    const courseData = {
-      title: title.value,
-      description: description.value,
-      teacher: teacher.value,
-      scope: scope.value,
-      semester: semester.value,
-      learningObjectives: learningObjectives.value,
-      skills: skills.value,
-      competencies: competencies.value,
-      topics: selectedTopics.value,
-    };
+    const courseData = buildCourseData();
 
     let response;
     if (isEditing.value && props.course?._id) {
-      response = await api.put(`/courses/${props.course._id}`, courseData);
+      response = await courseStore.updateCourse(props.course._id, courseData);
+      successMessage.value = "✅ Course updated successfully!";
     } else {
-      response = await api.post("/courses", courseData);
-      newCourseId.value = response.data._id; // Store the new course ID
-    }
-    successMessage.value = isEditing.value
-      ? "✅ Course updated successfully!"
-      : "✅ Course added successfully!";
+      response = await courseStore.createCourse(courseData);
+      successMessage.value = "✅ Course added successfully!";
+      createdCourseId.value = response._id;
 
-    emit("courseUpdated", response.data);
+      emit("update:showTopicForm", true);
+    }
+
+    emit("courseUpdated", response);
+    emit("successMessage", successMessage.value); // Emit the success message to parent
     resetForm();
-  } catch (error) {
-    console.error("❌ Error submitting course:", error);
-    errorMessage.value = "Failed to submit course.";
+  } catch (err: any) {
+    console.error("❌ Error submitting course:", err);
+    errorMessage.value =
+      err.response?.data?.error || err.message || "Failed to submit course.";
   }
 };
 
@@ -230,6 +199,38 @@ const closeForm = () => {
         required
       />
 
+      <div v-if="isEditing">
+        <label class="block mb-2">Topics for this course:</label>
+        <ul class="mb-2">
+          <li
+            v-for="(topicId, index) in selectedTopics"
+            :key="topicId"
+            class="flex items-center justify-between"
+          >
+            <span>
+              {{
+                topicStore.topics.find((t) => t._id === topicId)?.title ||
+                "Unknown Topic"
+              }}
+            </span>
+            <button
+              type="button"
+              class="text-red-500 text-sm"
+              @click="selectedTopics.splice(index, 1)"
+            >
+              ✖ Remove
+            </button>
+          </li>
+        </ul>
+        <button
+          type="button"
+          class="bg-blue-500 text-white px-2 py-1 rounded mb-4"
+          @click="showTopicForm = true"
+        >
+          ➕ Add Topic
+        </button>
+      </div>
+
       <!-- **Reusable Inputs for Learning Objectives, Skills, Competencies** -->
       <div v-for="section in formSections" :key="section.label">
         <label class="block mb-2">{{ section.label }}:</label>
@@ -265,35 +266,6 @@ const closeForm = () => {
         </button>
       </div>
 
-      <!-- Topics Section -->
-      <label class="block mb-2">Select Topics:</label>
-      <div class="flex items-center gap-2 mb-2">
-        <select v-model="selectedTopics" class="border p-2 w-full" multiple>
-          <option
-            v-for="topic in availableTopics"
-            :key="topic._id"
-            :value="topic._id"
-          >
-            {{ topic.title }}
-          </option>
-        </select>
-        <button
-          type="button"
-          @click="showTopicForm = true"
-          class="bg-blue-500 text-white px-2 py-1 rounded-md"
-        >
-          ➕ Create New Topic
-        </button>
-      </div>
-
-      <!-- Show Topic Form -->
-      <ManageTopicForm
-        v-if="showTopicForm"
-        :courseId="props.course?._id"
-        @topic-updated="handleTopicCreated"
-        @close="showTopicForm = false"
-      />
-
       <button
         type="submit"
         class="bg-green-500 text-white px-4 py-2 rounded-md"
@@ -308,9 +280,6 @@ const closeForm = () => {
         Cancel
       </button>
 
-      <p v-if="successMessage" class="text-green-500 mt-4">
-        {{ successMessage }}
-      </p>
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>
   </div>
