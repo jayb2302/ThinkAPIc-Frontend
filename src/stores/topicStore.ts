@@ -9,13 +9,13 @@ import {
 } from "../services/topicService";
 import type { Topic } from "../types/Topic";
 import type { Course } from "../types/Course";
-import { useCourseStore } from "../stores/courseStore";
+import { useCourse } from "../stores/courseStore";
 
 export const useTopicStore = defineStore("topics", () => {
   const topics = ref<Topic[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-  const courseStore = useCourseStore();
+  const courseStore = useCourse();
 
   // 🔹 Fetch all topics
   const fetchTopics = async () => {

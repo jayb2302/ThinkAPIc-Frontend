@@ -23,7 +23,7 @@ const logout = () => {
   <div class="flex flex-col w-full">
     <!-- Sidebar Navigation -->
     <h2 class="text-xl font-bold">Admin Panel</h2>
-    <nav class="w-full flex justify-evenly items-baseline rounded bg-gray-300 p-1 space-y-4">
+    <nav class="w-full flex justify-evenly items-baseline rounded bg-gray-300 dark:bg-gray-800 p-1 space-y-4">
       <router-link to="/admin" class="block rounded-md p-2 hover:bg-gray-500">
         🏠 Dashboard
       </router-link>

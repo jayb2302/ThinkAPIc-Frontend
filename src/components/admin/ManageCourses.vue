@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { useCourseStore } from "../../stores/courseStore";
+import { useCourse } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import ManageCourseForm from "./ManageCourseForm.vue";
 import ManageTopicForm from "./ManageTopicForm.vue";
 import type { Topic } from "../../types/Topic";
 import type { Course } from "../../types/Course";
+import { getAdminUsers } from "../../services/userService";
+import type { AdminUser } from "../../types/User";
 
-const courseStore = useCourseStore();
+const courseStore = useCourse();
 const topicStore = useTopicStore();
 
 const showForm = ref(false);
@@ -15,6 +17,7 @@ const showTopicForm = ref(false); // Added ref for topic form
 const selectedCourse = ref<Course | null>(null);
 const createdCourseId = ref<string | null>(null); // Added ref for created course ID
 const successMessage = ref<string>("");
+const adminUsers = ref<AdminUser[]>([]); // Added ref for storing admin users
 
 // const getCourseTopics = (course: Course) => {
 //   return course.topics.map((id) => topicStore.topics.find((t) => t._id === id));
@@ -27,6 +30,11 @@ const getCourseTopics = (course: Course) => {
 onMounted(async () => {
   await courseStore.fetchCourses();
   await topicStore.fetchTopics();
+  try {
+    adminUsers.value = await getAdminUsers();
+  } catch (err) {
+    console.error("Failed to load admin users:", err);
+  }
 });
 
 // Automatically refresh when topics change
@@ -51,7 +59,7 @@ const handleCourseUpdated = (updatedCourse: Course) => {
     courseStore.courses[index] = updatedCourse;
     showForm.value = false;
     selectedCourse.value = null;
-    showTopicForm.value = false;
+    showTopicForm.value = true;
   } else {
     // When a new course is created
     courseStore.courses.push(updatedCourse);
@@ -121,7 +129,7 @@ const closeTopicForm = () => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md">
+  <div class="p-6 shadow rounded-md dark:bg-gray-800">
     <h2 class="text-2xl font-bold mb-4">Manage Courses</h2>
     <p v-if="successMessage" class="text-green-500 mt-4">
       {{ successMessage }}
@@ -147,7 +155,7 @@ const closeTopicForm = () => {
     <!-- Topic Form -->
     <ManageTopicForm
       v-show="showTopicForm"
-      :courseId="selectedCourse?._id || createdCourseId"
+      :courseId="selectedCourse?.['_id'] || null"
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
@@ -157,7 +165,7 @@ const closeTopicForm = () => {
       class="w-full table-auto text-left border-collapse border border-gray-300"
     >
       <thead>
-        <tr class="bg-gray-100">
+        <tr class="bg-gray-100 dark:bg-gray-700">
           <th class="border px-4 py-2">Title</th>
           <th class="border px-4 py-2">Teacher</th>
           <th class="border px-4 py-2">Topics</th>
@@ -171,7 +179,11 @@ const closeTopicForm = () => {
           class="border-b"
         >
           <td class="border px-4 py-2">{{ course.title }}</td>
-          <td class="border px-4 py-2">{{ course.teacher }}</td>
+          <td class="border px-4 py-2">
+            {{
+              adminUsers.find((admin) => admin._id === course.teacher)?.username || "Unknown"
+            }}
+          </td>
           <td class="border px-4 py-2">
             <ul>
               <li v-for="topic in getCourseTopics(course)" :key="topic?._id">

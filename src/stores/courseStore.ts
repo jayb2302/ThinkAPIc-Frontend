@@ -9,7 +9,7 @@ import {
 import type { Course } from "../types/Course";
 import type { Topic } from "../types/Topic";
 
-export const useCourseStore = defineStore("courses", () => {
+export const useCourse = defineStore("courses", () => {
   const courses = ref<Course[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
@@ -25,6 +25,8 @@ export const useCourseStore = defineStore("courses", () => {
       loading.value = false;
     }
   };
+
+ 
 
   const createCourse = async (courseData: Partial<Course>, topicsData: Partial<Topic>[] = []) => {
     loading.value = true;
@@ -58,6 +60,43 @@ export const useCourseStore = defineStore("courses", () => {
       loading.value = false;
     }
   };
+  
+  const submitCourse = async (
+    courseData: {
+      title: string;
+      description: string;
+      teacher: string;
+      scope: string | number;
+      semester: string | number;
+      learningObjectives: string[];
+      skills: string[];
+      competencies: string[];
+      topics: string[];
+    },
+    isEditing: boolean,
+    propsCourse: Course | null
+  ) => {
+    try {
+      // Convert `scope` and `semester` to strings
+      const data = {
+        ...courseData,
+        scope: String(courseData.scope),
+        semester: String(courseData.semester),
+      };
+  
+      let response;
+      if (isEditing && propsCourse?._id) {
+        response = await updateCourse(propsCourse._id, data);
+      } else {
+        response = await createCourse(data);
+      }
+  
+      return response;
+    } catch (err) {
+      console.error("Error submitting course:", err);
+      throw err;
+    }
+  };
 
   // delete course
   const deleteCourse = async (id: string) => {
@@ -81,5 +120,6 @@ export const useCourseStore = defineStore("courses", () => {
     deleteCourse,
     createCourse,
     updateCourse,
+    submitCourse,
   };
 });

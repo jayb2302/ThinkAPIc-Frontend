@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import api from "../../services/api";
-import { useCourseStore } from "../../stores/courseStore";
+import { useCourse } from "../../stores/courseStore";
 import type { Topic } from "../../types/Topic";
 
 const emit = defineEmits(["close", "topicUpdated"]);
 
 const props = defineProps<{ topic?: Topic | null; courseId?: string | null }>();
-const courseStore = useCourseStore();
+const courseStore = useCourse();
 const title = ref("");
 const week = ref<number | null>(null);
 const summary = ref("");
@@ -194,7 +194,7 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-6 bg-white shadow rounded-md">
+  <div class="p-6shadow rounded-md">
     <h1 class="text-2xl font-bold mb-4">
       {{ isEditing ? "Edit Topic" : "Add New Topic" }}
     </h1>

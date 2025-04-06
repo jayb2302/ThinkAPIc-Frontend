@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import api from "../services/api";
+import { loginUser } from "../services/userService";
 
 export const useUserStore = defineStore("user", () => {
   const token = ref<string | null>(localStorage.getItem("token"));
@@ -11,7 +11,7 @@ export const useUserStore = defineStore("user", () => {
     try {
       console.log("🔍 Sending Login Request:", { email, password });
 
-      const { data } = await api.post("/auth/login", { email, password });
+      const data = await loginUser(email, password);
 
       console.log("✅ Login Successful! Token Received:", data.token);
       console.log("✅ User Role:", data.user.role);
