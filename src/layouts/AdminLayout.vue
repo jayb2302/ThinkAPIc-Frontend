@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 import { useUserStore } from "../stores/userStore";
 import { storeToRefs } from "pinia";
+import MessageToast from "../components/ui/MessageToast.vue";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -45,6 +46,12 @@ const logout = () => {
       >
         🎓 Courses
       </router-link>
+      <router-link
+        to="/admin/manage-users"
+        class="block rounded-md p-2 hover:bg-gray-500"
+      >
+        👥 Users
+      </router-link>
       <button
         @click="logout"
         class="mt-5 bg-red-100 hover:bg-red-300 text-gray-800 p-2 rounded-md"
@@ -55,6 +62,7 @@ const logout = () => {
 
     <!-- Main Content Area -->
     <main class="flex-1 p-6 bg-gray-100 overflow-auto">
+      <MessageToast/>
       <router-view />
     </main>
   </div>

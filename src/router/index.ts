@@ -14,10 +14,12 @@ import AdminDashboard from "../pages/admin/AdminDashboard.vue";
 import AdminQuizzes from "../pages/admin/AdminQuizzes.vue";
 import AdminTopics from "../pages/admin/AdminTopics.vue";
 import AdminCourses from "../pages/admin/AdminCourses.vue";
+import AdminUsers from "../pages/admin/AdminUsers.vue";
 
 import ManageTopics from "../components/admin/ManageTopics.vue";
 import ManageQuizzes from "../components/admin/ManageQuizzes.vue";
 import ManageCourses from "../components/admin/ManageCourses.vue";
+import ManageUsers from "../components/admin/ManageUsers.vue";
 
 const routes = [
   {
@@ -39,9 +41,11 @@ const routes = [
       { path: "quizzes", component: AdminQuizzes },
       { path: "topics", component: AdminTopics },
       { path: "courses", component: AdminCourses },
+      { path: "users", component: AdminUsers },
       { path: "manage-quizzes", component: ManageQuizzes },
       { path: "manage-topics", component: ManageTopics },
       { path: "manage-courses", component: ManageCourses },
+      { path: "manage-users", component: ManageUsers },
     ],
   },
 ];
