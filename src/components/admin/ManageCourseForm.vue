@@ -14,13 +14,13 @@ const emit = defineEmits([
   "close",
   "courseUpdated",
   "successMessage",
+  "newCourseId",
   "update:showTopicForm",
 ]);
-const props = defineProps<{ course?: Course | null }>();
+const props = defineProps<{ course?: Course | null; courseId?: string | null }>();
 
 // Form state
 const newCourse = ref({
- 
   title: "",
   description: "",
   teacher: "",
@@ -37,7 +37,7 @@ const errorMessage = ref("");
 
 const isEditing = ref(false);
 const showTopicForm = ref(false);
-const selectedCourse = ref<string | null>(null);
+const selectedCourse = ref<string | null>(props.courseId || null);
 const newLearningObjective = ref("");
 const newSkill = ref("");
 const newCompetency = ref("");
@@ -60,7 +60,11 @@ const resetForm = () => {
   };
   isEditing.value = false;
 };
-
+watch(selectedCourse, (newId) => {
+  if (newId) {
+    console.log("✅ Selected course ID for topic form:", newId);
+  }
+});
 // **Watch for existing course (edit mode)**
 watch(
   () => props.course,
@@ -69,7 +73,6 @@ watch(
       isEditing.value = true;
       // Populate form with the existing course data
       newCourse.value = {
-        
         title: newCourseData.title,
         description: newCourseData.description,
         teacher: newCourseData.teacher,
@@ -78,12 +81,11 @@ watch(
         learningObjectives: newCourseData.learningObjectives || [],
         skills: newCourseData.skills || [],
         competencies: newCourseData.competencies || [],
-        topics: Array.isArray(newCourseData.topics) ? [...newCourseData.topics] : [],
+        topics: Array.isArray(newCourseData.topics)
+          ? [...newCourseData.topics]
+          : [],
       };
-
-      
     } else {
-      // Reset form if no course is selected
       resetForm();
     }
   },
@@ -99,9 +101,17 @@ const addItem = (list: Ref<string[]>, newItem: Ref<string>) => {
 
 // **Form Sections (Reusing Logic)**
 const formSections = [
-  { label: "Learning Objectives", list: ref(newCourse.value.learningObjectives), model: newLearningObjective },
+  {
+    label: "Learning Objectives",
+    list: ref(newCourse.value.learningObjectives),
+    model: newLearningObjective,
+  },
   { label: "Skills", list: ref(newCourse.value.skills), model: newSkill },
-  { label: "Competencies", list: ref(newCourse.value.competencies), model: newCompetency },
+  {
+    label: "Competencies",
+    list: ref(newCourse.value.competencies),
+    model: newCompetency,
+  },
 ];
 
 // **Helper to Remove Items**
@@ -124,13 +134,16 @@ const handleSubmit = async () => {
     successMessage.value = "✅ Course submitted successfully!";
     emit("courseUpdated", response);
     emit("successMessage", successMessage.value);
+    emit("newCourseId", response._id);
 
     selectedCourse.value = response._id;
     nextTick(() => {
-        showTopicForm.value = true;
-      });
-
+      showTopicForm.value = true;
+    });
+    
+    if (!isEditing.value) {
       emit("update:showTopicForm", true);
+    }
   } catch (err) {
     errorMessage.value = "❌ Failed to submit course";
   }
@@ -149,53 +162,80 @@ const closeForm = () => {
       {{ isEditing ? "Edit Course" : "Add New Course" }}
     </h1>
 
-    <form @submit.prevent="handleSubmit" class="p-4 shadow-md rounded-md">
-      <label class="block mb-2">Course Title:</label>
-      <input
-        v-model="newCourse.title"
-        type="text"
-        class="border p-2 w-full mb-4"
-        required
-      />
+    <form
+      @submit.prevent="handleSubmit"
+      class="p-4 shadow-md space-y-2 rounded-md"
+    >
+      <FloatLabel variant="on">
+        <InputText
+          v-model="newCourse.title"
+          type="text"
+          required
+          id="course_title"
+          fluid
+        />
+        <label for="course_title" class="">Course Title:</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Description:</label>
-      <textarea
-        v-model="newCourse.description"
-        class="border p-2 w-full mb-4"
-        required
-      ></textarea>
+      <FloatLabel variant="on">
+        <Textarea
+          id="course_description"
+          class="border w-full mb-4"
+          v-model="newCourse.description"
+          rows="5"
+          cols="30"
+          style="resize: none"
+          required
+          fluid
+        />
+        <label for="course_description" class="block mb-2">Description</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Teacher:</label>
+      <FloatLabel class="w-full" variant="on">
+        <Select
+          v-model="newCourse.teacher"
+          inputId="teacher_label"
+          :options="adminUsers"
+          optionLabel="username"
+          optionValue="_id"
+          class="w-full"
+          required
+          fluid
+        />
+        <label for="teacher_label">Teacher</label>
+      </FloatLabel>
+      <!-- <label class="block mb-2">Teacher:</label>
       <select
         v-model="newCourse.teacher"
         class="border p-2 w-full mb-4"
         required
       >
         <option value="" disabled>Select a teacher</option>
-        <option
-          v-for="admin in adminUsers"
-          :key="admin._id"
-          :value="admin._id"
-        >
+        <option v-for="admin in adminUsers" :key="admin._id" :value="admin._id">
           {{ admin.username }}
         </option>
-      </select>
+      </select> -->
 
-      <label class="block mb-2">Scope:</label>
-      <input
-        v-model="newCourse.scope"
-        type="text"
-        class="border p-2 w-full mb-4"
-        required
-      />
-
-      <label class="block mb-2">Semester:</label>
-      <input
-        v-model.number="newCourse.semester"
-        type="text"
-        class="border p-2 w-full mb-4"
-        required
-      />
+      <FloatLabel variant="on">
+        <InputText
+          v-model="newCourse.scope"
+          type="text"
+          required
+          id="course_scope"
+          fluid
+        />
+        <label for="course_scope" class="">Scope</label>
+      </FloatLabel>
+      <FloatLabel variant="on">
+        <InputText
+          v-model="newCourse.semester"
+          type="text"
+          required
+          id="course_semester"
+          fluid
+        />
+        <label for="course_semester" class="">Semester</label>
+      </FloatLabel>
 
       <div v-if="isEditing">
         <label class="block mb-2">Topics for this course:</label>
@@ -211,24 +251,25 @@ const closeForm = () => {
                 "Unknown Topic"
               }}
             </span>
-            <button
+            <Button
               type="button"
               class="text-red-500 text-sm"
               @click="newCourse.topics.splice(index, 1)"
             >
               ✖ Remove
-            </button>
+            </Button>
           </li>
         </ul>
-        <button
+        <Button
           type="button"
           class="bg-blue-500 text-white px-2 py-1 rounded mb-4"
           @click="emit('update:showTopicForm', true)"
         >
           ➕ Add Topic
-        </button>
+        </Button>
       </div>
 
+      <!-- **Reusable Inputs for Learning Objectives, Skills, Competencies** -->
       <!-- **Reusable Inputs for Learning Objectives, Skills, Competencies** -->
       <div v-for="section in formSections" :key="section.label">
         <label class="block mb-2">{{ section.label }}:</label>
@@ -239,44 +280,47 @@ const closeForm = () => {
           class="flex items-center mb-2"
         >
           <span class="flex-grow">{{ item }}</span>
-          <button
+          <Button
             type="button"
             @click="removeItem(section.list, index)"
             class="text-red-500 ml-2"
           >
             ❌
-          </button>
+          </Button>
         </div>
 
-        <input
-          v-model="section.model.value"
-          type="text"
-          class="border p-2 w-full mb-2"
-          placeholder="Add a value"
-        />
+        <FloatLabel variant="on">
+          <InputText
+            id="new_{{ section.label }}"
+            v-model="section.model.value"
+            type="text"
+            class="border p-2 w-full mb-2"
+          />
+          <label for="new_{{ section.label }}">{{ section.label }}</label>
+        </FloatLabel>
 
-        <button
+        <Button
           type="button"
           @click="addItem(section.list, section.model)"
           class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
         >
           ➕ Add {{ section.label }}
-        </button>
+        </Button>
       </div>
 
-      <button
+      <Button
         type="submit"
         class="bg-green-500 text-white px-4 py-2 rounded-md"
       >
         {{ isEditing ? "Update Course" : "Submit Course" }}
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
         @click="closeForm"
         class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
       >
         Cancel
-      </button>
+      </Button>
 
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>

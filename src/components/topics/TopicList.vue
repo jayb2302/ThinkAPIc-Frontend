@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import { useTopicStore } from '@/stores/topicStore';
+import { useTopicStore } from '../../stores/topicStore';
 
 const topicStore = useTopicStore();
 const { topics, loading, error, fetchTopics } = topicStore;
 
 onMounted(async () => {
   await fetchTopics();
-  console.log('Fetched topics:', topics.value); 
+  console.log('Fetched topics:', topics); 
 });
 
 // ✅ Watch for changes in topics and log them
@@ -17,13 +17,13 @@ watch(topics, (newTopics) => {
 </script>
 
 <template>
-  <div class="p-6 bg-gray-100 text-gray-600 min-h-screen">
+  <div class="p-6 bg-gray-100 text-gray-600 overflow-auto h-screen">
     <h2 class="text-2xl font-bold text-gray-800">Topics</h2>
 
     <div v-if="loading" class="text-blue-500 mt-4">Loading topics...</div>
     <div v-else-if="error" class="text-red-500 mt-4">{{ error }}</div>
 
-    <ul v-else class="mt-4 space-y-4">
+    <ul v-else class="mt-4 space-y-4" >
       <li
         v-for="topic in topics"
         :key="topic._id"

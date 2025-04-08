@@ -1,44 +1,94 @@
 <script setup lang="ts">
-import { useUserStore } from "@/stores/userStore";
+import { useUserStore } from "../stores/userStore";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
+import Login from "../components/ui/Login.vue";
+import type { MenuItem } from "primevue/menuitem";
 
 const userStore = useUserStore();
 const router = useRouter();
+const showLoginModal = ref(false);
 
 const handleLogout = () => {
   userStore.logout();
-  router.push("/login");
+  router.push("/");
 };
+
+const items = ref<MenuItem[]>([
+  {
+    label: "Home",
+    icon: "pi pi-home",
+    command: () => router.push("/"),
+  },
+  {
+    label: "Quizzes",
+    icon: "pi pi-question-circle",
+    command: () => router.push("/quizzes"),
+  },
+  {
+    label: "Topics",
+    icon: "pi pi-book",
+    command: () => router.push("/topics"),
+  },
+  {
+    label: "Admin",
+    icon: "pi pi-cog",
+    command: () => router.push("/admin"),
+    visible: userStore.isAdmin,
+  },
+]);
 </script>
 
 <template>
-  <nav class="bg-gray-800 text-white p-4 flex justify-between items-center">
-    <div>
-      <router-link to="/" class="mr-4">Home</router-link>
-      <router-link to="/quizzes" class="mr-4">Quizzes</router-link>
-      <router-link to="/topics" class="mr-4">Topics</router-link>
-      <router-link to="/admin" class="mr-4" v-if="userStore.isAdmin"
-        >Admin</router-link
+  <div class="flex flex-row-reverse w-full h-screen">
+    <nav class="bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-50">
+      <div class="mb-4">
+        <div v-if="userStore.isAuthenticated" class="capitalize">
+          <span class="pi pi-user pr-2"> </span>
+          {{ userStore.user?.username }}
+          <p class="flex flex-col">
+            <span class="italic">
+              {{ userStore.role }}
+            </span>
+          </p>
+        </div>
+        <Button
+          icon="pi pi-user"
+          label="Login"
+          v-else
+          @click="showLoginModal = true"
+          fluid
+        >
+        </Button>
+      </div>
+      <PanelMenu
+        :model="items"
+        class="bg-gray-200 text-white rounded-md shadow-md w-full"
       >
-    </div>
-
-    <div>
-      <span v-if="userStore.isAuthenticated" class="mr-4"
-        >Logged in as: {{ userStore.role }}</span
-      >
-      <button
+        <template #item="{ item }">
+          <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">
+            <span
+              :class="[item.icon, 'text-primary-50 group-hover:text-blue-300']"
+            />
+            <span :class="['ml-2', { 'font-semibold': item.items }]">{{
+              item.label
+            }}</span>
+          </a>
+        </template>
+      </PanelMenu>
+      <Button
         v-if="userStore.isAuthenticated"
         @click="handleLogout"
-        class="bg-red-500 px-3 py-1 rounded"
-      >
-        Logout
-      </button>
-      <router-link to="/login" v-else class="bg-blue-500 px-3 py-1 rounded"
-        >Login</router-link
-      >
-    </div>
-  </nav>
-  <main>
-    <router-view />
-  </main>
+        icon="pi pi-sign-out"
+        class="p-2"
+        label="Logout"
+        fluid
+        severity="danger"
+      />
+    </nav>
+    <main class="w-full flex ">
+      <router-view />
+    </main>
+    <Login v-model:visible="showLoginModal" />
+  </div>
 </template>

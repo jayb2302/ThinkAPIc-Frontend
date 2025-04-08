@@ -27,8 +27,8 @@ onMounted(async () => {
     totalCourses.value = coursesRes.data.length;
     totalUsers.value = usersRes.data.length;
 
-    latestQuizzes.value = quizzesRes.data.slice(-5); // Get last 5 quizzes
-
+    // Get the latest 5 quizzes
+    latestQuizzes.value = quizzesRes.data.slice(-5);
   } catch (error) {
     console.error("❌ Error fetching dashboard data:", error);
   }
@@ -51,7 +51,36 @@ const goTo = (route: string) => {
 
     <!-- Dashboard Stats -->
     <div v-else>
-      <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Panel
+          header="Quizzes"
+          class="bg-blue-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalQuizzes }}</p>
+        </Panel>
+
+        <Panel
+          header="Topics"
+          class="bg-green-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalTopics }}</p>
+        </Panel>
+
+        <Panel
+          header="Courses"
+          class="bg-purple-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalCourses }}</p>
+        </Panel>
+
+        <Panel
+          header="Users"
+          class="bg-yellow-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalUsers }}</p>
+        </Panel>
+      </div>
+      <!-- <div class="grid grid-cols-4 gap-4 mb-6">
         <div class="p-4 bg-blue-300 text-white rounded-md">
           <h2 class="text-xl font-semibold">Quizzes</h2>
           <p class="text-2xl">{{ totalQuizzes }}</p>
@@ -68,19 +97,28 @@ const goTo = (route: string) => {
           <h2 class="text-xl font-semibold">Users</h2>
           <p class="text-2xl">{{ totalUsers }}</p>
         </div>
-      </div>
+      </div> -->
 
       <!-- Quick Actions -->
       <div class="grid grid-cols-3 gap-4 mb-6">
-        <button @click="goTo('/admin/quizzes')" class="bg-blue-300 p-2 rounded-md">
+        <Button
+          @click="goTo('/admin/quizzes')"
+          class="bg-blue-300 p-2 rounded-md"
+        >
           📚 Manage Quizzes
-        </button>
-        <button @click="goTo('/admin/topics')" class="bg-green-300 p-2 rounded-md">
+        </Button>
+        <Button
+          @click="goTo('/admin/topics')"
+          class="bg-green-300 p-2 rounded-md"
+        >
           📖 Manage Topics
-        </button>
-        <button @click="goTo('/admin/courses')" class="bg-purple-300 p-2 rounded-md">
+        </Button>
+        <Button
+          @click="goTo('/admin/courses')"
+          class="bg-purple-300 p-2 rounded-md"
+        >
           🎓 Manage Courses
-        </button>
+        </Button>
       </div>
 
       <!-- Recent Quizzes -->
@@ -88,7 +126,8 @@ const goTo = (route: string) => {
         <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
         <ul>
           <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2">
-           <strong> 📝 {{ quiz.question }} </strong> ( Topic: {{ quiz.topic.title }} )
+            <strong> 📝 {{ quiz.question }} </strong> ( Topic:
+            {{ quiz.topic.title }} )
           </li>
         </ul>
       </div>

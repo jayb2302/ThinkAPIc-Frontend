@@ -12,7 +12,7 @@ export const getQuizById = async (id: string) => {
 };
 
 export const getQuizzesByTopic = async (topicId: string) => {
-  const { data } = await api.get(`/quizzes?topic=${topicId}`);
+  const { data } = await api.get(`/quizzes/topic/${topicId}`);
   return data;
 };
 

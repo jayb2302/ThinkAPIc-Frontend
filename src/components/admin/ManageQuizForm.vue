@@ -77,7 +77,9 @@ const addOption = () => {
 
 // Remove an option (at least 2 required)
 const removeOption = (index: number) => {
-  if (options.value.length > 2) { options.value.splice(index, 1); }
+  if (options.value.length > 2) {
+    options.value.splice(index, 1);
+  }
 };
 
 // ✅ Function to validate the form
@@ -85,8 +87,14 @@ const validateForm = () => {
   const validations = [
     { condition: !selectedTopic.value, message: "Please select a topic." },
     { condition: !question.value.trim(), message: "Question cannot be empty." },
-    { condition: options.value.length < 2, message: "At least two options are required." },
-    { condition: !options.value.some((opt) => opt.isCorrect), message: "At least one option must be marked as correct." }
+    {
+      condition: options.value.length < 2,
+      message: "At least two options are required.",
+    },
+    {
+      condition: !options.value.some((opt) => opt.isCorrect),
+      message: "At least one option must be marked as correct.",
+    },
   ];
 
   return validations.find((v) => v.condition)?.message || null;
@@ -144,68 +152,71 @@ const closeForm = () => {
     </div>
 
     <!-- Quiz Form -->
-    <form v-else @submit.prevent="submitQuiz" class="p-4 shadow-md rounded-md">
-      <label class="block mb-2">Select Topic:</label>
-      <select v-model="selectedTopic" class="border p-2 w-full mb-4">
-        <option disabled value="">-- Choose a topic --</option>
-        <option v-for="topic in topics" :key="topic._id" :value="topic._id">
-          {{ topic.title }}
-        </option>
-      </select>
+    <form
+      v-else
+      @submit.prevent="submitQuiz"
+      class="p-4 space-y-4 shadow-md rounded-md"
+    >
+      <FloatLabel class="w-full mb-4" variant="on">
+        <Select
+          v-model="selectedTopic"
+          :options="topics"
+          optionLabel="title"
+          optionValue="_id"
+          inputId="topic_select"
+          class="w-full"
+        />
+        <label for="topic_select">Select Topic</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Question:</label>
-      <input
-        v-model="question"
-        type="text"
-        class="border p-2 w-full mb-4"
-        placeholder="Enter Question"
-        required
-      />
+      <FloatLabel variant="on">
+        <InputText id="quiz_question" v-model="question" required fluid />
+        <label for="quiz_question" class="block mb-2">Question</label>
+      </FloatLabel>
 
       <draggable v-model="options" item-key="order">
-        <template #item="{ element }">
-          <div class="drag-item flex items-center space-x-2">
+        <template #item="{ element, index }">
+          <div class="drag-item flex space-y-4 space-x-2 items-baseline w-full">
             <span class="cursor-move">☰</span>
-            <input
-              v-model="element.text"
-              type="text"
-              class="border p-2 w-4/5"
-              placeholder="Enter Option"
-              required
-            />
-            <input v-model="element.isCorrect" type="checkbox" class="ml-2" />
-            <span class="ml-1">Correct</span>
-            <button
+            <div class="flex-grow">
+              <FloatLabel variant="on">
+                <InputText
+                  id="option_text_{{ index }}"
+                  v-model="element.text"
+                  fluid
+                  required
+                />
+                <label :for="`option_text_${index}`">Option {{ index }}</label>
+              </FloatLabel>
+            </div>
+            <div class="flex">
+              <Checkbox
+                v-model="element.isCorrect"
+                :binary="true"
+                inputId="correct_checkbox"
+              />
+            </div>
+            <Button
               type="button"
-              @click="removeOption(options.indexOf(element))"
-              class="text-red-500"
-            >
-              ❌
-            </button>
+              @click="removeOption(index)"
+              severity="danger"
+              icon="pi pi-times"
+            />
           </div>
         </template>
       </draggable>
-      <button
-        type="button"
-        @click="addOption"
-        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
-      >
+      <Button type="button" @click="addOption" severity="info">
         ➕ Add Option
-      </button>
+      </Button>
 
-      <button
-        type="submit"
-        class="bg-green-500 text-white px-4 py-2 rounded-md"
-      >
-        {{ isEditing ? "Update Quiz" : "Submit Quiz" }}
-      </button>
-      <button
-        type="button"
-        @click="closeForm"
-        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
-      >
-        Cancel
-      </button>
+      <div class="button-group space-x-2">
+        <Button type="submit" severity="primary">
+          {{ isEditing ? "Update Quiz" : "Submit Quiz" }}
+        </Button>
+        <Button type="button" @click="closeForm" severity="secondary">
+          Cancel
+        </Button>
+      </div>
 
       <p v-if="successMessage" class="text-green-500 mt-4">
         {{ successMessage }}

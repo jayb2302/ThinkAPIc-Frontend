@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import ManageUsersForm from "./ManageUsersForm.vue";
 import { useUserStore } from "../../stores/userStore";
 import { useMessageStore } from "../../stores/messageStore";
 import type { User, UserRole } from "../../types/User";
 
-const messageStore = useMessageStore()
+const confirm = useConfirm();
+const toast = useToast();
+const messageStore = useMessageStore();
 const userStore = useUserStore();
 
 const users = computed(() => userStore.users);
@@ -32,7 +36,12 @@ const cancelEdit = () => {
   errorMessage.value = "";
 };
 
-const handleSave = async (updated: { _id: string; username: string; email: string; role: UserRole }) => {
+const handleSave = async (updated: {
+  _id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+}) => {
   try {
     await saveUser(updated);
     await fetchAllUsers();
@@ -44,71 +53,108 @@ const handleSave = async (updated: { _id: string; username: string; email: strin
   }
 };
 
-const handleDelete = async (userId: string) => {
-  // Ask for password confirmation before deletion
-  const confirmedPhrase = prompt("⚠ To confirm deletion, type YES:");
-  
-  // Check if the phrase is correct
-  if (confirmedPhrase === null || confirmedPhrase.toUpperCase() !== "YES") {
-    messageStore.showError("⚠ Deletion cancelled: Incorrect confirmation phrase.");
+const handleDelete = async (event: MouseEvent, userId: string) => {
+  const confirmPhrase = prompt("⚠ To confirm deletion, type YES:");
+  if (confirmPhrase !== "YES") {
+    toast.add({
+      severity: "warn",
+      summary: "Cancelled",
+      detail: "⚠ Deletion cancelled: Incorrect confirmation phrase.",
+      life: 3000,
+    });
     return;
   }
-  if (!confirm("Are you sure you want to delete this user?")) return;
-  try {
-    await removeUser(userId);
-    await fetchAllUsers();
-    messageStore.showSuccess("✅ User deleted successfully.");
-  } catch (err) {
-    console.error("Error deleting user:", err);
-    messageStore.showError("❌ Failed to delete user.");
-  }
+
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: "Are you sure you want to delete this user?",
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Yes",
+    rejectLabel: "No",
+    accept: async () => {
+      try {
+        await removeUser(userId);
+        await fetchAllUsers();
+        toast.add({
+          severity: "success",
+          summary: "Deleted",
+          detail: "✅ User deleted successfully.",
+          life: 3000,
+        });
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "❌ Failed to delete user.",
+          life: 3000,
+        });
+      }
+    },
+    reject: () => {
+      toast.add({
+        severity: "warn",
+        summary: "Cancelled",
+        detail: "⚠ Deletion cancelled",
+        life: 3000,
+      });
+    },
+  });
 };
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="p-6 shadow rounded-md dark:bg-gray-800">
     <h2 class="text-2xl font-bold mb-4">Manage Users</h2>
+    <Toast />
+    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+      <DataTable :value="users" tableStyle="min-width: 50rem">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Users</h2>
+            <Button
+              icon="pi pi-refresh"
+              rounded
+              raised
+              @click="userStore.fetchAllUsers()"
+            />
+          </div>
+        </template>
+        <Column field="username" header="Username">
+          <template #body="slotProps">
+            <span class="capitalize">{{ slotProps.data.username }}</span>
+          </template>
+        </Column>
+        <Column field="email" header="Email"></Column>
+        <Column field="role" header="Role">
+          <template #body="slotProps">
+            <span class="capitalize">{{ slotProps.data.role }}</span>
+          </template>
+        </Column>
+        <Column header="Actions" class="space-x-2">
+          <template #body="slotProps">
+            <Button
+              @click="editUser(slotProps.data)"
+              class="text-blue-600"
+              severity="info"
+              icon="pi pi-pencil"
+            />
 
-    <!-- <p v-if="errorMessage" class="text-red-600 mb-2">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="text-green-600 mb-2">{{ successMessage }}</p> -->
-
-    <table class="w-full table-auto text-left border-collapse border border-gray-300">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="border px-4 py-2">Username</th>
-          <th class="border px-4 py-2">Email</th>
-          <th class="border px-4 py-2">Role</th>
-          <th class="border px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in users" :key="user._id" class="border-t">
-          <td class="border px-4 py-2 capitalize">{{ user.username }}</td>
-          <td class="border px-4 py-2">{{ user.email }}</td>
-          <td class="border px-4 py-2 capitalize">{{ user.role }}</td>
-          <td class="border px-4 py-2">
-            <button
-              @click="editUser(user)"
-              class="text-blue-600 hover:underline mr-2"
-            >
-              ✏ Edit
-            </button>
-            <button
-              @click="handleDelete(user._id)"
-              class="text-red-600 hover:underline"
-            >
-              🗑 Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
+            <Button
+              @click="handleDelete($event, slotProps.data._id)"
+              severity="danger"
+              icon="pi pi-trash"
+            />
+          </template>
+        </Column>
+      </DataTable>
+    </div>
     <ManageUsersForm
       v-if="selectedUser"
       :user="selectedUser"
       @save="handleSave"
       @cancel="cancelEdit"
     />
+    <ConfirmPopup />
   </div>
 </template>
