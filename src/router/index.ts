@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/userStore";
-import { storeToRefs } from "pinia"; 
+import { storeToRefs } from "pinia";
 
 import Home from "../pages/Home.vue";
 import Quizzes from "../pages/Quizzes.vue";
 import Topics from "../pages/Topics.vue";
-import Login from "../components/ui/Login.vue";
+import Courses from "../pages/Courses.vue";
 
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";
@@ -16,6 +16,7 @@ import AdminTopics from "../pages/admin/AdminTopics.vue";
 import AdminCourses from "../pages/admin/AdminCourses.vue";
 import AdminUsers from "../pages/admin/AdminUsers.vue";
 
+import Login from "../components/ui/Login.vue";
 import ManageTopics from "../components/admin/ManageTopics.vue";
 import ManageQuizzes from "../components/admin/ManageQuizzes.vue";
 import ManageCourses from "../components/admin/ManageCourses.vue";
@@ -29,6 +30,15 @@ const routes = [
       { path: "", component: Home },
       { path: "quizzes", component: Quizzes },
       { path: "topics", component: Topics },
+      { path: "courses", component: Courses },
+      {
+        path: "courses/:id",
+        component: () => import("../pages/CourseDetails.vue"),
+      },
+      {
+        path: "topics/:id",
+        component: () => import("../pages/TopicDetails.vue"),
+      },
     ],
   },
   { path: "/login", component: Login },

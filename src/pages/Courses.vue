@@ -1,3 +1,8 @@
+<script setup>
+import CourseList from "../components/courses/CourseList.vue";
+</script>
 <template>
-    <h1>Courses Page</h1>
-  </template>
+  <div class="p-6">
+    <CourseList />
+  </div>
+</template>

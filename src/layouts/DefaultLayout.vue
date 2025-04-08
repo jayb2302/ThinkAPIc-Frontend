@@ -21,13 +21,18 @@ const items = ref<MenuItem[]>([
     command: () => router.push("/"),
   },
   {
+    label: "Courses",
+    icon: "pi pi-book",
+    command: () => router.push("/courses"),
+  },
+  {
     label: "Quizzes",
     icon: "pi pi-question-circle",
     command: () => router.push("/quizzes"),
   },
   {
     label: "Topics",
-    icon: "pi pi-book",
+    icon: "pi pi-th-large",
     command: () => router.push("/topics"),
   },
   {
@@ -40,11 +45,11 @@ const items = ref<MenuItem[]>([
 </script>
 
 <template>
-  <div class="flex flex-row-reverse w-full h-screen">
+  <div class="flex flex-row-reverse w-full h-screen bg-gray-50 overflow-auto">
     <nav class="bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-50">
       <div class="mb-4">
         <div v-if="userStore.isAuthenticated" class="capitalize">
-          <span class="pi pi-user pr-2"> </span>
+          <span class="pi pi-graduation-cap pr-2"> </span>
           {{ userStore.user?.username }}
           <p class="flex flex-col">
             <span class="italic">
@@ -86,7 +91,7 @@ const items = ref<MenuItem[]>([
         severity="danger"
       />
     </nav>
-    <main class="w-full flex ">
+    <main class="w-full flex">
       <router-view />
     </main>
     <Login v-model:visible="showLoginModal" />
