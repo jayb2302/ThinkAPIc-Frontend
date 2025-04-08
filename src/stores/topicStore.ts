@@ -23,7 +23,7 @@ export const useTopicStore = defineStore("topics", () => {
     try {
       topics.value = await getTopics();
     } catch (err) {
-      console.error("❌ Error fetching topics:", err);
+      //console.error("❌ Error fetching topics:", err);
       error.value = "Failed to load topics.";
     } finally {
       loading.value = false;
@@ -40,7 +40,7 @@ export const useTopicStore = defineStore("topics", () => {
       }
       return topic;
     } catch (err) {
-      console.error("❌ Error fetching topic:", err);
+      //console.error("❌ Error fetching topic:", err);
       error.value = "Failed to load topic.";
     } finally {
       loading.value = false;
@@ -54,7 +54,7 @@ export const useTopicStore = defineStore("topics", () => {
       const createdTopic = await createTopic(newTopic);
       topics.value.push(createdTopic);
     } catch (err) {
-      console.error("❌ Error adding topic:", err);
+      //console.error("❌ Error adding topic:", err);
       error.value = "Failed to add topic.";
     } finally {
       loading.value = false;
@@ -69,7 +69,7 @@ export const useTopicStore = defineStore("topics", () => {
       const index = topics.value.findIndex((t) => t._id === updatedTopic._id);
       if (index !== -1) topics.value[index] = response;
     } catch (err) {
-      console.error("❌ Error updating topic:", err);
+      //console.error("❌ Error updating topic:", err);
       error.value = "Failed to update topic.";
     } finally {
       loading.value = false;
@@ -85,7 +85,7 @@ export const useTopicStore = defineStore("topics", () => {
 
       topics.value = topics.value.filter((topic) => topic._id !== id);
     } catch (err) {
-      console.error("❌ Error deleting topic:", err);
+      //console.error("❌ Error deleting topic:", err);
       error.value = "Failed to delete topic.";
     } finally {
       loading.value = false;

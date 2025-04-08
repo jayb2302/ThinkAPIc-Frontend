@@ -18,15 +18,12 @@ const courseStore = useCourse();
 const topicStore = useTopicStore();
 
 const showForm = ref(false);
-const showTopicForm = ref(false); // Added ref for topic form
+const showTopicForm = ref(false); 
 const selectedCourse = ref<Course | null>(null);
-const createdCourseId = ref<string | null>(null); // Added ref for created course ID
+const createdCourseId = ref<string | null>(null); 
 const successMessage = ref<string>("");
-const adminUsers = ref<AdminUser[]>([]); // Added ref for storing admin users
+const adminUsers = ref<AdminUser[]>([]);
 
-// const getCourseTopics = (course: Course) => {
-//   return course.topics.map((id) => topicStore.topics.find((t) => t._id === id));
-// };
 const getCourseTopics = (course: Course) => {
   return [
     ...new Set(
@@ -50,7 +47,7 @@ onMounted(async () => {
 watch(
   () => topicStore.topics,
   () => {
-    console.log("✅ Topics updated, refreshing UI");
+    //console.log("✅ Topics updated, refreshing UI");
   }
 );
 
@@ -157,7 +154,7 @@ const closeTopicForm = () => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md dark:bg-gray-800">
+  <div class="p-4 shadow rounded-md dark:bg-gray-800">
     <h2 class="text-2xl font-bold mb-4">Manage Courses</h2>
     <p v-if="successMessage" class="text-green-500 mt-4">
       {{ successMessage }}
@@ -181,7 +178,7 @@ const closeTopicForm = () => {
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
-    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+    <div class="rounded-lg  shadow border border-gray-200">
       <DataTable :value="courseStore.courses" tableStyle="min-width: 50rem">
         <template #header>
           <div class="flex items-center justify-between">

@@ -17,7 +17,10 @@ const emit = defineEmits([
   "newCourseId",
   "update:showTopicForm",
 ]);
-const props = defineProps<{ course?: Course | null; courseId?: string | null }>();
+const props = defineProps<{
+  course?: Course | null;
+  courseId?: string | null;
+}>();
 
 // Form state
 const newCourse = ref({
@@ -62,9 +65,10 @@ const resetForm = () => {
 };
 watch(selectedCourse, (newId) => {
   if (newId) {
-    console.log("✅ Selected course ID for topic form:", newId);
+    //console.log("✅ Selected course ID for topic form:", newId);
   }
 });
+
 // **Watch for existing course (edit mode)**
 watch(
   () => props.course,
@@ -89,8 +93,9 @@ watch(
       resetForm();
     }
   },
-  { immediate: true } // Automatically trigger the watch logic on mount
+  { immediate: true }
 );
+
 // **Helper to Add Items (Avoid Repetition)**
 const addItem = (list: Ref<string[]>, newItem: Ref<string>) => {
   if (newItem.value.trim()) {
@@ -140,7 +145,7 @@ const handleSubmit = async () => {
     nextTick(() => {
       showTopicForm.value = true;
     });
-    
+
     if (!isEditing.value) {
       emit("update:showTopicForm", true);
     }
@@ -204,18 +209,6 @@ const closeForm = () => {
         />
         <label for="teacher_label">Teacher</label>
       </FloatLabel>
-      <!-- <label class="block mb-2">Teacher:</label>
-      <select
-        v-model="newCourse.teacher"
-        class="border p-2 w-full mb-4"
-        required
-      >
-        <option value="" disabled>Select a teacher</option>
-        <option v-for="admin in adminUsers" :key="admin._id" :value="admin._id">
-          {{ admin.username }}
-        </option>
-      </select> -->
-
       <FloatLabel variant="on">
         <InputText
           v-model="newCourse.scope"
@@ -238,14 +231,15 @@ const closeForm = () => {
       </FloatLabel>
 
       <div v-if="isEditing">
-        <label class="block mb-2">Topics for this course:</label>
-        <ul class="mb-2">
+        <label class="block mb-2 font-bold">Topics for this course:</label>
+        <ul class="mb-2 shadow p-2 bg-gray-50 divide-gray-300 divide-y rounded">
           <li
             v-for="(topicId, index) in newCourse.topics"
             :key="topicId"
             class="flex items-center justify-between"
           >
             <span>
+              -
               {{
                 topicStore.topics.find((t) => t._id === topicId)?.title ||
                 "Unknown Topic"
@@ -253,74 +247,76 @@ const closeForm = () => {
             </span>
             <Button
               type="button"
+              severity="danger"
+              icon="pi pi-times"
               class="text-red-500 text-sm"
               @click="newCourse.topics.splice(index, 1)"
-            >
-              ✖ Remove
-            </Button>
+            />
           </li>
         </ul>
         <Button
           type="button"
+          label="Add Topic"
+          icon="pi pi-plus"
           class="bg-blue-500 text-white px-2 py-1 rounded mb-4"
           @click="emit('update:showTopicForm', true)"
-        >
-          ➕ Add Topic
-        </Button>
+        />
       </div>
 
       <!-- **Reusable Inputs for Learning Objectives, Skills, Competencies** -->
-      <!-- **Reusable Inputs for Learning Objectives, Skills, Competencies** -->
       <div v-for="section in formSections" :key="section.label">
-        <label class="block mb-2">{{ section.label }}:</label>
+        <label class="block font-bold mb-2">{{ section.label }}</label>
 
         <div
           v-for="(item, index) in section.list.value"
           :key="index"
-          class="flex items-center mb-2"
+          class="flex items-center mb-2 shadow p-2 bg-gray-50 rounded"
         >
           <span class="flex-grow">{{ item }}</span>
           <Button
             type="button"
+            icon="pi pi-times"
+            severity="danger"
             @click="removeItem(section.list, index)"
             class="text-red-500 ml-2"
-          >
-            ❌
-          </Button>
-        </div>
-
-        <FloatLabel variant="on">
-          <InputText
-            id="new_{{ section.label }}"
-            v-model="section.model.value"
-            type="text"
-            class="border p-2 w-full mb-2"
           />
-          <label for="new_{{ section.label }}">{{ section.label }}</label>
-        </FloatLabel>
+        </div>
+        <div class="form-section flex gap-2 ">
+          <FloatLabel variant="on" class="flex-grow">
+            <InputText
+              id="new_{{ section.label }}"
+              v-model="section.model.value"
+              type="text"
+              class="border p-2 w-full"
+            />
+            <label for="new_{{ section.label }}">{{ section.label }}</label>
+          </FloatLabel>
 
+          <Button
+            type="button"
+            icon="pi pi-arrow-up"
+            :label="section.label"
+            @click="addItem(section.list, section.model)"
+            class="bg-blue-500 text-white px-2 py-1 rounded-md "
+            
+          />
+        </div>
+      </div>
+      <div class="button_group flex justify-end mt-8">
+        <Button
+          :label="isEditing ? 'Update Course' : 'Submit Course'"
+          type="submit"
+          severity="success"
+          icon="pi pi-check"
+        />
         <Button
           type="button"
-          @click="addItem(section.list, section.model)"
-          class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
-        >
-          ➕ Add {{ section.label }}
-        </Button>
+          label="Cancel"
+          icon="pi pi-times"
+          @click="closeForm"
+          class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
+        />
       </div>
-
-      <Button
-        type="submit"
-        class="bg-green-500 text-white px-4 py-2 rounded-md"
-      >
-        {{ isEditing ? "Update Course" : "Submit Course" }}
-      </Button>
-      <Button
-        type="button"
-        @click="closeForm"
-        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
-      >
-        Cancel
-      </Button>
 
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>

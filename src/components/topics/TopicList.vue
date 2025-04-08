@@ -7,7 +7,7 @@ const { topics, loading, error, fetchTopics } = topicStore;
 
 onMounted(async () => {
   await fetchTopics();
-  console.log("Fetched topics:", topics);
+  //console.log("Fetched topics:", topics);
 });
 
 // ✅ Watch for changes in topics and log them

@@ -26,9 +26,9 @@ onMounted(async () => {
   try {
     const { data } = await api.get("/topics");
     topics.value = data;
-    console.log("✅ Topics Loaded:", data);
+    // console.log("✅ Topics Loaded:", data);
   } catch (error) {
-    console.error("❌ Error Fetching Topics:", error);
+    // console.error("❌ Error Fetching Topics:", error);
     errorMessage.value = "Failed to load topics.";
   }
 });
@@ -129,7 +129,7 @@ const submitQuiz = async () => {
     resetForm();
   } catch (error) {
     errorMessage.value = "Failed to submit quiz.";
-    console.error("❌ Error Submitting Quiz:", error);
+    //console.error("❌ Error Submitting Quiz:", error);
   }
 };
 
@@ -141,7 +141,7 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-6 bg-white shadow rounded-md">
+  <div class="p-6 shadow rounded-md">
     <h1 class="text-2xl font-bold mb-4">
       {{ isEditing ? "Edit Quiz" : "Add New Quiz" }}
     </h1>
@@ -205,17 +205,24 @@ const closeForm = () => {
           </div>
         </template>
       </draggable>
-      <Button type="button" @click="addOption" severity="info">
-        ➕ Add Option
-      </Button>
+      <Button
+        type="button"
+        label="Add Option"
+        icon="pi pi-plus"
+        @click="addOption"
+        severity="info"
+      />
 
-      <div class="button-group space-x-2">
-        <Button type="submit" severity="primary">
+      <div class="button-group flex justify-end space-x-2">
+        <Button type="submit" severity="success">
           {{ isEditing ? "Update Quiz" : "Submit Quiz" }}
         </Button>
-        <Button type="button" @click="closeForm" severity="secondary">
-          Cancel
-        </Button>
+        <Button
+          type="button"
+          label="Cancel"
+          icon="pi pi-times"
+          @click="closeForm"
+        />
       </div>
 
       <p v-if="successMessage" class="text-green-500 mt-4">

@@ -56,14 +56,18 @@ const items = ref<MenuItem[]>([
     <nav
       class="flex flex-col justify-start items-baseline rounded bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-50"
     >
-      <p v-if="userStore.isAuthenticated" class="capitalize">
-        <span class="pi pi-user pr-2"> </span>
-        {{ userStore.role }}
-      </p>
-      
+      <div v-if="userStore.isAuthenticated" class="capitalize">
+        <span class="pi pi-star pr-2"> </span>
+        {{ userStore.user?.username }}
+        <p class="flex flex-col">
+          <span class="italic">
+            {{ userStore.role }}
+          </span>
+        </p>
+      </div>
       <PanelMenu
         :model="items"
-        class="bg-gray-400 py-2 text-white rounded-md shadow-md w-full"
+        class="bg-gray-200 text-white rounded-md shadow-md w-full"
       >
         <template #item="{ item }">
           <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">
@@ -81,7 +85,7 @@ const items = ref<MenuItem[]>([
         label="Logout"
         @click="logout"
         severity="danger"
-        class=" bg-red-100 hover:bg-red-300 text-gray-800 p-2 rounded-md"
+        class="bg-red-100 hover:bg-red-300 text-gray-800 p-2 rounded-md"
         fluid
       />
     </nav>

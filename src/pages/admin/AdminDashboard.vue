@@ -80,54 +80,42 @@ const goTo = (route: string) => {
           <p class="text-3xl font-bold">{{ totalUsers }}</p>
         </Panel>
       </div>
-      <!-- <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="p-4 bg-blue-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Quizzes</h2>
-          <p class="text-2xl">{{ totalQuizzes }}</p>
-        </div>
-        <div class="p-4 bg-green-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Topics</h2>
-          <p class="text-2xl">{{ totalTopics }}</p>
-        </div>
-        <div class="p-4 bg-purple-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Courses</h2>
-          <p class="text-2xl">{{ totalCourses }}</p>
-        </div>
-        <div class="p-4 bg-yellow-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Users</h2>
-          <p class="text-2xl">{{ totalUsers }}</p>
-        </div>
-      </div> -->
 
       <!-- Quick Actions -->
-      <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="grid grid-cols-4 gap-4 mb-6">
         <Button
           @click="goTo('/admin/quizzes')"
+          label="Manage Quizzes"
+          icon="pi pi-question-circle"
           class="bg-blue-300 p-2 rounded-md"
-        >
-          📚 Manage Quizzes
-        </Button>
+        />
         <Button
           @click="goTo('/admin/topics')"
+          label="Manage Topics"
+          icon="pi pi-list"
           class="bg-green-300 p-2 rounded-md"
-        >
-          📖 Manage Topics
-        </Button>
+        />
         <Button
           @click="goTo('/admin/courses')"
+          label="Manage Courses"
+          icon="pi pi-briefcase"
           class="bg-purple-300 p-2 rounded-md"
-        >
-          🎓 Manage Courses
-        </Button>
+        />
+        <Button
+          @click="goTo('/admin/users')"
+          label="Manage Users"
+          icon="pi pi-users"
+          class="bg-purple-300 p-2 rounded-md"
+        />
       </div>
 
       <!-- Recent Quizzes -->
-      <div class="bg-gray-100 text-left p-4 rounded-md">
+      <div class="bg-gray-100 shadow text-left p-4 rounded-md ">
         <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
-        <ul>
-          <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2">
-            <strong> 📝 {{ quiz.question }} </strong> ( Topic:
-            {{ quiz.topic.title }} )
+        <ul class=" divide-y divide-gray-300">
+          <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2 flex flex-col">
+            <strong> 📝 {{ quiz.question }} </strong> 
+            Topic: {{ quiz.topic.title }} 
           </li>
         </ul>
       </div>
