@@ -25,9 +25,9 @@ export const useUserStore = defineStore("user", () => {
     loading.value = true;
     try {
       users.value = await getAllUsers();
-      console.log("✅ Users fetched successfully:", users.value);
+      //console.log("✅ Users fetched successfully:", users.value);
     } catch (err) {
-      console.error("❌ Error fetching users:", err);
+      //console.error("❌ Error fetching users:", err);
       error.value = "Failed to load users.";
     } finally {
       loading.value = false;
@@ -36,12 +36,11 @@ export const useUserStore = defineStore("user", () => {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log("🔍 Sending Login Request:", { email, password });
-
+      //console.log("🔍 Sending Login Request:", { email, password });
       const data = await loginUser(email, password);
 
-      console.log("✅ Login Successful! Token Received:", data.token);
-      console.log("✅ User Role:", data.user.role);
+      //console.log("✅ Login Successful! Token Received:", data.token);
+      //console.log("✅ User Role:", data.user.role);
 
       token.value = data.token;
       role.value = data.user.role;
@@ -52,12 +51,9 @@ export const useUserStore = defineStore("user", () => {
       localStorage.setItem("role", data.user.role);
     } catch (error) {
       if (error instanceof Error) {
-        console.error(
-          "❌ API Login Error:",
-          (error as any).response?.data || error.message
-        );
+        //console.error( "❌ API Login Error:", (error as any).response?.data || error.message);
       } else {
-        console.error("❌ API Login Error:", error);
+        // console.error("❌ API Login Error:", error);
       }
       throw error;
     }

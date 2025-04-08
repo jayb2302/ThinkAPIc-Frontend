@@ -50,12 +50,7 @@ const ensureCoursesLoaded = async () => {
   if (!courseStore.courses.length) await courseStore.fetchCourses();
 };
 
-// const extractCourseId = (
-//   course: string | { _id: string } | null
-// ): string | null =>
-//   course && typeof course === "object" ? course._id : course || null;
-
-// Watch for existing topic (edit mode)
+// Watch for topic changes & populate form when editing
 watch(
   () => props.topic,
   async (newTopic) => {
@@ -148,8 +143,7 @@ const submitTopic = async () => {
   try {
     resetMessages();
     if (!validateForm()) return;
-
-    console.log("📤 Submitting Topic:", getTopicData());
+    //console.log("📤 Submitting Topic:", getTopicData());
 
     const savedTopic = await saveTopic();
     await courseStore.fetchCourses();
@@ -181,7 +175,7 @@ const getSuccessMessage = () =>
 
 // 🔹 Handle API errors
 const handleError = (error: any) => {
-  console.error("❌ Error submitting topic:", error);
+  //console.error("❌ Error submitting topic:", error);
   errorMessage.value =
     error.response?.data?.error || "Something went wrong. Please try again.";
 };
@@ -199,14 +193,12 @@ const closeForm = () => {
       {{ isEditing ? "Edit Topic" : "Add New Topic" }}
     </h1>
 
-    <form @submit.prevent="submitTopic" class="p-4 shadow-md space-y-4 rounded-md">
+    <form
+      @submit.prevent="submitTopic"
+      class="p-4 shadow-md space-y-4 rounded-md"
+    >
       <FloatLabel variant="on">
-        <InputText
-          id="topic_title"
-          v-model="title"
-          required
-          fluid
-        />
+        <InputText id="topic_title" v-model="title" required fluid />
         <label for="topic_title" class="block mb-2">Topic Title</label>
       </FloatLabel>
 
@@ -243,13 +235,12 @@ const closeForm = () => {
           optionLabel="title"
           optionValue="_id"
           class="w-full"
-
         />
         <label for="course_select">Select Course</label>
       </FloatLabel>
 
       <!-- Key Points -->
-      <label class="block mb-2">Key Points</label>
+      <label class="block mb-2 font-bold">Key Points</label>
       <div
         v-for="(point, index) in keyPoints"
         :key="index"
@@ -277,7 +268,7 @@ const closeForm = () => {
       </Button>
 
       <!-- Resources -->
-      <label class="block mb-2">Resources:</label>
+      <label class="block font-bold mb-2">Resources:</label>
       <div
         v-for="(resource, index) in resources"
         :key="index"
@@ -296,28 +287,35 @@ const closeForm = () => {
           severity="danger"
         />
       </div>
-      <FloatLabel variant="on">
-        <InputText id="resource_title" v-model="newResource.title" fluid />
-        <label for="resource_title" class="block mb-2">Resource Title</label>
-      </FloatLabel>
-      <FloatLabel variant="on">
-        <InputText id="resource_link" v-model="newResource.link" fluid />
-        <label for="resource_link" class="block mb-2">Resource Link</label>
-      </FloatLabel>
+      <div class="recourses flex w-full space-x-2">
+        <FloatLabel variant="on" class="w-1/3">
+          <InputText id="resource_title" v-model="newResource.title" fluid />
+          <label for="resource_title" class="block mb-2">Resource Title</label>
+        </FloatLabel>
+        <FloatLabel variant="on" class="flex-grow">
+          <InputText id="resource_link" v-model="newResource.link" fluid />
+          <label for="resource_link" class="block mb-2">Link</label>
+        </FloatLabel>
+      </div>
       <Button
         type="button"
         @click="addResource"
-        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
-      >
-        ➕ Add Resource
-      </Button>
-      <div class="button_group space-x-2">
-        <Button type="submit" severity="success">
-          {{ isEditing ? "Update Topic" : "Submit Topic" }}
-        </Button>
-        <Button type="button" @click="closeForm" severity="secondary">
-          Cancel
-        </Button>
+        label="Add Resource"
+        icon="pi pi-plus"
+      />
+      <div class="button-group flex justify-end space-x-2">
+        <Button
+          :label="isEditing ? 'Update Topic' : 'Submit Topic'"
+          icon="pi pi-check"
+          type="submit"
+          severity="success"
+        />
+        <Button
+          type="button"
+          label="Cancel"
+          icon="pi pi-times"
+          @click="closeForm"
+        />
       </div>
 
       <p v-if="successMessage" class="text-green-500 mt-4">

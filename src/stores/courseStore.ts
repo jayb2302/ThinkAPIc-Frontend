@@ -93,7 +93,7 @@ export const useCourse = defineStore("courses", () => {
   
       return response;
     } catch (err) {
-      console.error("Error submitting course:", err);
+      //console.error("Error submitting course:", err);
       throw err;
     }
   };

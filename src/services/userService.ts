@@ -42,9 +42,8 @@ export const deleteUser = async (userId: string): Promise<void> => {
   await api.delete(`/users/${userId}`);
 }
 
-// Login request (API only, no state handling)
+// Login request
 export const loginUser = async (email: string, password: string) => {
   const response = await api.post('/auth/login', { email, password });
-  console.log("🔍 Raw login response:", response.data); // Add this
   return response.data;
 };
