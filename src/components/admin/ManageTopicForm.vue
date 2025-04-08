@@ -199,71 +199,82 @@ const closeForm = () => {
       {{ isEditing ? "Edit Topic" : "Add New Topic" }}
     </h1>
 
-    <form @submit.prevent="submitTopic" class="p-4 shadow-md rounded-md">
-      <label class="block mb-2">Topic Title:</label>
-      <input
-        v-model="title"
-        type="text"
-        class="border p-2 w-full mb-4"
-        required
-      />
+    <form @submit.prevent="submitTopic" class="p-4 shadow-md space-y-4 rounded-md">
+      <FloatLabel variant="on">
+        <InputText
+          id="topic_title"
+          v-model="title"
+          required
+          fluid
+        />
+        <label for="topic_title" class="block mb-2">Topic Title</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Week:</label>
-      <input
-        v-model="week"
-        type="number"
-        class="border p-2 w-full mb-4"
-        required
-      />
+      <FloatLabel id="minmax-buttons" variant="on">
+        <InputNumber
+          v-model="week"
+          inputId="minmax-buttons"
+          mode="decimal"
+          showButtons
+          :min="1"
+          :max="18"
+          fluid
+        />
+        <label for="minmax-buttons" class="block">Week</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Summary:</label>
-      <textarea
-        v-model="summary"
-        class="border p-2 w-full mb-4"
-        required
-      ></textarea>
+      <FloatLabel variant="on">
+        <Textarea
+          id="topic_summary"
+          v-model="summary"
+          rows="5"
+          cols="30"
+          style="resize: none"
+          required
+          fluid
+        />
+        <label for="topic_summary">Summary</label>
+      </FloatLabel>
+      <FloatLabel class="w-full mb-4" variant="on">
+        <Select
+          v-model="selectedCourse"
+          inputId="course_select"
+          :options="courseStore.courses"
+          optionLabel="title"
+          optionValue="_id"
+          class="w-full"
 
-      <label class="block mb-2">Select Course:</label>
-      <select v-model="selectedCourse" class="border p-2 w-full mb-4">
-        <option disabled value="">-- Choose a course --</option>
-        <option
-          v-for="course in courseStore.courses"
-          :key="course._id"
-          :value="course._id"
-        >
-          {{ course.title }}
-        </option>
-      </select>
+        />
+        <label for="course_select">Select Course</label>
+      </FloatLabel>
 
       <!-- Key Points -->
-      <label class="block mb-2">Key Points:</label>
+      <label class="block mb-2">Key Points</label>
       <div
         v-for="(point, index) in keyPoints"
         :key="index"
         class="flex items-center mb-2"
       >
         <span class="flex-grow">{{ point }}</span>
-        <button
+        <Button
           type="button"
           @click="removeKeyPoint(index)"
-          class="text-red-500 ml-2"
-        >
-          ❌
-        </button>
+          severity="danger"
+          icon="pi pi-times"
+        />
       </div>
-      <input
-        v-model="newKeyPoint"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Add a key point"
-      />
-      <button
+
+      <FloatLabel variant="on">
+        <InputText id="key_point" v-model="newKeyPoint" fluid />
+        <label for="key_point" class="block mb-2">Key Point</label>
+      </FloatLabel>
+      <Button
         type="button"
         @click="addKeyPoint"
         class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
       >
         ➕ Add Key Point
-      </button>
+      </Button>
 
       <!-- Resources -->
       <label class="block mb-2">Resources:</label>
@@ -278,47 +289,36 @@ const closeForm = () => {
             resource.link
           }}</a></span
         >
-        <button
+        <Button
+          :icon="'pi pi-times'"
           type="button"
           @click="removeResource(index)"
-          class="text-red-500 ml-2"
-        >
-          ❌
-        </button>
+          severity="danger"
+        />
       </div>
-      <input
-        v-model="newResource.title"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Resource title"
-      />
-      <input
-        v-model="newResource.link"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Resource link"
-      />
-      <button
+      <FloatLabel variant="on">
+        <InputText id="resource_title" v-model="newResource.title" fluid />
+        <label for="resource_title" class="block mb-2">Resource Title</label>
+      </FloatLabel>
+      <FloatLabel variant="on">
+        <InputText id="resource_link" v-model="newResource.link" fluid />
+        <label for="resource_link" class="block mb-2">Resource Link</label>
+      </FloatLabel>
+      <Button
         type="button"
         @click="addResource"
         class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
       >
         ➕ Add Resource
-      </button>
-
-      <button
-        type="submit"
-        class="bg-green-500 text-white px-4 py-2 rounded-md"
-      >
-        {{ isEditing ? "Update Topic" : "Submit Topic" }}
-      </button>
-      <button
-        type="button"
-        @click="closeForm"
-        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
-      >
-        Cancel
-      </button>
+      </Button>
+      <div class="button_group space-x-2">
+        <Button type="submit" severity="success">
+          {{ isEditing ? "Update Topic" : "Submit Topic" }}
+        </Button>
+        <Button type="button" @click="closeForm" severity="secondary">
+          Cancel
+        </Button>
+      </div>
 
       <p v-if="successMessage" class="text-green-500 mt-4">
         {{ successMessage }}

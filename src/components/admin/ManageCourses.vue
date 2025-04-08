@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { useCourse } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import ManageCourseForm from "./ManageCourseForm.vue";
@@ -8,6 +10,9 @@ import type { Topic } from "../../types/Topic";
 import type { Course } from "../../types/Course";
 import { getAdminUsers } from "../../services/userService";
 import type { AdminUser } from "../../types/User";
+
+const confirm = useConfirm();
+const toast = useToast();
 
 const courseStore = useCourse();
 const topicStore = useTopicStore();
@@ -23,7 +28,11 @@ const adminUsers = ref<AdminUser[]>([]); // Added ref for storing admin users
 //   return course.topics.map((id) => topicStore.topics.find((t) => t._id === id));
 // };
 const getCourseTopics = (course: Course) => {
-  return [...new Set(course.topics.map((id) => topicStore.topics.find((t) => t._id === id)))];
+  return [
+    ...new Set(
+      course.topics.map((id) => topicStore.topics.find((t) => t._id === id))
+    ),
+  ];
 };
 
 // Fetch courses on mount
@@ -43,9 +52,7 @@ watch(
   () => {
     console.log("✅ Topics updated, refreshing UI");
   }
-  
 );
-
 
 const handleCourseUpdated = (updatedCourse: Course) => {
   if (!updatedCourse) return;
@@ -59,7 +66,7 @@ const handleCourseUpdated = (updatedCourse: Course) => {
     courseStore.courses[index] = updatedCourse;
     showForm.value = false;
     selectedCourse.value = null;
-    showTopicForm.value = true;
+    showTopicForm.value = false;
   } else {
     // When a new course is created
     courseStore.courses.push(updatedCourse);
@@ -83,7 +90,7 @@ const handleTopicCreated = (newTopic: Topic) => {
 
   // Find the course from the course store
   const course = courseStore.courses.find((c) => c._id === courseId);
-  
+
   if (course && Array.isArray(course.topics)) {
     // Add the new topic to the course's topic list if it doesn't already exist
     if (!course.topics.includes(newTopic._id)) {
@@ -110,11 +117,32 @@ const editCourse = (course: any) => {
 };
 
 // Delete course and refresh list
-const deleteCourse = async (courseId: string) => {
-  if (confirm("Are you sure you want to delete this course?")) {
-    await courseStore.deleteCourse(courseId);
-    await courseStore.fetchCourses();
-  }
+const deleteCourse = async (event: MouseEvent, courseId: string) => {
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: "Are you sure you want to delete this course?",
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Yes",
+    rejectLabel: "No",
+    accept: async () => {
+      await courseStore.deleteCourse(courseId);
+      await courseStore.fetchCourses();
+      toast.add({
+        severity: "success",
+        summary: "Deleted",
+        detail: "Course deleted",
+        life: 3000,
+      });
+    },
+    reject: () => {
+      toast.add({
+        severity: "info",
+        summary: "Cancelled",
+        detail: "Deletion cancelled",
+        life: 2500,
+      });
+    },
+  });
 };
 
 // Reset form state
@@ -134,13 +162,7 @@ const closeTopicForm = () => {
     <p v-if="successMessage" class="text-green-500 mt-4">
       {{ successMessage }}
     </p>
-    <p>{{ showTopicForm }}</p>
-    <button
-      @click="showForm = true"
-      class="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-    >
-      ➕ Add New Course
-    </button>
+    <Button @click="showForm = true"> ➕ Add New Course </Button>
 
     <!-- Course Form -->
     <ManageCourseForm
@@ -149,7 +171,7 @@ const closeTopicForm = () => {
       @close="closeForm"
       @courseUpdated="handleCourseUpdated"
       @successMessage="successMessage = $event"
-      @update:showTopicForm="showTopicForm = $event" 
+      @update:showTopicForm="showTopicForm = $event"
     />
 
     <!-- Topic Form -->
@@ -159,48 +181,67 @@ const closeTopicForm = () => {
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
+    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+      <DataTable :value="courseStore.courses" tableStyle="min-width: 50rem">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Courses</h2>
+            <Button
+              icon="pi pi-refresh"
+              rounded
+              raised
+              @click="courseStore.fetchCourses()"
+            />
+          </div>
+        </template>
 
-    <!-- Course List -->
-    <table
-      class="w-full table-auto text-left border-collapse border border-gray-300"
-    >
-      <thead>
-        <tr class="bg-gray-100 dark:bg-gray-700">
-          <th class="border px-4 py-2">Title</th>
-          <th class="border px-4 py-2">Teacher</th>
-          <th class="border px-4 py-2">Topics</th>
-          <th class="border px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="course in courseStore.courses"
-          :key="course._id"
-          class="border-b"
-        >
-          <td class="border px-4 py-2">{{ course.title }}</td>
-          <td class="border px-4 py-2">
+        <!-- Title -->
+        <Column field="title" header="Title" />
+
+        <!-- Teacher -->
+        <Column header="Teacher">
+          <template #body="slotProps">
             {{
-              adminUsers.find((admin) => admin._id === course.teacher)?.username || "Unknown"
+              adminUsers.find((admin) => admin._id === slotProps.data.teacher)
+                ?.username || "Unknown"
             }}
-          </td>
-          <td class="border px-4 py-2">
-            <ul>
-              <li v-for="topic in getCourseTopics(course)" :key="topic?._id">
+          </template>
+        </Column>
+
+        <!-- Topics -->
+        <Column header="Topics">
+          <template #body="slotProps">
+            <ul class="list-disc ml-4">
+              <li
+                v-for="topic in getCourseTopics(slotProps.data)"
+                :key="topic?._id"
+              >
                 {{ topic?.title || "Unknown Topic" }}
               </li>
             </ul>
-          </td>
-          <td class="border px-4 py-2">
-            <button @click="editCourse(course)" class="text-blue-300 mr-2">
-              ✏️ Edit
-            </button>
-            <button @click="deleteCourse(course._id)" class="text-red-300">
-              🗑 Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </template>
+        </Column>
+
+        <!-- Actions -->
+        <Column header="Actions" class="space-x-2">
+          <template #body="slotProps">
+            <Button
+              icon="pi pi-pencil"
+              severity="info"
+              fluid
+              @click="editCourse(slotProps.data)"
+            />
+            <Button
+              icon="pi pi-trash"
+              severity="danger"
+              fluid
+              @click="deleteCourse($event, slotProps.data._id)"
+            />
+          </template>
+        </Column>
+      </DataTable>
+    </div>
+    <Toast />
+    <ConfirmPopup />
   </div>
 </template>

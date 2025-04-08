@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia";
 import Home from "../pages/Home.vue";
 import Quizzes from "../pages/Quizzes.vue";
 import Topics from "../pages/Topics.vue";
-import Login from "../pages/Login.vue";
+import Login from "../components/ui/Login.vue";
 
 import DefaultLayout from "../layouts/DefaultLayout.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";

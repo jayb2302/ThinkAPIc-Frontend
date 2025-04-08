@@ -36,20 +36,37 @@ const handleSave = () => {
 </script>
 
 <template>
-  <div v-if="user" class="p-4 border rounded shadow">
+  <div v-if="user" class="p-4 space-y-4 border rounded shadow">
     <h3 class="text-lg font-semibold mb-2">Edit User</h3>
-    <label class="block mb-1">Username:</label>
-    <input v-model="editedUsername" type="text" class="border p-2 w-full mb-3" />
-    <input v-model="editedEmail" type="text" class="border p-2 w-full mb-3">
-    <label class="block mb-1">Role:</label>
-    <select v-model="editedRole" class="border p-2 w-full mb-3">
-      <option value="student">Student</option>
-      <option value="admin">Admin</option>
-    </select>
+    <FloatLabel variant="on">
+      <InputText id="username" v-model="editedUsername" fluid />
+      <label for="username">Username</label>
+    </FloatLabel>
+
+    <FloatLabel variant="on">
+      <InputText id="email" v-model="editedEmail" fluid />
+      <label for="email">Email</label>
+    </FloatLabel>
+
+    <FloatLabel variant="on">
+      <Select
+        id="role"
+        v-model="editedRole"
+        :options="[
+          { label: 'Student', value: 'student' },
+          { label: 'Admin', value: 'admin' }
+        ]"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select a role"
+        fluid
+      />
+      <label for="role">Role</label>
+    </FloatLabel>
 
     <div class="flex gap-2">
-      <button @click="handleSave" class="bg-green-500 text-white px-4 py-1 rounded">Save</button>
-      <button @click="$emit('cancel')" class="bg-gray-400 text-white px-4 py-1 rounded">Cancel</button>
+      <Button @click="handleSave" class="bg-green-500 text-white px-4 py-1 rounded">Save</Button>
+      <Button @click="$emit('cancel')" class="bg-gray-400 text-white px-4 py-1 rounded">Cancel</Button>
     </div>
   </div>
 </template>
