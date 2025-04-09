@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
-import { useTopicStore } from '@/stores/topicStore';
+import { onMounted, watch } from "vue";
+import { useTopicStore } from "../../stores/topicStore";
 
 const topicStore = useTopicStore();
 const { topics, loading, error, fetchTopics } = topicStore;
 
 onMounted(async () => {
   await fetchTopics();
-  console.log('Fetched topics:', topics.value); 
+  //console.log("Fetched topics:", topics);
 });
 
 // ✅ Watch for changes in topics and log them
 watch(topics, (newTopics) => {
-  console.log('Updated topics:', newTopics);
+  console.log("Updated topics:", newTopics);
 });
 </script>
 
 <template>
-  <div class="p-6 bg-gray-100 text-gray-600 min-h-screen">
+  <div class="p-6 bg-gray-100 text-gray-600 overflow-auto h-screen">
     <h2 class="text-2xl font-bold text-gray-800">Topics</h2>
 
     <div v-if="loading" class="text-blue-500 mt-4">Loading topics...</div>
@@ -43,15 +43,19 @@ watch(topics, (newTopics) => {
         <h4 class="font-semibold mt-2">Course:</h4>
         <p class="text-gray-600">{{ topic.course.title }}</p>
 
-        <h4 v-if="topic.resources.length" class="font-semibold text-gray-600 mt-2">
+        <h4
+          v-if="topic.resources.length"
+          class="font-semibold text-gray-600 mt-2"
+        >
           Resources:
         </h4>
-        <ul v-if="topic.resources.length" class="list-disc ml-5">
+        <ul v-if="topic.resources.length" class="ml-5">
           <li v-for="resource in topic.resources" :key="resource._id">
+            -
             <a
               :href="resource.link"
               target="_blank"
-              class="text-blue-500 hover:underline"
+              class="text-sky-600 hover:underline"
             >
               {{ resource.title }}
             </a>

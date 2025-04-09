@@ -39,12 +39,22 @@ const handleTopicUpdated = async () => {
 const deleteTopic = async (topicId: string) => {
   if (confirm("Are you sure you want to delete this topic?")) {
     await topicStore.deleteTopic(topicId);
-    await topicStore.fetchTopics(); 
+    await topicStore.fetchTopics();
     successMessage.value = "✅ Topic deleted successfully!";
 
     setTimeout(() => {
       successMessage.value = null;
     }, 3000);
+  }
+};
+// Refresh topics
+const refreshTopics = async () => {
+  try {
+    await topicStore.fetchTopics();
+    successMessage.value = "✅ Topics refreshed successfully!";
+  } catch (err) {
+    console.error("Error refreshing topics:", err);
+    successMessage.value = "❌ Failed to refresh topics.";
   }
 };
 
@@ -64,9 +74,12 @@ const closeForm = () => {
   <div class="p-6 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Topics</h2>
 
-    <button @click="showForm = true" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">
+    <Button
+      @click="showForm = true"
+      class="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+    >
       ➕ Add New Topic
-    </button>
+    </Button>
 
     <!-- Topic Form -->
     <ManageTopicForm
@@ -75,30 +88,44 @@ const closeForm = () => {
       @topic-updated="handleTopicUpdated"
       @close="closeForm"
     />
+    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+      <DataTable :value="topicList" tableStyle="min-width: 50rem">
+        <template #header>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xl font-bold">Topics</span>
+            <Button
+              icon="pi pi-refresh"
+              rounded
+              raised
+              @click="refreshTopics"
+            />
+          </div>
+        </template>
 
-    <!-- Topic List -->
-    <table class="w-full table-auto text-left border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-gray-100">
-          <th class="border px-4 py-2">Title</th>
-          <th class="border px-4 py-2">Week</th>
-          <th class="border px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="topic in topicList" :key="topic._id" class="border-b">
-          <td class="border px-4 py-2">{{ topic.title }}</td>
-          <td class="border px-4 py-2">{{ topic.week }}</td>
-          <td class="border px-4 py-2">
-            <button @click="editTopic(topic)" class="text-blue-500 mr-2">
-              ✏️ Edit
-            </button>
-            <button @click="deleteTopic(topic._id)" class="text-red-500">
-              🗑 Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        <!-- Question Column -->
+        <Column field="title" header="Title"></Column>
+        <Column field="week" header="Week"></Column>
+
+        <!-- Actions Column -->
+        <Column header="Actions" class="space-x-2">
+          <template #body="slotProps">
+            <Button
+              @click="editTopic(slotProps.data)"
+              severity="info"
+              icon="pi pi-pencil"
+            />
+            <Button
+              @click="deleteTopic(slotProps.data._id)"
+              severity="danger"
+              icon="pi pi-trash"
+            />
+          </template>
+        </Column>
+
+        <template #footer>
+          In total, there are {{ topicList ? topicList.length : 0 }} topics.
+        </template>
+      </DataTable>
+    </div>
   </div>
 </template>

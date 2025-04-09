@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import api from "../../services/api";
-import { useCourseStore } from "../../stores/courseStore";
+import { useCourse } from "../../stores/courseStore";
 import type { Topic } from "../../types/Topic";
 
 const emit = defineEmits(["close", "topicUpdated"]);
 
 const props = defineProps<{ topic?: Topic | null; courseId?: string | null }>();
-const courseStore = useCourseStore();
+const courseStore = useCourse();
 const title = ref("");
 const week = ref<number | null>(null);
 const summary = ref("");
-const selectedCourse = ref<string | null>(null);
+const selectedCourse = ref<string | null>(props.courseId || null);
 const keyPoints = ref<string[]>([]);
 const newKeyPoint = ref("");
 const resources = ref<{ title: string; link: string }[]>([]);
@@ -25,12 +25,6 @@ onMounted(async () => {
   await courseStore.fetchCourses();
 });
 
-const selectedCourseTitle = computed(() => {
-  return (
-    courseStore.courses.find((course) => course._id === selectedCourse.value)
-      ?.title || ""
-  );
-});
 // Reset form
 const resetForm = () => {
   title.value = "";
@@ -56,28 +50,33 @@ const ensureCoursesLoaded = async () => {
   if (!courseStore.courses.length) await courseStore.fetchCourses();
 };
 
-// const extractCourseId = (
-//   course: string | { _id: string } | null
-// ): string | null =>
-//   course && typeof course === "object" ? course._id : course || null;
-
-// Watch for existing topic (edit mode)
+// Watch for topic changes & populate form when editing
 watch(
   () => props.topic,
   async (newTopic) => {
     if (!newTopic) {
+      // When there's no topic, reset the form and initialize courseId
       resetForm();
       isEditing.value = false;
       selectedCourse.value = props.courseId ?? null;
-      return;
+    } else {
+      // When there's an existing topic (edit mode)
+      isEditing.value = true;
+      setTopicFields(newTopic);
+      await ensureCoursesLoaded();
+      selectedCourse.value = newTopic.course._id;
     }
-    isEditing.value = true;
-    setTopicFields(newTopic);
-    await ensureCoursesLoaded();
-    selectedCourse.value =
-      newTopic.course && typeof newTopic.course === "object"
-        ? newTopic.course._id
-        : newTopic.course;
+  },
+  { immediate: true }
+);
+
+// Watch for courseId to ensure selectedCourse is set correctly when creating a new topic
+watch(
+  () => props.courseId,
+  (newCourseId) => {
+    if (newCourseId) {
+      selectedCourse.value = newCourseId;
+    }
   },
   { immediate: true }
 );
@@ -134,9 +133,9 @@ const getTopicData = () => ({
   resources: resources.value,
 });
 
-const handleApiResponse = (message: string) => {
+const handleApiResponse = (newTopic: Topic, message: string) => {
   successMessage.value = message;
-  emit("topicUpdated");
+  emit("topicUpdated", newTopic);
   resetForm();
 };
 
@@ -144,11 +143,11 @@ const submitTopic = async () => {
   try {
     resetMessages();
     if (!validateForm()) return;
+    //console.log("📤 Submitting Topic:", getTopicData());
 
-    console.log("📤 Submitting Topic:", getTopicData());
-
-    await saveTopic();
-    handleApiResponse(getSuccessMessage());
+    const savedTopic = await saveTopic();
+    await courseStore.fetchCourses();
+    handleApiResponse(savedTopic, getSuccessMessage());
   } catch (error) {
     handleError(error);
   }
@@ -161,10 +160,11 @@ const resetMessages = () => {
 };
 
 // 🔹 Make API request based on edit mode
-const saveTopic = async () => {
+const saveTopic = async (): Promise<Topic> => {
   const url = isEditing.value ? `/topics/${props.topic!._id}` : "/topics";
   const method = isEditing.value ? "put" : "post";
-  return api[method](url, getTopicData());
+  const response = await api[method](url, getTopicData());
+  return response.data;
 };
 
 // 🔹 Get the appropriate success message
@@ -175,7 +175,7 @@ const getSuccessMessage = () =>
 
 // 🔹 Handle API errors
 const handleError = (error: any) => {
-  console.error("❌ Error submitting topic:", error);
+  //console.error("❌ Error submitting topic:", error);
   errorMessage.value =
     error.response?.data?.error || "Something went wrong. Please try again.";
 };
@@ -188,79 +188,87 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-6 bg-white shadow rounded-md">
+  <div class="p-6shadow rounded-md">
     <h1 class="text-2xl font-bold mb-4">
       {{ isEditing ? "Edit Topic" : "Add New Topic" }}
     </h1>
 
-    <form @submit.prevent="submitTopic" class="p-4 shadow-md rounded-md">
-      <label class="block mb-2">Topic Title:</label>
-      <input
-        v-model="title"
-        type="text"
-        class="border p-2 w-full mb-4"
-        required
-      />
+    <form
+      @submit.prevent="submitTopic"
+      class="p-4 shadow-md space-y-4 rounded-md"
+    >
+      <FloatLabel variant="on">
+        <InputText id="topic_title" v-model="title" required fluid />
+        <label for="topic_title" class="block mb-2">Topic Title</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Week:</label>
-      <input
-        v-model="week"
-        type="number"
-        class="border p-2 w-full mb-4"
-        required
-      />
+      <FloatLabel id="minmax-buttons" variant="on">
+        <InputNumber
+          v-model="week"
+          inputId="minmax-buttons"
+          mode="decimal"
+          showButtons
+          :min="1"
+          :max="18"
+          fluid
+        />
+        <label for="minmax-buttons" class="block">Week</label>
+      </FloatLabel>
 
-      <label class="block mb-2">Summary:</label>
-      <textarea
-        v-model="summary"
-        class="border p-2 w-full mb-4"
-        required
-      ></textarea>
-
-      <label class="block mb-2">Select Course:</label>
-      <select v-model="selectedCourseTitle" class="border p-2 w-full mb-4">
-        <option disabled value="">-- Choose a course --</option>
-        <option
-          v-for="course in courseStore.courses"
-          :key="course._id"
-          :value="course._id"
-        >
-          {{ course.title }}
-        </option>
-      </select>
+      <FloatLabel variant="on">
+        <Textarea
+          id="topic_summary"
+          v-model="summary"
+          rows="5"
+          cols="30"
+          style="resize: none"
+          required
+          fluid
+        />
+        <label for="topic_summary">Summary</label>
+      </FloatLabel>
+      <FloatLabel class="w-full mb-4" variant="on">
+        <Select
+          v-model="selectedCourse"
+          inputId="course_select"
+          :options="courseStore.courses"
+          optionLabel="title"
+          optionValue="_id"
+          class="w-full"
+        />
+        <label for="course_select">Select Course</label>
+      </FloatLabel>
 
       <!-- Key Points -->
-      <label class="block mb-2">Key Points:</label>
+      <label class="block mb-2 font-bold">Key Points</label>
       <div
         v-for="(point, index) in keyPoints"
         :key="index"
         class="flex items-center mb-2"
       >
         <span class="flex-grow">{{ point }}</span>
-        <button
+        <Button
           type="button"
           @click="removeKeyPoint(index)"
-          class="text-red-500 ml-2"
-        >
-          ❌
-        </button>
+          severity="danger"
+          icon="pi pi-times"
+        />
       </div>
-      <input
-        v-model="newKeyPoint"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Add a key point"
-      />
-      <button
+
+      <FloatLabel variant="on">
+        <InputText id="key_point" v-model="newKeyPoint" fluid />
+        <label for="key_point" class="block mb-2">Key Point</label>
+      </FloatLabel>
+      <Button
         type="button"
         @click="addKeyPoint"
         class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
       >
         ➕ Add Key Point
-      </button>
+      </Button>
 
       <!-- Resources -->
-      <label class="block mb-2">Resources:</label>
+      <label class="block font-bold mb-2">Resources:</label>
       <div
         v-for="(resource, index) in resources"
         :key="index"
@@ -272,47 +280,43 @@ const closeForm = () => {
             resource.link
           }}</a></span
         >
-        <button
+        <Button
+          :icon="'pi pi-times'"
           type="button"
           @click="removeResource(index)"
-          class="text-red-500 ml-2"
-        >
-          ❌
-        </button>
+          severity="danger"
+        />
       </div>
-      <input
-        v-model="newResource.title"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Resource title"
-      />
-      <input
-        v-model="newResource.link"
-        type="text"
-        class="border p-2 w-full mb-2"
-        placeholder="Resource link"
-      />
-      <button
+      <div class="recourses flex w-full space-x-2">
+        <FloatLabel variant="on" class="w-1/3">
+          <InputText id="resource_title" v-model="newResource.title" fluid />
+          <label for="resource_title" class="block mb-2">Resource Title</label>
+        </FloatLabel>
+        <FloatLabel variant="on" class="flex-grow">
+          <InputText id="resource_link" v-model="newResource.link" fluid />
+          <label for="resource_link" class="block mb-2">Link</label>
+        </FloatLabel>
+      </div>
+      <Button
         type="button"
         @click="addResource"
-        class="bg-blue-500 text-white px-2 py-1 rounded-md mb-4"
-      >
-        ➕ Add Resource
-      </button>
-
-      <button
-        type="submit"
-        class="bg-green-500 text-white px-4 py-2 rounded-md"
-      >
-        {{ isEditing ? "Update Topic" : "Submit Topic" }}
-      </button>
-      <button
-        type="button"
-        @click="closeForm"
-        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md"
-      >
-        Cancel
-      </button>
+        label="Add Resource"
+        icon="pi pi-plus"
+      />
+      <div class="button-group flex justify-end space-x-2">
+        <Button
+          :label="isEditing ? 'Update Topic' : 'Submit Topic'"
+          icon="pi pi-check"
+          type="submit"
+          severity="success"
+        />
+        <Button
+          type="button"
+          label="Cancel"
+          icon="pi pi-times"
+          @click="closeForm"
+        />
+      </div>
 
       <p v-if="successMessage" class="text-green-500 mt-4">
         {{ successMessage }}

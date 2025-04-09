@@ -1,24 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useQuizStore } from "../../stores/quizStore";
 import ManageQuizForm from "./ManageQuizForm.vue";
 import type { Quiz, QuizOption } from "../../types/Quiz";
+import Select from "primevue/select";
+import { useTopicStore } from "../../stores/topicStore";
+import type { Topic } from "../../types/Topic";
 
 const quizStore = useQuizStore();
+const { fetchQuizzesByTopic } = quizStore;
+const topicStore = useTopicStore();
 const showForm = ref(false);
 const selectedQuiz = ref<Quiz | null>(null);
 const successMessage = ref<string | null>(null);
+const selectedTopic = ref<string | null>(null);
 
 // Fetch quizzes on component mount
 onMounted(() => {
   quizStore.fetchQuizzes();
+  topicStore.fetchTopics();
 });
 
 // Computed property instead of watch() for better performance
 //// - computed() automatically updates when quizStore.quizzes changes
 //// - More efficient since it only recalculates when needed
 const quizList = computed(() => quizStore.quizzes);
-
+const refreshQuizzes = () => {
+  quizStore.fetchQuizzes();
+};
 // Function to prepare quiz for editing
 const prepareQuizForEdit = (quiz: Quiz) => ({
   ...quiz,
@@ -66,22 +75,38 @@ const closeForm = () => {
   selectedQuiz.value = null;
   showForm.value = false;
 };
+
+const fetchByTopic = async (topicId: string) => {
+  await fetchQuizzesByTopic(topicId);
+};
+
+watch(selectedTopic, (newTopicId) => {
+  if (newTopicId) fetchByTopic(newTopicId);
+  else quizStore.fetchQuizzes(); // fallback to all
+});
+
+const topicOptions = computed(() =>
+  topicStore.topics.map((t: Topic) => ({
+    label: t.title,
+    value: t._id,
+  }))
+);
 </script>
 
 <template>
-    <!-- ✅ Success Message -->
-    <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
-      {{ successMessage }}
-    </div>
+  <!-- ✅ Success Message -->
+  <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
+    {{ successMessage }}
+  </div>
   <div class="p-6 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
-    <button
+    <Button
       @click="showForm = true"
       class="bg-blue-500 text-white px-4 py-2 rounded mb-4"
     >
       ➕ Add New Quiz
-    </button>
+    </Button>
 
     <!-- Quiz Form -->
     <ManageQuizForm
@@ -90,34 +115,58 @@ const closeForm = () => {
       @quiz-updated="handleQuizUpdated"
       @close="closeForm"
     />
+    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+    <DataTable :value="quizList" tableStyle="min-width: 50rem" >
+      <template #header>
+        <div class="flex flex-wrap items-center justify-between gap-2 w-full ">
+          <span class="text-xl font-bold">Quizzes</span>
+          <Button icon="pi pi-refresh" rounded raised @click="refreshQuizzes" />
+        </div>
+      </template>
 
-    <!-- Quiz List -->
-    <table
-      class="w-full table-auto text-left border-collapse border border-gray-300"
-    >
-      <thead>
-        <tr class="bg-gray-100">
-          <th class="border px-4 py-2">Question</th>
-          <th class="border px-4 py-2">Topic</th>
-          <th class="border px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="quiz in quizList" :key="quiz._id" class="border-b">
-          <td class="border px-4 py-2">{{ quiz.question }}</td>
-          <td class="border px-4 py-2">
-            {{ quiz.topic?.title || "No Topic" }}
-          </td>
-          <td class="border px-4 py-2">
-            <button @click="editQuiz(quiz)" class="text-blue-500 mr-2">
-              ✏️ Edit
-            </button>
-            <button @click="deleteQuiz(quiz._id)" class="text-red-500">
-              🗑 Delete
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <!-- Question Column -->
+      <Column field="question" header="Question" class="w-1/2"></Column>
+
+      <!-- Topic Column -->
+      <Column>
+        <template #header>
+          <div class="flex flex-col">
+            <Select
+              v-model="selectedTopic"
+              :options="topicOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Filter by Topic"
+              class="w-full"
+              clearable
+            />
+          </div>
+        </template>
+        <template #body="slotProps">
+          {{ slotProps.data.topic?.title || "No Topic" }}
+        </template>
+      </Column>
+
+      <!-- Actions Column -->
+      <Column header="Actions">
+        <template #body="slotProps">
+          <Button
+            @click="editQuiz(slotProps.data)"
+            severity="info"
+            icon="pi pi-pencil"
+          />
+          <Button
+            @click="deleteQuiz(slotProps.data._id)"
+            severity="danger"
+            icon="pi pi-trash"
+          />
+        </template>
+      </Column>
+
+      <template #footer>
+        In total, there are {{ quizList ? quizList.length : 0 }} quizzes.
+      </template>
+    </DataTable>
+    </div>
   </div>
 </template>

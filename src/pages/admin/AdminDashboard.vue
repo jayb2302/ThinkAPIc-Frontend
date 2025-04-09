@@ -27,8 +27,8 @@ onMounted(async () => {
     totalCourses.value = coursesRes.data.length;
     totalUsers.value = usersRes.data.length;
 
-    latestQuizzes.value = quizzesRes.data.slice(-5); // Get last 5 quizzes
-
+    // Get the latest 5 quizzes
+    latestQuizzes.value = quizzesRes.data.slice(-5);
   } catch (error) {
     console.error("❌ Error fetching dashboard data:", error);
   }
@@ -51,44 +51,71 @@ const goTo = (route: string) => {
 
     <!-- Dashboard Stats -->
     <div v-else>
-      <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="p-4 bg-blue-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Quizzes</h2>
-          <p class="text-2xl">{{ totalQuizzes }}</p>
-        </div>
-        <div class="p-4 bg-green-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Topics</h2>
-          <p class="text-2xl">{{ totalTopics }}</p>
-        </div>
-        <div class="p-4 bg-purple-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Courses</h2>
-          <p class="text-2xl">{{ totalCourses }}</p>
-        </div>
-        <div class="p-4 bg-yellow-300 text-white rounded-md">
-          <h2 class="text-xl font-semibold">Users</h2>
-          <p class="text-2xl">{{ totalUsers }}</p>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Panel
+          header="Quizzes"
+          class="bg-blue-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalQuizzes }}</p>
+        </Panel>
+
+        <Panel
+          header="Topics"
+          class="bg-green-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalTopics }}</p>
+        </Panel>
+
+        <Panel
+          header="Courses"
+          class="bg-purple-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalCourses }}</p>
+        </Panel>
+
+        <Panel
+          header="Users"
+          class="bg-yellow-500 text-white rounded-md shadow-md"
+        >
+          <p class="text-3xl font-bold">{{ totalUsers }}</p>
+        </Panel>
       </div>
 
       <!-- Quick Actions -->
-      <div class="grid grid-cols-3 gap-4 mb-6">
-        <button @click="goTo('/admin/quizzes')" class="bg-blue-300 p-2 rounded-md">
-          📚 Manage Quizzes
-        </button>
-        <button @click="goTo('/admin/topics')" class="bg-green-300 p-2 rounded-md">
-          📖 Manage Topics
-        </button>
-        <button @click="goTo('/admin/courses')" class="bg-purple-300 p-2 rounded-md">
-          🎓 Manage Courses
-        </button>
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <Button
+          @click="goTo('/admin/quizzes')"
+          label="Manage Quizzes"
+          icon="pi pi-question-circle"
+          class="bg-blue-300 p-2 rounded-md"
+        />
+        <Button
+          @click="goTo('/admin/topics')"
+          label="Manage Topics"
+          icon="pi pi-list"
+          class="bg-green-300 p-2 rounded-md"
+        />
+        <Button
+          @click="goTo('/admin/courses')"
+          label="Manage Courses"
+          icon="pi pi-briefcase"
+          class="bg-purple-300 p-2 rounded-md"
+        />
+        <Button
+          @click="goTo('/admin/users')"
+          label="Manage Users"
+          icon="pi pi-users"
+          class="bg-purple-300 p-2 rounded-md"
+        />
       </div>
 
       <!-- Recent Quizzes -->
-      <div class="bg-gray-100 text-left p-4 rounded-md">
+      <div class="bg-gray-100 shadow text-left p-4 rounded-md ">
         <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
-        <ul>
-          <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2">
-           <strong> 📝 {{ quiz.question }} </strong> ( Topic: {{ quiz.topic.title }} )
+        <ul class=" divide-y divide-gray-300">
+          <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2 flex flex-col">
+            <strong> 📝 {{ quiz.question }} </strong> 
+            Topic: {{ quiz.topic.title }} 
           </li>
         </ul>
       </div>

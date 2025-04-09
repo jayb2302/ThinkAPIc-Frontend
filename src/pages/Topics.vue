@@ -10,4 +10,5 @@ import CodeChallenge from '@/components/topics/CodeChallenge.vue'
   <!-- Code Challenge Section -->
   <h2>Try a Code Challenge</h2>
   <CodeChallenge />
+  <TopicList />
 </template>
