@@ -24,8 +24,13 @@ const logout = () => {
 
 const items = ref<MenuItem[]>([
   {
-    label: "Dashboard",
+    label: "Home",
     icon: "pi pi-home",
+    command: () => router.push("/"),
+  },
+  {
+    label: "Dashboard",
+    icon: "pi pi-th-large",
     command: () => router.push("/admin"),
   },
   {

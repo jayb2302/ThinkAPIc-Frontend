@@ -20,6 +20,7 @@ const handleLogin = async () => {
     router.push("/admin"); // Redirect to home after login
   } catch (error) {
     errorMessage.value = "Invalid email or password";
+    router.push("/")
   }
 };
 </script>

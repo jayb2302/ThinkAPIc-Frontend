@@ -4,6 +4,9 @@ import App from "./App.vue";
 import router from "./router";
 import "./style.css";
 
+import hljs from 'highlight.js';
+import CodeEditor from 'simple-code-editor';
+
 import PrimeVue from "primevue/config";
 import Ripple from "primevue/ripple";
 import ConfirmationService from "primevue/confirmationservice";
@@ -30,6 +33,10 @@ import Card from "primevue/card";
 
 const pinia = createPinia();
 const app = createApp(App);
+
+app.provide('hljs', hljs);
+
+app.component('CodeEditor', CodeEditor)
 const MyPreset = definePreset(Aura, {
   semantic: {
     primary: {
