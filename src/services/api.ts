@@ -39,7 +39,7 @@ api.interceptors.response.use(
       // If token expired, logout user
       if (error.response.status === 401) {
         userStore.logout();
-        window.location.href = '/login'; // Redirect to login page
+        window.location.href = '/'; 
       }
     } else {
       console.error('Network/Server Error:', error);

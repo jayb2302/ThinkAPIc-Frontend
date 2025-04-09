@@ -72,7 +72,7 @@ router.beforeEach((to, _, next) => {
 
   if (to.meta.requiresAuth && !token.value) {
     console.warn("⛔ Redirecting to Login (Not Authenticated)");
-    next("/login");
+    next("/");
   } else if (to.meta.requiresAdmin && role.value !== "admin") {
     console.warn("⛔ Redirecting to Home (Not Admin)");
     next("/");

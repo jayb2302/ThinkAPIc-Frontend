@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 
-
 // Hardcoded challenge related to "User Authentication & JWT"
 const challenge = ref({
   topic: "User Authentication & JWT",
@@ -75,14 +74,22 @@ console.log("Vue script is running");
 onMounted(() => {
   console.log("Challenge loaded:", challenge.value);
 });
-
-
 </script>
 
 <template>
-  <div>
-    <h3 class="bg-amber-200">Topic Challenge: {{ challenge.topic }}</h3>
-    <p class="mb-4">{{ challenge.problem }}</p>
+  <div class="w-full">
+    <h3 class="text-md bg-amber-200 font-semibold p-2 rounded">
+      Topic Challenge:
+      <span class="font-bold">
+        {{ challenge.topic }}
+      </span>
+    </h3>
+    <p class="mb-4 p-2 font-bold flex flex-col space-y-4 bg-red-50 rounded">
+      ⚠️ Problem:
+      <span class="font-light text-xl">
+        {{ challenge.problem }}
+      </span>
+    </p>
 
     <div class="example bg-gray-100 p-2 rounded">
       <p>
@@ -94,8 +101,36 @@ onMounted(() => {
         <code>{{ challenge.example_output }}</code>
       </p>
     </div>
-
-    <div class="editor-container">
+    <!-- Hints Section -->
+    <div class="mt-4">
+      <Button
+        icon="pi pi-lightbulb"
+        :label="showHints ? 'Hide Hints' : 'Show Hints'"
+        severity="info"
+        @click="toggleHints"
+      />
+      <div v-if="showHints">
+        <Button
+          icon="pi pi-arrow-right"
+          :label="
+            hintIndex < challenge.hints.length ? 'Next Hint' : 'No More Hints'
+          "
+          v-if="hintIndex < challenge.hints.length"
+          @click="revealHint"
+        />
+        <div class="bg-gray-100 p-2 rounded mt-2">
+        <p
+          v-for="(hint, index) in challenge.hints.slice(0, hintIndex)"
+          :key="index"
+          class="text-gray-700 bg-gray-200 p-2 rounded mt-2"
+        >
+           {{ hint }}
+        </p>
+        </div>
+        
+      </div>
+    </div>
+    <div class="editor-container mt-4">
       <CodeEditor
         v-model="code"
         :line-nums="true"
@@ -103,36 +138,17 @@ onMounted(() => {
         width="100%"
         min-height="300px"
         theme="atom-one-dark"
-
       />
     </div>
 
-    <button @click="runCode">Run Code</button>
     <p>{{ output }}</p>
 
-    <!-- Hints Section -->
-    <div class="mt-4">
-      <button @click="toggleHints">
-        {{ showHints ? "Hide Hints" : "Show Hints" }}
-      </button>
-      <div v-if="showHints">
-        <p
-          v-for="(hint, index) in challenge.hints.slice(0, hintIndex)"
-          :key="index"
-        >
-          💡 {{ hint }}
-        </p>
-        <button v-if="hintIndex < challenge.hints.length" @click="revealHint">
-          Next Hint
-        </button>
-      </div>
-    </div>
-
     <!-- Reveal Answer (Toggles Code Editor Content) -->
-    <div class="mt-4">
-      <button @click="toggleAnswer">
+    <div class="mt-4 flex gap-2 justify-end">
+    <Button severity="success" @click="runCode">Run Code</Button>
+      <Button @click="toggleAnswer">
         {{ showAnswer ? "Hide Answer" : "Show Answer" }}
-      </button>
+      </Button>
     </div>
   </div>
 </template>
