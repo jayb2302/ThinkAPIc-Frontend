@@ -41,7 +41,7 @@ const routes = [
       },
       {
         path: '/courses/:courseId/topics/:topicId/quizzes',
-        component: () => import('@/pages/TopicQuizzes.vue'),
+        component: () => import('@/components/quizzes/TopicQuizzes.vue'),
         meta: { requiresAuth: true },
       }
     ],

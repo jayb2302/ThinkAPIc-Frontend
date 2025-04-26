@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
+import { formatDate } from '../utils/formatDate';
 import { getCourseById } from "../services/courseService";
 import { getUserById } from "../services/userService";
 import { useTopicStore } from "../stores/topicStore";
@@ -33,17 +34,6 @@ onMounted(async () => {
   }
 });
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  return new Intl.DateTimeFormat("en-GB", options)
-    .format(date)
-    .replace(/,/g, "");
-};
 </script>
 
 <template>

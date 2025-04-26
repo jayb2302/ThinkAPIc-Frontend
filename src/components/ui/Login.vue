@@ -10,19 +10,23 @@ const email = ref("");
 const password = ref("");
 const errorMessage = ref("");
 
-const userStore = useAuthStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    await userStore.logIn(email.value, password.value);
-    if (userStore.isAuthenticated) {
+    await authStore.logIn(email.value, password.value);
+    await authStore.fetchCurrentUser();
+    if (authStore.isAuthenticated) {
       errorMessage.value = "";
       emit("update:visible", false); 
-      router.push("/admin");
+      if (authStore.isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     }
   } catch (error) {
-
     errorMessage.value = "Invalid email or password";
   }
 };

@@ -7,6 +7,7 @@ import {
   addQuiz,
   updateQuiz,
   deleteQuiz,
+  attemptQuiz
 } from "../services/quizService";
 import type { Quiz, QuizOption } from "../types/Quiz";
 
@@ -125,10 +126,19 @@ export const useQuizStore = defineStore("quizzes", () => {
     }
   };
 
+  const attemptQuizById = async (
+    quizId: string,
+    payload: { userId: string; selectedOptionOrder: number; courseId: string; isCorrect: boolean }
+  ) => {
+    const res = await attemptQuiz(quizId, payload);
+    return res;
+  };
+
   return {
     quizzes,
     loading,
     error,
+    attemptQuizById,
     fetchQuizzes,
     fetchQuizById,
     fetchQuizzesByTopic,
