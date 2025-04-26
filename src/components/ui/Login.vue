@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useUserStore } from "../../stores/userStore";
+import { useAuthStore } from "../../stores/authStore";
 import { useRouter } from "vue-router";
 
 const props = defineProps<{ visible: boolean }>();
@@ -10,17 +10,20 @@ const email = ref("");
 const password = ref("");
 const errorMessage = ref("");
 
-const userStore = useUserStore();
+const userStore = useAuthStore();
 const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    await userStore.login(email.value, password.value);
-    emit("update:visible", false); // Close the dialog on success
-    router.push("/admin"); // Redirect to home after login
+    await userStore.logIn(email.value, password.value);
+    if (userStore.isAuthenticated) {
+      errorMessage.value = "";
+      emit("update:visible", false); 
+      router.push("/admin");
+    }
   } catch (error) {
+
     errorMessage.value = "Invalid email or password";
-    router.push("/")
   }
 };
 </script>
@@ -29,7 +32,7 @@ const handleLogin = async () => {
   <div class="card flex justify-center">
     <Dialog
       :visible="props.visible"
-      @update:visible="emit('update:visible', $event)"
+      @update:visible="(value) => emit('update:visible', value)"
       modal
       :pt="{
         root: { class: '!border-0 !bg-transparent' },

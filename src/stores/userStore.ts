@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import {
-  loginUser,
   updateUser,
   getAllUsers,
   deleteUser,
@@ -11,14 +10,8 @@ import type { User, UserRole } from "../types/User";
 export const useUserStore = defineStore("user", () => {
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-
-  const token = ref<string | null>(localStorage.getItem("token"));
-  const role = ref<string | null>(localStorage.getItem("role"));
   const user = ref<User | null>(null);
   const users = ref<User[]>([]);
-  const isAuthenticated = computed(() => !!token.value);
-
-  const isAdmin = computed(() => role.value === "admin");
 
   // 🔹 Fetch all users
   const fetchAllUsers = async () => {
@@ -32,39 +25,6 @@ export const useUserStore = defineStore("user", () => {
     } finally {
       loading.value = false;
     }
-  };
-
-  const login = async (email: string, password: string) => {
-    try {
-      //console.log("🔍 Sending Login Request:", { email, password });
-      const data = await loginUser(email, password);
-
-      //console.log("✅ Login Successful! Token Received:", data.token);
-      //console.log("✅ User Role:", data.user.role);
-
-      token.value = data.token;
-      role.value = data.user.role;
-      user.value = data.user;
-
-      // ✅ Save token and role in localStorage
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role);
-    } catch (error) {
-      if (error instanceof Error) {
-        //console.error( "❌ API Login Error:", (error as any).response?.data || error.message);
-      } else {
-        // console.error("❌ API Login Error:", error);
-      }
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    token.value = null;
-    role.value = null;
-    user.value = null;
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
   };
 
   const saveUser = async (updated: {
@@ -101,12 +61,6 @@ export const useUserStore = defineStore("user", () => {
 
   return {
     fetchAllUsers,
-    token,
-    role,
-    login,
-    logout,
-    isAdmin,
-    isAuthenticated,
     user,
     users,
     saveUser,

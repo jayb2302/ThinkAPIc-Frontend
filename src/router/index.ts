@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
 
 import Home from "../pages/Home.vue";
@@ -39,6 +39,11 @@ const routes = [
         path: "topics/:id",
         component: () => import("../pages/TopicDetails.vue"),
       },
+      {
+        path: '/courses/:courseId/topics/:topicId/quizzes',
+        component: () => import('@/pages/TopicQuizzes.vue'),
+        meta: { requiresAuth: true },
+      }
     ],
   },
   { path: "/login", component: Login },
@@ -66,14 +71,18 @@ const router = createRouter({
 });
 
 // ✅ Use Pinia safely inside router guards
-router.beforeEach((to, _, next) => {
-  const userStore = useUserStore();
-  const { token, role } = storeToRefs(userStore);
+router.beforeEach(async (to, _, next) => {
+  const authStore = useAuthStore();
 
-  if (to.meta.requiresAuth && !token.value) {
+  if (authStore.token && !authStore.user) {
+    await authStore.fetchCurrentUser();
+  }
+
+  const { isAuthenticated, isAdmin } = storeToRefs(authStore); 
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     console.warn("⛔ Redirecting to Login (Not Authenticated)");
     next("/");
-  } else if (to.meta.requiresAdmin && role.value !== "admin") {
+  } else if (to.meta.requiresAdmin && !isAdmin.value) {
     console.warn("⛔ Redirecting to Home (Not Admin)");
     next("/");
   } else {
