@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { useUserStore } from '../stores/userStore';
+import { useAuthStore } from '../stores/authStore';
 
 // Helper function to get token from Pinia or localStorage
 const getToken = () => {
-  const userStore = useUserStore();
-  return userStore.token || localStorage.getItem('token');
+  const authStore = useAuthStore();
+  return authStore.token || localStorage.getItem('token');
 };
 
 // Create Axios instance
@@ -31,14 +31,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const userStore = useUserStore();
+    const authStore = useAuthStore();
 
     if (error.response) {
       console.error('API Error:', error.response.status, error.response.data);
 
       // If token expired, logout user
       if (error.response.status === 401) {
-        userStore.logout();
+        authStore.logOut();
         window.location.href = '/'; 
       }
     } else {
