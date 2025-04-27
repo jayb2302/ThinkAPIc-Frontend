@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+
 import type { Topic } from "../types/Topic";
 import { getTopicById } from "../services/topicService";
+import TopicQuizzes from "../components/quizzes/TopicQuizzes.vue";
 
 const route = useRoute();
-
 const topic = ref<Topic | null>(null);
+const showQuizDialog = ref(false);
+
+const openQuizDialog = () => {
+  showQuizDialog.value = true;
+};
 
 onMounted(async () => {
   const id = route.params.id as string;
@@ -58,6 +64,21 @@ onMounted(async () => {
         </li>
       </ul>
     </div>
+
+    <Button
+      label="Take Quiz"
+      icon="pi pi-play"
+      class="btn-primary"
+      @click="openQuizDialog"
+    />
+
+    <TopicQuizzes
+      v-if="topic"
+      v-model:visible="showQuizDialog"
+      :topicId="topic._id"
+      :courseId="topic.course._id"
+      @hide="showQuizDialog = false"
+    />
   </div>
 
   <p v-else class="text-center p-6">Loading topic details...</p>

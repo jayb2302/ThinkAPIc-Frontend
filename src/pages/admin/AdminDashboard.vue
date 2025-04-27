@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useUserStore } from "../../stores/userStore";
+import { useAuthStore } from "../../stores/authStore";
 import api from "../../services/api";
 import { useRouter } from "vue-router";
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 // Stats for dashboard
@@ -45,7 +45,7 @@ const goTo = (route: string) => {
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->
-    <div v-if="!userStore.isAdmin" class="text-red-500">
+    <div v-if="!authStore.isAdmin" class="text-red-500">
       ⛔ Access Denied. Only admins can access this page.
     </div>
 

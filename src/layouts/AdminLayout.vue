@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { useUserStore } from "../stores/userStore";
-import { storeToRefs } from "pinia";
+import { useAuthStore } from "../stores/authStore";
 import MessageToast from "../components/ui/MessageToast.vue";
 import type { MenuItem } from "primevue/menuitem";
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 
 const router = useRouter();
-const userStore = useUserStore();
-const { role } = storeToRefs(userStore);
+const authStore = useAuthStore();
 
-// ✅ Redirect if user is NOT an admin
-if (role.value !== "admin") {
-  console.warn("⛔ Access Denied: Redirecting Non-Admin User");
-  router.push("/");
-}
+watchEffect(async () => {
+  if (!authStore.user && authStore.token) {
+    await authStore.fetchCurrentUser();
+  }
+  
+  // Only check role after user is fetched
+  if (authStore.user) {
+    if (authStore.user.role !== 'admin') {
+      console.warn("⛔ Access Denied: Redirecting Non-Admin User");
+      router.push("/");
+    }
+  }
+});
 
 // ✅ Logout Function
 const logout = () => {
-  userStore.logout();
-  router.push("/");
+  authStore.logOut();
 };
 
 const items = ref<MenuItem[]>([
@@ -61,12 +66,12 @@ const items = ref<MenuItem[]>([
     <nav
       class="flex flex-col justify-start items-baseline rounded bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-50"
     >
-      <div v-if="userStore.isAuthenticated" class="capitalize">
+      <div v-if="authStore.isAuthenticated" class="capitalize">
         <span class="pi pi-star pr-2"> </span>
-        {{ userStore.user?.username }}
+        {{ authStore.user?.username }}
         <p class="flex flex-col">
           <span class="italic">
-            {{ userStore.role }}
+            {{ authStore.user?.role }}
           </span>
         </p>
       </div>

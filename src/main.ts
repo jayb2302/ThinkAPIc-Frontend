@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import { useAuthStore } from './stores/authStore';
 import App from "./App.vue";
 import router from "./router";
 import "./style.css";
@@ -17,6 +18,7 @@ import Aura from "@primeuix/themes/aura";
 import ConfirmPopup from "primevue/confirmpopup";
 import Toast from "primevue/toast";
 import Button from "primevue/button";
+import RadioButton from "primevue/radiobutton";
 import FloatLabel from "primevue/floatlabel";
 import Password from "primevue/password";
 import InputText from "primevue/inputtext";
@@ -25,14 +27,27 @@ import Checkbox from "primevue/checkbox";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import DataTable from "primevue/datatable";
+import DataView from "primevue/dataview";
 import Column from "primevue/column";
 import Dialog from "primevue/dialog";
 import PanelMenu from "primevue/panelmenu";
 import Panel from "primevue/panel";
 import Card from "primevue/card";
+import Badge from "primevue/badge";
+import Skeleton from "primevue/skeleton";
 
-const pinia = createPinia();
+
 const app = createApp(App);
+const pinia = createPinia();
+
+app.use(router);
+app.use(pinia);
+
+const authStore = useAuthStore();
+
+if (authStore.token && !authStore.user) {
+  await authStore.fetchCurrentUser();
+}
 
 app.provide('hljs', hljs);
 
@@ -69,6 +84,7 @@ app.component("ConfirmPopup", ConfirmPopup);
 app.component("Toast", Toast);
 app.component("Card", Card);
 app.component("Button", Button);
+app.component("RadioButton", RadioButton);
 app.component("FloatLabel", FloatLabel);
 app.component("Password", Password);
 app.component("InputText", InputText);
@@ -81,7 +97,8 @@ app.component("Column", Column);
 app.component("Dialog", Dialog);
 app.component("PanelMenu", PanelMenu);
 app.component("Panel", Panel);
+app.component("Badge", Badge);
+app.component("DataView", DataView);
+app.component("Skeleton", Skeleton);
 
-app.use(router);
-app.use(pinia);
 app.mount("#app");

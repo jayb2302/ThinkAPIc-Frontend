@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 import { useRouter } from "vue-router";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import Login from "../components/ui/Login.vue";
 import type { MenuItem } from "primevue/menuitem";
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const showLoginModal = ref(false);
 
 const handleLogout = () => {
-  userStore.logout();
+  authStore.logOut();
   router.push("/");
 };
 
-const items = ref<MenuItem[]>([
+const items = computed<MenuItem[]>(() => [
   {
     label: "Home",
     icon: "pi pi-home",
@@ -39,7 +39,7 @@ const items = ref<MenuItem[]>([
     label: "Admin",
     icon: "pi pi-cog",
     command: () => router.push("/admin"),
-    visible: userStore.isAdmin,
+    visible: authStore.isAdmin,
   },
 ]);
 </script>
@@ -48,12 +48,12 @@ const items = ref<MenuItem[]>([
   <div class="flex flex-row-reverse w-full h-screen bg-gray-50 overflow-auto">
     <nav class="bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-50">
       <div class="mb-4">
-        <div v-if="userStore.isAuthenticated" class="capitalize">
+        <div v-if="authStore.isAuthenticated" class="capitalize">
           <span class="pi pi-graduation-cap pr-2"> </span>
-          {{ userStore.user?.username }}
+          {{ authStore.user?.username }}
           <p class="flex flex-col">
             <span class="italic">
-              {{ userStore.role }}
+              {{ authStore.user?.role }}
             </span>
           </p>
         </div>
@@ -82,7 +82,7 @@ const items = ref<MenuItem[]>([
         </template>
       </PanelMenu>
       <Button
-        v-if="userStore.isAuthenticated"
+        v-if="authStore.isAuthenticated"
         @click="handleLogout"
         icon="pi pi-sign-out"
         class="p-2"

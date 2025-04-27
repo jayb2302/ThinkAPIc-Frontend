@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import draggable from "vuedraggable";
-import { useUserStore } from "../../stores/userStore";
+import { useAuthStore } from "../../stores/authStore";
 import api from "../../services/api";
 import type { Quiz, QuizOption } from "../../types/Quiz";
 import type { Topic } from "../../types/Topic";
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const emit = defineEmits(["close", "quizUpdated"]);
 
 // Props for quiz editing
@@ -147,7 +147,7 @@ const closeForm = () => {
     </h1>
 
     <!-- Access Restriction -->
-    <div v-if="!userStore.isAdmin" class="text-red-500">
+    <div v-if="!authStore.isAdmin" class="text-red-500">
       ⛔ Access Denied. Only admins can manage quizzes.
     </div>
 
