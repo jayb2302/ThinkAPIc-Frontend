@@ -11,6 +11,7 @@ import {
 } from "../services/quizService";
 import type { Quiz, QuizOption } from "../types/Quiz";
 import { useProgressStore } from "./progressStore";
+import { useTopicStore } from "./topicStore";
 
 type QuizForm = Omit<Quiz, "_id" | "createdAt" | "updatedAt">;
 type AttemptPayload = { userId: string; selectedOptionOrder: number; courseId: string; isCorrect: boolean };
@@ -86,36 +87,37 @@ export const useQuizStore = defineStore("quizzes", () => {
 
   const submitSingleQuiz = async (
     quiz: Quiz,
-    selected: number,
-    userId: string,
-    courseId: string
+    payload: AttemptPayload
   ): Promise<{ isCorrect: boolean }> => {
-    const selectedOption = quiz.options.find((o: QuizOption) => o.order === selected);
-    const isCorrect = selectedOption ? selectedOption.isCorrect : false;
-    await attemptQuiz(quiz._id, {
-      userId,
-      selectedOptionOrder: selected,
-      courseId,
-      isCorrect,
-    });
-    return { isCorrect };
+    await attemptQuiz(quiz._id, payload);
+    return { isCorrect: payload.isCorrect };
   };
 
   const processQuizSubmission = async (
     quiz: Quiz,
-    selected: number,
-    userId: string,
-    courseId: string,
+    payload: AttemptPayload,
     results: Record<string, { isCorrect: boolean }>
   ): Promise<boolean> => {
     try {
-      const { isCorrect } = await submitSingleQuiz(quiz, selected, userId, courseId);
+      const { isCorrect } = await submitSingleQuiz(quiz, payload);
       results[quiz._id] = { isCorrect };
       return isCorrect;
     } catch (err) {
       console.error("❌ Failed to submit quiz", quiz._id, err);
       return false;
     }
+  };
+
+  const buildAttemptPayload = (quiz: Quiz, selected: number, userId: string, courseId: string): AttemptPayload => {
+    const selectedOption = quiz.options.find(o => o.order === selected);
+    const isCorrect = selectedOption ? selectedOption.isCorrect : false;
+
+    return {
+      userId,
+      selectedOptionOrder: selected,
+      courseId,
+      isCorrect,
+    };
   };
 
   const handleSingleQuizSubmission = async (
@@ -127,7 +129,9 @@ export const useQuizStore = defineStore("quizzes", () => {
   ): Promise<boolean> => {
     const selected = selectedOptions[quiz._id];
     if (selected == null) return true;
-    return await processQuizSubmission(quiz, selected, userId, courseId, results);
+
+    const payload = buildAttemptPayload(quiz, selected, userId, courseId);
+    return await processQuizSubmission(quiz, payload, results);
   };
 
   const submitAllQuizzes = async (
@@ -220,6 +224,15 @@ export const useQuizStore = defineStore("quizzes", () => {
     error.value = message;
   };
 
+  const filterQuizzesByCourseAndTopic = (courseId: string | null, topicId: string | null) => {
+    return quizzes.value.filter((quiz) => {
+      const topic = useTopicStore().topics.find((t) => t._id === quiz.topic?._id);
+      const matchesCourse = courseId ? topic?.course?._id === courseId : true;
+      const matchesTopic = topicId ? quiz.topic?._id === topicId : true;
+      return matchesCourse && matchesTopic;
+    });
+  };
+
   // --- Return store API ---
   return {
     quizzes,
@@ -241,5 +254,6 @@ export const useQuizStore = defineStore("quizzes", () => {
     formatOptions,
     updateStore,
     handleError,
+    filterQuizzesByCourseAndTopic,
   };
 });

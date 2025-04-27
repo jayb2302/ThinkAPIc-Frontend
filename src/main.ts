@@ -27,12 +27,14 @@ import Checkbox from "primevue/checkbox";
 import Textarea from "primevue/textarea";
 import Select from "primevue/select";
 import DataTable from "primevue/datatable";
+import DataView from "primevue/dataview";
 import Column from "primevue/column";
 import Dialog from "primevue/dialog";
 import PanelMenu from "primevue/panelmenu";
 import Panel from "primevue/panel";
 import Card from "primevue/card";
 import Badge from "primevue/badge";
+import Skeleton from "primevue/skeleton";
 
 
 const app = createApp(App);
@@ -96,5 +98,7 @@ app.component("Dialog", Dialog);
 app.component("PanelMenu", PanelMenu);
 app.component("Panel", Panel);
 app.component("Badge", Badge);
+app.component("DataView", DataView);
+app.component("Skeleton", Skeleton);
 
 app.mount("#app");
