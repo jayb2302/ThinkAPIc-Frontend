@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { storeToRefs } from "pinia";
 import { useProgressStore } from "../../stores/progressStore";
 import { useQuizStore } from "../../stores/quizStore";
 import { getTopicById } from "../../services/topicService";
-import { attemptQuiz } from "../../services/quizService";
 import { useAuthStore } from "../../stores/authStore";
 import type { QuizOption } from "../../types/Quiz";
 
@@ -16,11 +16,12 @@ const props = defineProps<{
 const emit = defineEmits(["update:visible"]);
 
 const quizStore = useQuizStore();
+const { quizzes } = storeToRefs(quizStore);
+const { fetchQuizzesByTopic, submitAllQuizzes } = quizStore;
 const authStore = useAuthStore();
 const progressStore = useProgressStore();
 
 const topicTitle = ref("Topic Quizzes");
-const quizzes = ref<any[]>([]);
 const selectedOptions = ref<Record<string, number | undefined>>({});
 const results = ref<Record<string, { isCorrect: boolean }>>({});
 const currentQuizIndex = ref(0);
@@ -36,8 +37,8 @@ onMounted(async () => {
     await authStore.fetchCurrentUser();
   }
 
-  await quizStore.fetchQuizzesByTopic(props.topicId);
-  quizzes.value = quizStore.quizzes;
+  await fetchQuizzesByTopic(props.topicId);
+
   quizzes.value.forEach((q) => (selectedOptions.value[q._id] = undefined));
 
   try {
@@ -69,61 +70,52 @@ const nextQuiz = () => {
 const submitAll = async () => {
   if (!authStore.user) return;
 
-  const allAnswered = quizzes.value.every(
-    (quiz) => selectedOptions.value[quiz._id] !== undefined
-  );
-
-  if (!allAnswered) {
+  if (hasUnansweredQuestions()) {
     alert("❗ Please answer all questions before submitting.");
     return;
   }
 
-  let allCorrect = true; 
+  await submitQuizzesAndHandleProgress();
+};
 
-  for (const quiz of quizzes.value) {
-    const selected = selectedOptions.value[quiz._id];
-    if (selected != null) {
-      try {
-        const selectedOption = quiz.options.find(
-          (o: QuizOption) => o.order === selected
-        );
-        const isCorrect = selectedOption ? selectedOption.isCorrect : false;
+const hasUnansweredQuestions = () => {
+  return quizzes.value.some(
+    (q) => selectedOptions.value[q._id] == null
+  );
+};
 
-        if (!isCorrect) allCorrect = false;
+const submitQuizzesAndHandleProgress = async () => {
+  const { allCorrect, results: quizResults } = await submitAllQuizzes(
+    quizzes.value,
+    selectedOptions.value,
+    authStore.user!._id,
+    props.courseId,
+    props.topicId
+  );
 
-        const res = await attemptQuiz(quiz._id, {
-          userId: authStore.user._id,
-          selectedOptionOrder: selected,
-          courseId: props.courseId,
-          isCorrect,
-        });
-        results.value[quiz._id] = { isCorrect: res.isCorrect };
-      } catch (error) {
-        console.error("Failed to submit quiz", quiz._id, error);
-      }
-    }
-  }
-
-  console.log("✅ All quizzes submitted");
-  await progressStore.fetchProgress(authStore.user._id);
-  // 🔥 Now log progress if all correct
-  if (allCorrect) {
-    await progressStore.logProgress({
-      user: authStore.user._id,
-      course: props.courseId,
-      topic: props.topicId,
-      activityType: "quiz",
-      activityTable: "quizzes",
-      activityId: props.topicId,
-      isCorrect: true,
-    });
-    console.log("🏁 Progress logged: Topic Completed");
-    await progressStore.fetchProgress(authStore.user._id);
-  } else {
-    console.log("🚫 Progress not logged: User needs to retake");
-  }
-
+  results.value = quizResults;
   submitted.value = true;
+
+  await progressStore.fetchProgress(authStore.user!._id);
+  await logProgressIfNeeded(allCorrect);
+};
+
+const logProgressIfNeeded = async (allCorrect: boolean) => {
+  if (!allCorrect) {
+    console.log("🚫 Some answers incorrect, progress not logged");
+    return;
+  }
+
+  await progressStore.logProgress({
+    user: authStore.user!._id,
+    course: props.courseId,
+    topic: props.topicId,
+    activityType: "quiz",
+    activityTable: "quizzes",
+    activityId: props.topicId,
+    isCorrect: true,
+  });
+  console.log("🏁 Topic completed and progress logged");
 };
 
 const retakeQuiz = () => {
