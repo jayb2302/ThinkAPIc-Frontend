@@ -1,47 +1,89 @@
 import { defineStore } from "pinia";
-import { login, getCurrentUser } from "../services/authService";
+import { ref, computed } from "vue";
+import { login, register, getCurrentUser } from "../services/authService";
 import type { User } from "../types/User";
 
-export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: null as User | null,
-    token: localStorage.getItem("token") || "",
-    role: localStorage.getItem("role") || "",
-  }),
-  getters: {
-    isAuthenticated: (state) => !!state.token,
-    isAdmin: (state) => state.role === "admin",
-    getUser: (state) => state.user,
-  },
-  actions: {
-    async logIn(email: string, password: string) {
-      try {
-        const { data } = await login(email, password);
-        this.user = data.user;
-        this.token = data.token;
-        localStorage.setItem("token", data.token);
-      } catch (error: any) {
-        this.logOut(); // authentication failed
-        throw new Error("Invalid credentials");
-      }
-    },
-    async fetchCurrentUser() {
-      if (!this.token) return;
-      try {
-        const { data } = await getCurrentUser();
-        this.user = data.user;
-        this.role = data.user.role;
-      } catch (error) {
-        console.error("Fetching user failed", error);
-        this.logOut(); // clear invalid token
-      }
-    },
-    logOut() {
-      this.user = null;
-      this.token = "";
-      this.role = "";
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-    },
-  },
+export const useAuthStore = defineStore("auth", () => {
+  const user = ref<User | null>(null);
+  const token = ref<string>(localStorage.getItem("token") || "");
+  const role = ref<string>(localStorage.getItem("role") || "");
+  const username = ref<string>(localStorage.getItem("username") || "");
+
+  const isAuthenticated = computed(() => !!user.value && !!token.value);
+  const isAdmin = computed(() => role.value === "admin");
+  const getUser = computed(() => user.value);
+  
+  const logIn = async (email: string, password: string) => {
+    try {
+      const { data } = await login(email, password)
+      user.value = data.user;
+      token.value = data.token;
+      role.value = data.user.role;
+      username.value = data.user.username;
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("username", data.user.username);
+  
+    } catch (error: any) {
+      throw new Error("Invalid credentials");
+    }
+  };
+
+  // Register
+  const registerUser = async (username: string, email: string, password: string, role: string = "student") => {
+    try {
+      const userResponse = await register(username, email, password, role); 
+      user.value = userResponse; 
+      token.value = userResponse.token; 
+      username = userResponse.username;
+
+      localStorage.setItem("token", token.value);
+      localStorage.setItem("role", userResponse.role);
+      localStorage.setItem("username", userResponse.username);
+    } catch (error) {
+      throw new Error("Registration failed");
+    }
+  };
+
+
+  // Fetch current user from the server
+  const fetchCurrentUser = async () => {
+    if (!token.value) return;
+    try {
+      const { data } = await getCurrentUser();
+      user.value = data.user;
+      role.value = data.user.role;
+     // username.value = data.user.username;
+      //console.log("User fetched data", localStorage.getItem("username"));
+      
+    } catch (error) {
+      console.error("Fetching user failed", error);
+      logOut();
+    }
+  };
+
+  const logOut = () => {
+    user.value = null;
+    token.value = "";
+    role.value = "";
+    username.value = "";
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+  };
+
+  return {
+    user,
+    token,
+    role,
+    username,
+    isAuthenticated,
+    isAdmin,
+    getUser,
+    logIn,
+    fetchCurrentUser,
+    logOut,
+    registerUser,
+  };
 });

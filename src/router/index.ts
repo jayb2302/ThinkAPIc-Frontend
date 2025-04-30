@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
+import { useModalStore } from "../stores/modalStore";
 
 import Home from "../pages/Home.vue";
 import Quizzes from "../pages/Quizzes.vue";
@@ -16,7 +17,6 @@ import AdminTopics from "../pages/admin/AdminTopics.vue";
 import AdminCourses from "../pages/admin/AdminCourses.vue";
 import AdminUsers from "../pages/admin/AdminUsers.vue";
 
-import Login from "../components/ui/Login.vue";
 import ManageTopics from "../components/admin/ManageTopics.vue";
 import ManageQuizzes from "../components/admin/ManageQuizzes.vue";
 import ManageCourses from "../components/admin/ManageCourses.vue";
@@ -27,7 +27,7 @@ const routes = [
     path: "/",
     component: DefaultLayout,
     children: [
-      { path: "", component: Home },
+      { path: "/", name: "Home",  component: Home },
       { path: "quizzes", component: Quizzes },
       { path: "topics", component: Topics },
       { path: "courses", component: Courses },
@@ -46,7 +46,6 @@ const routes = [
       }
     ],
   },
-  { path: "/login", component: Login },
   {
     path: "/admin",
     component: AdminLayout,
@@ -71,23 +70,23 @@ const router = createRouter({
 });
 
 // ✅ Use Pinia safely inside router guards
-router.beforeEach(async (to, _, next) => {
+router.beforeEach((to, _, next) => {
   const authStore = useAuthStore();
+  const modalStore = useModalStore();
+  const { isAuthenticated, isAdmin } = storeToRefs(authStore);
 
-  if (authStore.token && !authStore.user) {
-    await authStore.fetchCurrentUser();
-  }
-
-  const { isAuthenticated, isAdmin } = storeToRefs(authStore); 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
-    console.warn("⛔ Redirecting to Login (Not Authenticated)");
-    next("/");
-  } else if (to.meta.requiresAdmin && !isAdmin.value) {
-    console.warn("⛔ Redirecting to Home (Not Admin)");
-    next("/");
-  } else {
-    next();
+    console.warn("⛔ Needs auth, opening login dialog");
+    modalStore.showLoginModal = true;
+    return next({ name: 'Home' }); // stay on home
   }
+
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    console.warn("⛔ Needs admin, redirecting to home page");
+    return next({ name: "Home" });
+  }
+
+  next();
 });
 
 export default router;

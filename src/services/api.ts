@@ -31,15 +31,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const authStore = useAuthStore();
-
     if (error.response) {
       console.error('API Error:', error.response.status, error.response.data);
 
-      // If token expired, logout user
-      if (error.response.status === 401) {
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+      if (error.response.status === 401 && !isLoginRequest) {
+        const authStore = useAuthStore();
         authStore.logOut();
-        window.location.href = '/'; 
+        window.location.href = '/';
       }
     } else {
       console.error('Network/Server Error:', error);
