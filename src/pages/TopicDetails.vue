@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Topic } from "../types/Topic";
@@ -14,9 +14,22 @@ const openQuizDialog = () => {
   showQuizDialog.value = true;
 };
 
-onMounted(async () => {
-  const id = route.params.id as string;
+const fetchTopicDetails = async (id: string) => {
   topic.value = await getTopicById(id);
+};
+
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (newId) {
+      topic.value = await getTopicById(newId as string);
+    }
+  }
+);
+
+onMounted(() => {
+  const id = route.params.id as string;
+  fetchTopicDetails(id);
 });
 </script>
 

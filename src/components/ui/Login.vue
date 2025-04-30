@@ -6,29 +6,49 @@ import { useRouter } from "vue-router";
 const props = defineProps<{ visible: boolean }>();
 const emit = defineEmits(["update:visible"]);
 
+const username = ref("");
 const email = ref("");
 const password = ref("");
+const confirmPassword = ref("");
 const errorMessage = ref("");
 
 const authStore = useAuthStore();
 const router = useRouter();
+const isRegistering = ref(false);
 
+// Handle login
 const handleLogin = async () => {
   try {
     await authStore.logIn(email.value, password.value);
-    await authStore.fetchCurrentUser();
     if (authStore.isAuthenticated) {
       errorMessage.value = "";
-      emit("update:visible", false); 
-      if (authStore.isAdmin) {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      emit("update:visible", false); // Close dialog after successful login
+      router.push("/admin");
     }
   } catch (error) {
-    errorMessage.value = "Invalid email or password";
+    errorMessage.value = "Invalid email or password"; // Show error message
   }
+};
+
+// Handle registration
+const handleRegister = async () => {
+  if (password.value !== confirmPassword.value) {
+    errorMessage.value = "Passwords do not match";
+    return;
+  }
+  try {
+    await authStore.registerUser(username.value, email.value, password.value);
+    errorMessage.value = "";
+    isRegistering.value = false; // Switch back to login mode
+  } catch (error) {
+    errorMessage.value = "Registration failed";
+  }
+};
+
+// Toggle between Login and Register mode
+const toggleForm = () => {
+  isRegistering.value = !isRegistering.value;
+  errorMessage.value = "";
 };
 </script>
 
@@ -54,8 +74,13 @@ const handleLogin = async () => {
             );
           "
         >
-        <img src="/ExplodingHead.svg" alt="Exploding Head" class="w-10 h-10 mx-auto " />
+          <img
+            src="/ExplodingHead.svg"
+            alt="Exploding Head"
+            class="w-10 h-10 mx-auto"
+          />
 
+          <!-- Email field -->
           <div class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <InputText
@@ -65,17 +90,17 @@ const handleLogin = async () => {
                 class="!bg-white/20 !border-0 !text-slate-300 w-80"
                 required
               />
-              <label for="username" class=" font-semibold"
-                >Email</label
-              >
+              <label for="username" class="font-semibold">Email</label>
             </FloatLabel>
           </div>
+
+          <!-- Password field -->
           <div class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <Password
                 id="password"
                 v-model="password"
-                inputClass="!bg-white/20 !border-0  !text-slate-0 w-80"
+                inputClass="!bg-white/20 !border-0 !text-slate-0 w-80"
                 type="text"
                 :feedback="false"
                 toggleMask
@@ -87,6 +112,43 @@ const handleLogin = async () => {
               >
             </FloatLabel>
           </div>
+
+          <!-- Confirm Password field (for registration) -->
+          <div v-if="isRegistering" class="inline-flex flex-col gap-2">
+            <FloatLabel variant="on">
+              <Password
+                id="confirm-password"
+                v-model="confirmPassword"
+                inputClass="!bg-white/20 !border-0 !text-slate-0 w-80"
+                type="text"
+                :feedback="false"
+                toggleMask
+                required
+                fluid
+              />
+              <label
+                for="confirm-password"
+                class="text-primary-50 font-semibold"
+                >Confirm Password</label
+              >
+            </FloatLabel>
+          </div>
+
+          <!-- Name field (for registration) -->
+          <div v-if="isRegistering" class="inline-flex flex-col gap-2">
+            <FloatLabel variant="on">
+              <InputText
+                id="name"
+                v-model="username"
+                type="text"
+                class="!bg-white/20 !border-0 !text-slate-300 w-80"
+                required
+              />
+              <label for="name" class="font-semibold">Name</label>
+            </FloatLabel>
+          </div>
+
+          <!-- Error message -->
           <p v-if="errorMessage" class="text-red-200 text-sm mt-2">
             {{ errorMessage }}
           </p>
@@ -99,11 +161,29 @@ const handleLogin = async () => {
               class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
             />
             <Button
+              v-if="!isRegistering"
               label="Sign-In"
               @click="handleLogin"
               text
               class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
             />
+            <Button
+              v-if="isRegistering"
+              label="Register"
+              @click="handleRegister"
+              text
+              class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
+            />
+          </div>
+          <div class="text-center mt-2">
+            <span v-if="!isRegistering">
+              Don't have an account?
+              <a href="#" @click="toggleForm" class="text-blue-500">Register</a>
+            </span>
+            <span v-if="isRegistering">
+              Already have an account?
+              <a href="#" @click="toggleForm" class="text-blue-500">Login</a>
+            </span>
           </div>
         </div>
       </template>
