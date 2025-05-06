@@ -3,7 +3,7 @@ import ManageTopics from "@/components/admin/ManageTopics.vue";
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="p-2 ">
     <ManageTopics />
   </div>
 </template>

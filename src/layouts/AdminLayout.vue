@@ -9,7 +9,7 @@ import NavigationMenu from "../components/ui/NavigationMenu.vue";
     <NavigationMenu type="admin" />
 
     <!-- Main Content Area -->
-    <main class="flex-1 p-6 bg-gray-100 overflow-auto">
+    <main class="flex-1 p-2 bg-gray-100 dark:bg-gray-700 overflow-auto">
       <MessageToast />
       <router-view />
     </main>

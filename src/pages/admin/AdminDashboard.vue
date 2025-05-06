@@ -41,7 +41,7 @@ const goTo = (route: string) => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md">
+  <div class="p-4 dark:bg-gray-800 dark:text-gray-100 shadow rounded-md">
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->
@@ -110,7 +110,7 @@ const goTo = (route: string) => {
       </div>
 
       <!-- Recent Quizzes -->
-      <div class="bg-gray-100 shadow text-left p-4 rounded-md ">
+      <div class="bg-gray-100 dark:bg-gray-700 shadow text-left p-4 rounded-md ">
         <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
         <ul class=" divide-y divide-gray-300">
           <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2 flex flex-col">

@@ -137,7 +137,7 @@ const items = computed<MenuItem[]>(() => {
     />
     <PanelMenu
       :model="items"
-      class="bg-gray-200 text-white rounded-md shadow-md w-full"
+      class="bg-gray-200 dark:bg-gray-600 text-white rounded-md shadow-md w-full"
     >
       <template #item="{ item }">
         <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">
