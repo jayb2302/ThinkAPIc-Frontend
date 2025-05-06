@@ -71,7 +71,7 @@ const closeForm = () => {
     {{ successMessage }}
   </div>
 
-  <div class="p-6 shadow rounded-md">
+  <div class="p-4 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Topics</h2>
 
     <Button
@@ -83,13 +83,13 @@ const closeForm = () => {
 
     <!-- Topic Form -->
     <ManageTopicForm
-      v-if="showForm"
+      v-model:visible="showForm" 
       :topic="selectedTopic"
       @topic-updated="handleTopicUpdated"
       @close="closeForm"
     />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">
-      <DataTable :value="topicList" tableStyle="min-width: 50rem">
+      <DataTable :value="topicList" tableStyle="">
         <template #header>
           <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-xl font-bold">Topics</span>
