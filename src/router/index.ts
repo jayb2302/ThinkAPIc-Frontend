@@ -70,10 +70,22 @@ const router = createRouter({
 });
 
 // ✅ Use Pinia safely inside router guards
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _, next) => {
   const authStore = useAuthStore();
   const modalStore = useModalStore();
   const { isAuthenticated, isAdmin } = storeToRefs(authStore);
+
+
+  // Attempt to restore user from token if needed
+  if (localStorage.getItem('token') && !isAuthenticated.value) {
+    try {
+      await authStore.fetchCurrentUser();
+    } catch (e) {
+      console.error('❌ Failed to fetch user during navigation:', e);
+      modalStore.showLoginModal = true;
+      return next({ name: 'Home' });
+    }
+  }
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     console.warn("⛔ Needs auth, opening login dialog");
