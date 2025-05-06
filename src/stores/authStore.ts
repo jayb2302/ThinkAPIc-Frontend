@@ -13,6 +13,20 @@ export const useAuthStore = defineStore("auth", () => {
   const isAdmin = computed(() => role.value === "admin");
   const getUser = computed(() => user.value);
   
+  const fetchCurrentUser = async () => {
+    if (!token.value) return;
+    try {
+      const { data } = await getCurrentUser();
+      user.value = data.user;
+      role.value = data.user.role;
+      username.value = data.user.username;
+      
+    } catch (error) {
+      console.error("Fetching user failed", error);
+      logOut();
+    }
+  };
+
   const logIn = async (email: string, password: string) => {
     try {
       const { data } = await login(email, password)
@@ -43,23 +57,6 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("username", userResponse.username);
     } catch (error) {
       throw new Error("Registration failed");
-    }
-  };
-
-
-  // Fetch current user from the server
-  const fetchCurrentUser = async () => {
-    if (!token.value) return;
-    try {
-      const { data } = await getCurrentUser();
-      user.value = data.user;
-      role.value = data.user.role;
-     // username.value = data.user.username;
-      //console.log("User fetched data", localStorage.getItem("username"));
-      
-    } catch (error) {
-      console.error("Fetching user failed", error);
-      logOut();
     }
   };
 
