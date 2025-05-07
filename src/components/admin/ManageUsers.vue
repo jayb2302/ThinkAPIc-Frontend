@@ -104,7 +104,7 @@ const handleDelete = async (event: MouseEvent, userId: string) => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md dark:bg-gray-800">
+  <div class="p-4 shadow rounded-md ">
     <h2 class="text-2xl font-bold mb-4">Manage Users</h2>
     <Toast />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">

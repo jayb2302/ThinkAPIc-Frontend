@@ -19,6 +19,7 @@ export const createCourseService = async (
   courseData: Partial<Course>, 
   topicsData: Partial<Topic>[] = [] // Default to an empty array if no topics are provided
 ): Promise<Course> => {
+  // console.log('Sending course data:', { courseData, topicsData });
   const { data } = await api.post<Course>('/courses', { courseData, topicsData });
   return data; // Return the created course data
 };

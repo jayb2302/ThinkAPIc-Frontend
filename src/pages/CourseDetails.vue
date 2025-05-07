@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { formatDate } from '../utils/formatDate';
+import { formatDate } from "../utils/formatDate";
 import { getCourseById } from "../services/courseService";
 import { getUserById } from "../services/userService";
 import { useTopicStore } from "../stores/topicStore";
 import type { Course } from "../types/Course";
 import type { Topic } from "../types/Topic";
 import type { User } from "../types/User";
+import TopicCard from "../components/topics/TopicCard.vue";
 
 const route = useRoute();
 const topicStore = useTopicStore();
 const course = ref<(Course & { topics: string[] }) | null>(null);
 const teacher = ref<User | null>(null);
+
 const courseTopics = computed(() => {
   if (!course.value?.topics) return [];
   return course.value.topics
@@ -33,7 +35,6 @@ onMounted(async () => {
     }
   }
 });
-
 </script>
 
 <template>
@@ -61,37 +62,56 @@ onMounted(async () => {
       <p class="mb-2"><strong>Scope:</strong> {{ course.scope }}</p>
     </span>
     <p class="mb-2">{{ course.description }}</p>
-
-    <div class="mb-4 shadow p-2 rounded">
-      <h2 class="text-lg font-semibold mb-1">
-        <i class="pi pi-clipboard"></i> Learning Objectives
-      </h2>
-      <ul class="list-disc ml-6">
-        <li v-for="(objective, i) in course.learningObjectives" :key="i">
-          {{ objective }}
-        </li>
-      </ul>
+    <!-- Accordion for Learning Objectives, Skills, and Competencies -->
+    <Accordion>
+      <!-- Learning Objectives -->
+      <AccordionPanel value="0">
+        <AccordionHeader
+          ><i class="pi pi-clipboard"></i> Learning Objectives</AccordionHeader
+        >
+        <AccordionContent>
+          <ul class="list-disc ml-6">
+            <li v-for="(objective, i) in course.learningObjectives" :key="i">
+              {{ objective }}
+            </li>
+          </ul>
+        </AccordionContent>
+      </AccordionPanel>
+      <!-- Skills -->
+      <AccordionPanel value="1">
+        <AccordionHeader><i class="pi pi-cog"></i> Skills</AccordionHeader>
+        <AccordionContent>
+          <ul class="list-disc ml-6">
+            <li v-for="(skill, i) in course.skills" :key="i">{{ skill }}</li>
+          </ul>
+        </AccordionContent>
+      </AccordionPanel>
+      <!-- Competencies -->
+      <AccordionPanel value="2">
+        <AccordionHeader class="items-start">
+        <i class="pi pi-trophy"></i>Competencies</AccordionHeader>
+        <AccordionContent>
+          <ul class="list-disc ml-6">
+            <li v-for="(competency, i) in course.competencies" :key="i">
+              {{ competency }}
+            </li>
+          </ul>
+        </AccordionContent>
+      </AccordionPanel>
+    </Accordion>
+    <!-- DataView for Topics -->
+    <h2 class="text-xl font-semibold mb-2">
+      <i class="pi pi-th-large"></i> Topics
+    </h2>
+    
+    <div class="w-full flex flex-wrap gap-2">
+    <div v-for="topic in courseTopics"  :key="topic?._id" class="flex-1/3   ">
+      <TopicCard :topic="topic" class="" />
     </div>
-
-    <div class="mb-4 shadow p-2 rounded">
-      <h2 class="text-lg font-semibold mb-1">
-        <i class="pi pi-cog"></i> Skills
-      </h2>
-      <ul class="list-disc ml-6">
-        <li v-for="(skill, i) in course.skills" :key="i">{{ skill }}</li>
-      </ul>
     </div>
+    
 
-    <div class="mb-4 shadow p-2 rounded">
-      <h2 class="text-lg font-semibold mb-1">
-        <i class="pi pi-trophy"></i> Competencies
-      </h2>
-      <ul class="list-disc ml-6">
-        <li v-for="(competency, i) in course.competencies" :key="i">
-          {{ competency }}
-        </li>
-      </ul>
-    </div>
+
 
     <h2 class="text-xl font-semibold mb-2">
       <i class="pi pi-th-large"></i> Topics

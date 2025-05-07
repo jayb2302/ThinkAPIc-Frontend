@@ -98,15 +98,15 @@ const topicOptions = computed(() =>
   <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
     {{ successMessage }}
   </div>
-  <div class="p-6 shadow rounded-md">
+  <div class="p-4 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
     <Button
       @click="showForm = true"
       class="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-    >
-      ➕ Add New Quiz
-    </Button>
+      label="New Quiz"
+      icon="pi pi-plus"
+    />
 
     <!-- Quiz Form -->
     <ManageQuizForm
@@ -116,7 +116,7 @@ const topicOptions = computed(() =>
       @close="closeForm"
     />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">
-    <DataTable :value="quizList" tableStyle="min-width: 50rem" >
+    <DataTable :value="quizList" tableStyle="" >
       <template #header>
         <div class="flex flex-wrap items-center justify-between gap-2 w-full ">
           <span class="text-xl font-bold">Quizzes</span>

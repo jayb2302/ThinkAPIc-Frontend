@@ -8,8 +8,8 @@ import ManageCourseForm from "./ManageCourseForm.vue";
 import ManageTopicForm from "./ManageTopicForm.vue";
 import type { Topic } from "../../types/Topic";
 import type { Course } from "../../types/Course";
-import { getAdminUsers } from "../../services/userService";
 import type { AdminUser } from "../../types/User";
+import { getAdminUsers } from "../../services/userService";
 
 const confirm = useConfirm();
 const toast = useToast();
@@ -18,9 +18,9 @@ const courseStore = useCourse();
 const topicStore = useTopicStore();
 
 const showForm = ref(false);
-const showTopicForm = ref(false); 
+const showTopicForm = ref(false);
 const selectedCourse = ref<Course | null>(null);
-const createdCourseId = ref<string | null>(null); 
+const createdCourseId = ref<string | null>(null);
 const successMessage = ref<string>("");
 const adminUsers = ref<AdminUser[]>([]);
 
@@ -154,16 +154,22 @@ const closeTopicForm = () => {
 </script>
 
 <template>
-  <div class="p-4 shadow rounded-md dark:bg-gray-800">
+  <div class="p-4 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Courses</h2>
     <p v-if="successMessage" class="text-green-500 mt-4">
       {{ successMessage }}
     </p>
-    <Button @click="showForm = true"> ➕ Add New Course </Button>
+    <Button
+      @click="showForm = true"
+      label="New Course"
+      icon="pi pi-plus"
+      class="mb-4"
+    />
 
     <!-- Course Form -->
     <ManageCourseForm
-      v-if="showForm"
+      :visible="showForm"
+      @update:visible="showForm = $event"
       :course="selectedCourse"
       @close="closeForm"
       @courseUpdated="handleCourseUpdated"
@@ -173,13 +179,13 @@ const closeTopicForm = () => {
 
     <!-- Topic Form -->
     <ManageTopicForm
-      v-show="showTopicForm"
-      :courseId="selectedCourse?.['_id'] || null"
+      v-model:visible="showTopicForm"
+      :courseId="selectedCourse?._id || null"
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
-    <div class="rounded-lg  shadow border border-gray-200">
-      <DataTable :value="courseStore.courses" tableStyle="min-width: 50rem">
+    <div class="rounded-md shadow border border-gray-200">
+      <DataTable :value="courseStore.courses" tableStyle="">
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Courses</h2>
