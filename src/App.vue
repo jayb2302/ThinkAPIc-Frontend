@@ -1,6 +1,16 @@
 <script setup lang="ts">
 // import Home from '@/pages/Home.vue'
 // import QuizList from '@/components/quizzes/QuizList.vue'
+import { onMounted } from 'vue';
+import { useAuthStore } from './stores/authStore';
+
+const authStore = useAuthStore();
+
+onMounted(() => {
+  if (localStorage.getItem('token') && !authStore.isAuthenticated) {
+    authStore.fetchCurrentUser();
+  }
+});
 </script>
 
 <template>

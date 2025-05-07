@@ -3,6 +3,8 @@ import { ref, computed } from "vue";
 import { login, register, getCurrentUser } from "../services/authService";
 import type { User } from "../types/User";
 
+export type AuthStore = ReturnType<typeof useAuthStore>;
+
 export const useAuthStore = defineStore("auth", () => {
   const user = ref<User | null>(null);
   const token = ref<string>(localStorage.getItem("token") || "");

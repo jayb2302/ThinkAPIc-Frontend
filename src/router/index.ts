@@ -3,6 +3,9 @@ import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
 import { useModalStore } from "../stores/modalStore";
 
+import type { AuthStore } from '../stores/authStore';
+import type { ModalStore } from '../stores/modalStore';
+
 import Home from "../pages/Home.vue";
 import Quizzes from "../pages/Quizzes.vue";
 import Topics from "../pages/Topics.vue";
@@ -75,30 +78,60 @@ router.beforeEach(async (to, _, next) => {
   const modalStore = useModalStore();
   const { isAuthenticated, isAdmin } = storeToRefs(authStore);
 
-
-  // Attempt to restore user from token if needed
-  if (localStorage.getItem('token') && !isAuthenticated.value) {
-    try {
-      await authStore.fetchCurrentUser();
-    } catch (e) {
-      console.error('❌ Failed to fetch user during navigation:', e);
-      modalStore.showLoginModal = true;
-      return next({ name: 'Home' });
-    }
+  if (!(await tryRestoreUser(authStore, modalStore))) {
+    return next({ name: 'Home' });
   }
 
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
-    console.warn("⛔ Needs auth, opening login dialog");
-    modalStore.showLoginModal = true;
-    return next({ name: 'Home' }); // stay on home
+  if (shouldShowLogin(to, isAuthenticated.value, modalStore)) {
+    return next({ name: 'Home' });
   }
 
-  if (to.meta.requiresAdmin && !isAdmin.value) {
-    console.warn("⛔ Needs admin, redirecting to home page");
-    return next({ name: "Home" });
+  if (shouldBlockNonAdmin(to, isAdmin.value)) {
+    return next({ name: 'Home' });
   }
 
   next();
 });
+
+async function tryRestoreUser(
+  authStore: AuthStore,
+  modalStore: ModalStore
+): Promise<boolean> {
+  if (localStorage.getItem('token') && !authStore.user) {
+    try {
+      await authStore.fetchCurrentUser();
+      console.log('✅ User restored successfully', authStore.user);
+    } catch (e) {
+      console.error('❌ Failed to fetch user during navigation:', e);
+      modalStore.showLoginModal = true;
+      return false;
+    }
+  }
+  return true;
+}
+
+function shouldShowLogin(
+  to: { meta?: Record<string, any> },
+  isAuthenticated: boolean,
+  modalStore: ModalStore
+): boolean {
+  if (to.meta?.requiresAuth && !isAuthenticated) {
+    console.warn("⛔ Needs auth, opening login dialog");
+    modalStore.showLoginModal = true;
+    return true;
+  }
+  return false;
+}
+
+function shouldBlockNonAdmin(
+  to: { meta?: Record<string, any> },
+  isAdmin: boolean
+): boolean {
+  if (to.meta?.requiresAdmin && !isAdmin) {
+    console.warn("⛔ Needs admin, redirecting to home page");
+    return true;
+  }
+  return false;
+}
 
 export default router;

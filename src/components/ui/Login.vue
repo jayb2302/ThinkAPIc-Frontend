@@ -64,15 +64,10 @@ const toggleForm = () => {
       }"
     >
       <template #container="{ closeCallback }">
-        <div
+        <form
+          @submit.prevent="handleLogin"
           class="flex flex-col px-8 py-8 gap-6 rounded-2xl"
-          style="
-            background-image: radial-gradient(
-              circle at left top,
-              var(--p-primary-400),
-              var(--p-primary-700)
-            );
-          "
+          style="background-image: radial-gradient(circle at left top, var(--p-primary-400), var(--p-primary-700));"
         >
           <img
             src="/ExplodingHead.svg"
@@ -80,7 +75,7 @@ const toggleForm = () => {
             class="w-10 h-10 mx-auto"
           />
 
-          <!-- Email field -->
+          <!-- Email -->
           <div class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <InputText
@@ -94,7 +89,7 @@ const toggleForm = () => {
             </FloatLabel>
           </div>
 
-          <!-- Password field -->
+          <!-- Password -->
           <div class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <Password
@@ -107,13 +102,11 @@ const toggleForm = () => {
                 required
                 fluid
               />
-              <label for="password" class="text-primary-50 font-semibold"
-                >Password</label
-              >
+              <label for="password" class="text-primary-50 font-semibold">Password</label>
             </FloatLabel>
           </div>
 
-          <!-- Confirm Password field (for registration) -->
+          <!-- Confirm Password -->
           <div v-if="isRegistering" class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <Password
@@ -126,15 +119,11 @@ const toggleForm = () => {
                 required
                 fluid
               />
-              <label
-                for="confirm-password"
-                class="text-primary-50 font-semibold"
-                >Confirm Password</label
-              >
+              <label for="confirm-password" class="text-primary-50 font-semibold">Confirm Password</label>
             </FloatLabel>
           </div>
 
-          <!-- Name field (for registration) -->
+          <!-- Name -->
           <div v-if="isRegistering" class="inline-flex flex-col gap-2">
             <FloatLabel variant="on">
               <InputText
@@ -148,7 +137,7 @@ const toggleForm = () => {
             </FloatLabel>
           </div>
 
-          <!-- Error message -->
+          <!-- Error -->
           <p v-if="errorMessage" class="text-red-200 text-sm mt-2">
             {{ errorMessage }}
           </p>
@@ -163,7 +152,7 @@ const toggleForm = () => {
             <Button
               v-if="!isRegistering"
               label="Sign-In"
-              @click="handleLogin"
+              type="submit"
               text
               class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
             />
@@ -175,6 +164,7 @@ const toggleForm = () => {
               class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
             />
           </div>
+
           <div class="text-center mt-2">
             <span v-if="!isRegistering">
               Don't have an account?
@@ -185,7 +175,7 @@ const toggleForm = () => {
               <a href="#" @click="toggleForm" class="text-blue-500">Login</a>
             </span>
           </div>
-        </div>
+        </form>
       </template>
     </Dialog>
   </div>
