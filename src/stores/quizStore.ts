@@ -14,7 +14,12 @@ import { useProgressStore } from "./progressStore";
 import { useTopicStore } from "./topicStore";
 
 type QuizForm = Omit<Quiz, "_id" | "createdAt" | "updatedAt">;
-type AttemptPayload = { userId: string; selectedOptionOrder: number; courseId: string; isCorrect: boolean };
+type AttemptPayload = {
+  userId: string;
+  selectedOptionOrder: number;
+  courseId: string;
+  isCorrect: boolean;
+};
 
 export const useQuizStore = defineStore("quizzes", () => {
   // --- State ---
@@ -44,7 +49,9 @@ export const useQuizStore = defineStore("quizzes", () => {
   const fetchQuizzes = async (): Promise<void> => {
     await handleRequest(
       () => getQuizzes(),
-      (data) => { quizzes.value = data; },
+      (data) => {
+        quizzes.value = data;
+      },
       "Failed to fetch quizzes"
     );
   };
@@ -52,36 +59,61 @@ export const useQuizStore = defineStore("quizzes", () => {
   const fetchQuizById = async (id: string): Promise<void> => {
     await handleRequest(
       () => getQuizById(id),
-      (data) => { updateStore(data); },
+      (data) => {
+        updateStore(data);
+      },
       "Failed to fetch quiz by ID"
     );
   };
 
   const fetchQuizzesByTopic = async (topicId: string): Promise<void> => {
-    await handleRequest(
-      () => getQuizzesByTopic(topicId),
-      (data) => { quizzes.value = data; },
-      "Failed to fetch quizzes by topic"
-    );
+    loading.value = true;
+    try {
+      const data = await getQuizzesByTopic(topicId);
+      quizzes.value = data;
+      error.value = null;
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        quizzes.value = []; // clear quizzes if none found
+      } else {
+        handleError("Failed to fetch quizzes by topic", err);
+      }
+    } finally {
+      loading.value = false;
+    }
   };
 
-  const saveQuiz = async (id: string | null, quizData: QuizForm): Promise<void> => {
+  const saveQuiz = async (
+    id: string | null,
+    quizData: QuizForm
+  ): Promise<void> => {
     await handleRequest(
-      async () => id ? await updateQuiz(id, quizData) : await addQuiz(quizData),
-      (updatedQuiz) => { updateStore(updatedQuiz); },
+      async () =>
+        id ? await updateQuiz(id, quizData) : await addQuiz(quizData),
+      (updatedQuiz) => {
+        updateStore(updatedQuiz);
+      },
       "Failed to save quiz"
     );
   };
 
   const deleteQuizById = async (id: string): Promise<void> => {
     await handleRequest(
-      async () => { await deleteQuiz(id); return id; },
-      (deletedId) => { quizzes.value = quizzes.value.filter(q => q._id !== deletedId); },
+      async () => {
+        await deleteQuiz(id);
+        return id;
+      },
+      (deletedId) => {
+        quizzes.value = quizzes.value.filter((q) => q._id !== deletedId);
+      },
       "Failed to delete quiz"
     );
   };
 
-  const attemptQuizById = async (quizId: string, payload: AttemptPayload): Promise<void> => {
+  const attemptQuizById = async (
+    quizId: string,
+    payload: AttemptPayload
+  ): Promise<void> => {
     await attemptQuiz(quizId, payload);
   };
 
@@ -108,8 +140,13 @@ export const useQuizStore = defineStore("quizzes", () => {
     }
   };
 
-  const buildAttemptPayload = (quiz: Quiz, selected: number, userId: string, courseId: string): AttemptPayload => {
-    const selectedOption = quiz.options.find(o => o.order === selected);
+  const buildAttemptPayload = (
+    quiz: Quiz,
+    selected: number,
+    userId: string,
+    courseId: string
+  ): AttemptPayload => {
+    const selectedOption = quiz.options.find((o) => o.order === selected);
     const isCorrect = selectedOption ? selectedOption.isCorrect : false;
 
     return {
@@ -140,20 +177,31 @@ export const useQuizStore = defineStore("quizzes", () => {
     userId: string,
     courseId: string,
     topicId: string
-  ): Promise<{ allCorrect: boolean; results: Record<string, { isCorrect: boolean }> }> => {
+  ): Promise<{
+    allCorrect: boolean;
+    results: Record<string, { isCorrect: boolean }>;
+  }> => {
     const results: Record<string, { isCorrect: boolean }> = {};
     let allCorrect = true;
 
     console.log("Submitting quizzes for topic:", topicId);
     for (const quiz of quizList) {
-      const isCorrect = await handleSingleQuizSubmission(quiz, selectedOptions, userId, courseId, results);
+      const isCorrect = await handleSingleQuizSubmission(
+        quiz,
+        selectedOptions,
+        userId,
+        courseId,
+        results
+      );
       if (!isCorrect) allCorrect = false;
     }
     return { allCorrect, results };
   };
 
-  const hasUnansweredQuestions = (selectedOptions: Record<string, number | undefined>) => {
-    return quizzes.value.some(q => selectedOptions[q._id] == null);
+  const hasUnansweredQuestions = (
+    selectedOptions: Record<string, number | undefined>
+  ) => {
+    return quizzes.value.some((q) => selectedOptions[q._id] == null);
   };
 
   const submitAndLogQuizzes = async (
@@ -165,7 +213,11 @@ export const useQuizStore = defineStore("quizzes", () => {
     results: Ref<Record<string, { isCorrect: boolean }>>
   ): Promise<boolean> => {
     const { allCorrect, results: quizResults } = await submitAllQuizzes(
-      quizList, selectedOptions, userId, courseId, topicId
+      quizList,
+      selectedOptions,
+      userId,
+      courseId,
+      topicId
     );
     results.value = quizResults;
     const progressStore = useProgressStore();
@@ -195,7 +247,7 @@ export const useQuizStore = defineStore("quizzes", () => {
   ) => {
     currentQuizIndex.value = 0;
     results.value = {};
-    quizzesRef.value.forEach(q => {
+    quizzesRef.value.forEach((q) => {
       selectedOptions.value[q._id] = undefined;
     });
   };
@@ -211,7 +263,7 @@ export const useQuizStore = defineStore("quizzes", () => {
   };
 
   const updateStore = (quiz: Quiz) => {
-    const idx = quizzes.value.findIndex(q => q._id === quiz._id);
+    const idx = quizzes.value.findIndex((q) => q._id === quiz._id);
     if (idx !== -1) {
       quizzes.value[idx] = quiz;
     } else {
@@ -224,9 +276,14 @@ export const useQuizStore = defineStore("quizzes", () => {
     error.value = message;
   };
 
-  const filterQuizzesByCourseAndTopic = (courseId: string | null, topicId: string | null) => {
+  const filterQuizzesByCourseAndTopic = (
+    courseId: string | null,
+    topicId: string | null
+  ) => {
     return quizzes.value.filter((quiz) => {
-      const topic = useTopicStore().topics.find((t) => t._id === quiz.topic?._id);
+      const topic = useTopicStore().topics.find(
+        (t) => t._id === quiz.topic?._id
+      );
       const matchesCourse = courseId ? topic?.course?._id === courseId : true;
       const matchesTopic = topicId ? quiz.topic?._id === topicId : true;
       return matchesCourse && matchesTopic;
