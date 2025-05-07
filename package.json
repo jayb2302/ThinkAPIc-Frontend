@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "cp .htaccess dist/.htaccess"
   },
   "dependencies": {
     "@primeuix/themes": "^1.0.1",
