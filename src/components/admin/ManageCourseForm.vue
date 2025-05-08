@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, type Ref, nextTick } from "vue";
-import { useCourse } from "../../stores/courseStore";
+import { storeToRefs } from "pinia";
+import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import { getAdminUsers } from "../../services/userService";
 import type { Course } from "../../types/Course";
 import type { AdminUser } from "../../types/User";
 
-const { submitCourse } = useCourse();
+const courseStore = useCourseStore();
 const topicStore = useTopicStore();
+
+const { draftCourse, successMessage, errorMessage, isEditing, showTopicForm } =
+  storeToRefs(courseStore);
+const { resetCourseDraft, submitDraftCourse } = courseStore;
+
+const { topics } = storeToRefs(topicStore);
 
 // Emits and props
 const emit = defineEmits([
@@ -25,49 +32,26 @@ const props = defineProps<{
   courseId?: string | null;
 }>();
 
-// Form state
-const newCourse = ref({
-  title: "",
-  description: "",
-  teacher: "",
-  scope: "",
-  semester: "",
-  learningObjectives: [] as string[],
-  skills: [] as string[],
-  competencies: [] as string[],
-  topics: [] as string[],
-});
-
-const successMessage = ref<string>("");
-const errorMessage = ref("");
-
-const isEditing = ref(false);
-const showTopicForm = ref(false);
-const selectedCourse = ref<string | null>(props.courseId || null);
 const newLearningObjective = ref("");
 const newSkill = ref("");
 const newCompetency = ref("");
 const adminUsers = ref<AdminUser[]>([]);
 
-// **Reset Form**
-const resetForm = () => {
-  newCourse.value = {
-    ...newCourse.value,
-  };
-  isEditing.value = false;
-};
-
 // **Form Sections (Reusing Logic)**
 const formSections = [
   {
     label: "Learning Objectives",
-    list: ref(newCourse.value.learningObjectives),
+    list: () => ref(draftCourse.value.learningObjectives),
     model: newLearningObjective,
   },
-  { label: "Skills", list: ref(newCourse.value.skills), model: newSkill },
+  {
+    label: "Skills",
+    list: () => ref(draftCourse.value.skills),
+    model: newSkill,
+  },
   {
     label: "Competencies",
-    list: ref(newCourse.value.competencies),
+    list: () => ref(draftCourse.value.competencies),
     model: newCompetency,
   },
 ];
@@ -82,36 +66,35 @@ onMounted(async () => {
   }
 });
 
-// **Watch for existing course (edit mode)**
+// **Watch for course prop changes (edit mode)**
 watch(
   () => props.course,
   (newCourseData) => {
     if (newCourseData && newCourseData._id) {
       isEditing.value = true;
-      // Populate form with the existing course data
-      newCourse.value = {
-        title: newCourseData.title,
-        description: newCourseData.description,
-        teacher: newCourseData.teacher,
-        scope: newCourseData.scope ?? "",
-        semester: newCourseData.semester ?? "",
-        learningObjectives: newCourseData.learningObjectives || [],
-        skills: newCourseData.skills || [],
-        competencies: newCourseData.competencies || [],
-        topics: Array.isArray(newCourseData.topics)
-          ? [...newCourseData.topics]
-          : [],
+      draftCourse.value = {
+        ...newCourseData,
+        scope: String(newCourseData.scope),
+        semester: String(newCourseData.semester),
       };
-
-      // Update formSections with the correct values from the course data
-      formSections[0].list.value = newCourse.value.learningObjectives;
-      formSections[1].list.value = newCourse.value.skills;
-      formSections[2].list.value = newCourse.value.competencies;
     } else {
-      resetForm();
+      isEditing.value = false;
+      resetCourseDraft();
     }
   },
   { immediate: true }
+);
+
+// **Watch for dialog visibility to reset state when opened**
+watch(
+  () => props.visible,
+  (visible) => {
+    if (!visible) {
+      resetCourseDraft();
+      isEditing.value = false;
+      showTopicForm.value = false;
+    }
+  }
 );
 
 // **Helper to Add Items (Avoid Repetition)**
@@ -127,24 +110,17 @@ const removeItem = (list: Ref<string[]>, index: number) => {
   list.value.splice(index, 1);
 };
 
-// **Submit Course**
 const handleSubmit = async () => {
   try {
-    successMessage.value = "";
-    errorMessage.value = "";
+    const response = await submitDraftCourse(isEditing.value);
 
-    const response = await submitCourse(
-      newCourse.value,
-      isEditing.value,
-      props.course ?? null
-    );
-
-    successMessage.value = "✅ Course submitted successfully!";
     emit("courseUpdated", response);
     emit("successMessage", successMessage.value);
     emit("newCourseId", response._id);
 
-    selectedCourse.value = response._id;
+    // Reset the form
+    resetCourseDraft();
+    
     nextTick(() => {
       showTopicForm.value = true;
     });
@@ -153,16 +129,17 @@ const handleSubmit = async () => {
       emit("update:showTopicForm", true);
     }
   } catch (err) {
-    errorMessage.value = "❌ Failed to submit course";
+    console.error("❌ Failed to submit course:", err);
   }
 };
 
 // **Close Form**
 const closeForm = () => {
-  resetForm();
+  resetCourseDraft();
   emit("close");
 };
 </script>
+
 <template>
   <Dialog
     v-model:visible="props.visible"
@@ -197,20 +174,20 @@ const closeForm = () => {
         <!-- Course form fields -->
         <FloatLabel variant="on">
           <InputText
-            v-model="newCourse.title"
+            v-model="draftCourse.title"
             type="text"
             required
             id="course_title"
             fluid
           />
-          <label for="course_title">Course Title:</label>
+          <label for="course_title">Title</label>
         </FloatLabel>
 
         <FloatLabel variant="on">
           <Textarea
             id="course_description"
             class="border w-full mb-4"
-            v-model="newCourse.description"
+            v-model="draftCourse.description"
             rows="5"
             cols="30"
             style="resize: none"
@@ -223,7 +200,7 @@ const closeForm = () => {
         <!-- Teacher selection -->
         <FloatLabel variant="on" class="w-full">
           <Select
-            v-model="newCourse.teacher"
+            v-model="draftCourse.teacher"
             inputId="teacher_label"
             :options="adminUsers"
             optionLabel="username"
@@ -238,7 +215,7 @@ const closeForm = () => {
         <!-- Course scope and semester -->
         <FloatLabel variant="on">
           <InputText
-            v-model="newCourse.scope"
+            v-model="draftCourse.scope"
             type="text"
             required
             id="course_scope"
@@ -248,7 +225,7 @@ const closeForm = () => {
         </FloatLabel>
         <FloatLabel variant="on">
           <InputText
-            v-model="newCourse.semester"
+            v-model="draftCourse.semester"
             type="text"
             required
             id="course_semester"
@@ -256,7 +233,7 @@ const closeForm = () => {
           />
           <label for="course_semester" class="">Semester</label>
         </FloatLabel>
-        
+
         <!-- Topics for the course (shown when editing) -->
         <div v-if="isEditing">
           <label class="block mb-2 font-bold">Topics for this course:</label>
@@ -264,14 +241,14 @@ const closeForm = () => {
             class="mb-2 shadow p-2 bg-gray-50 divide-gray-300 divide-y rounded"
           >
             <li
-              v-for="(topicId, index) in newCourse.topics"
+              v-for="(topicId, index) in draftCourse.topics"
               :key="topicId"
               class="flex items-center justify-between"
             >
               <span>
                 -
                 {{
-                  topicStore.topics.find((t) => t._id === topicId)?.title ||
+                  topics.find((t) => t._id === topicId)?.title ||
                   "Unknown Topic"
                 }}
               </span>
@@ -280,7 +257,7 @@ const closeForm = () => {
                 severity="danger"
                 icon="pi pi-times"
                 class="text-red-500 text-sm"
-                @click="newCourse.topics.splice(index, 1)"
+                @click="draftCourse.topics.splice(index, 1)"
               />
             </li>
           </ul>
@@ -298,36 +275,36 @@ const closeForm = () => {
           <label class="block font-bold mb-2">{{ section.label }}</label>
 
           <div
-            v-for="(item, index) in section.list.value"
+            v-for="(item, index) in section.list().value"
             :key="index"
             class="flex items-center mb-2 shadow p-2 rounded"
           >
             <span class="flex-grow">{{ item }}</span>
-           
+
             <Button
               type="button"
               icon="pi pi-times"
               severity="danger"
-              @click="removeItem(section.list, index)"
+              @click="removeItem(section.list(), index)"
               class="text-red-500 ml-2"
             />
           </div>
           <div class="form-section flex gap-2">
             <FloatLabel variant="on" class="flex-grow">
               <InputText
-                id="new_{{ section.label }}"
+                :id="'new_' + section.label"
                 v-model="section.model.value"
                 type="text"
                 class="border p-2 w-full"
               />
-              <label for="new_{{ section.label }}">{{ section.label }}</label>
+              <label :for="'new_' + section.label">{{ section.label }}</label>
             </FloatLabel>
 
             <Button
               type="button"
               icon="pi pi-arrow-up"
               :label="section.label"
-              @click="addItem(section.list, section.model)"
+              @click="addItem(section.list(), section.model)"
               class="bg-blue-500 text-white px-2 py-1 rounded-md"
             />
           </div>

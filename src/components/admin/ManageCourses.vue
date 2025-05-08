@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { ref, onMounted, watch, nextTick, computed } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
-import { useCourse } from "../../stores/courseStore";
+import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import ManageCourseForm from "./ManageCourseForm.vue";
 import ManageTopicForm from "./ManageTopicForm.vue";
@@ -14,15 +15,34 @@ import { getAdminUsers } from "../../services/userService";
 const confirm = useConfirm();
 const toast = useToast();
 
-const courseStore = useCourse();
+const courseStore = useCourseStore();
 const topicStore = useTopicStore();
 
-const showForm = ref(false);
+const { selectedCourse, showForm } = storeToRefs(courseStore);
+const { closeForm, handleCourseUpdated, setSelectedCourseId, editCourse, resetCourseDraft} = courseStore;
+
+
+const { handleTopicCreated } = topicStore;
+
 const showTopicForm = ref(false);
-const selectedCourse = ref<Course | null>(null);
-const createdCourseId = ref<string | null>(null);
 const successMessage = ref<string>("");
+
+const newCourse = () => {
+  resetCourseDraft();
+  setSelectedCourseId(null);
+  showForm.value = true;
+};
+
+const selectedCourseForTopicForm = computed<Course | null>(() => {
+  const id = courseStore.selectedCourseId;
+  if (!id) return null;
+  return courseStore.courses.find((c) => c._id === id) || null;
+});
+
 const adminUsers = ref<AdminUser[]>([]);
+
+const topicPopoverRef = ref();
+const selectedCourseTopics = ref<Topic[] | null>(null);
 
 const getCourseTopics = (course: Course) => {
   return [
@@ -30,6 +50,19 @@ const getCourseTopics = (course: Course) => {
       course.topics.map((id) => topicStore.topics.find((t) => t._id === id))
     ),
   ];
+};
+
+const displayTopics = (event: Event, course: Course) => {
+  topicPopoverRef.value?.hide();
+  const topics = getCourseTopics(course).filter(Boolean) as Topic[];
+  if (selectedCourseTopics.value === topics) {
+    selectedCourseTopics.value = null;
+  } else {
+    selectedCourseTopics.value = topics;
+    nextTick(() => {
+      topicPopoverRef.value?.show(event);
+    });
+  }
 };
 
 // Fetch courses on mount
@@ -50,68 +83,6 @@ watch(
     //console.log("✅ Topics updated, refreshing UI");
   }
 );
-
-const handleCourseUpdated = (updatedCourse: Course) => {
-  if (!updatedCourse) return;
-
-  const index = courseStore.courses.findIndex(
-    (c) => c._id === updatedCourse._id
-  );
-
-  if (index !== -1) {
-    // When updating an existing course
-    courseStore.courses[index] = updatedCourse;
-    showForm.value = false;
-    selectedCourse.value = null;
-    showTopicForm.value = false;
-  } else {
-    // When a new course is created
-    courseStore.courses.push(updatedCourse);
-    showForm.value = false;
-    selectedCourse.value = null;
-    createdCourseId.value = updatedCourse._id;
-
-    // **Automatically show topic form when creating a new course**
-    showTopicForm.value = true;
-  }
-};
-
-const handleTopicCreated = (newTopic: Topic) => {
-  // Check if the topic already exists to prevent duplicates
-  if (!topicStore.topics.some((t) => t._id === newTopic._id)) {
-    topicStore.topics.push(newTopic);
-  }
-
-  const courseId =
-    typeof newTopic.course === "string" ? newTopic.course : newTopic.course._id;
-
-  // Find the course from the course store
-  const course = courseStore.courses.find((c) => c._id === courseId);
-
-  if (course && Array.isArray(course.topics)) {
-    // Add the new topic to the course's topic list if it doesn't already exist
-    if (!course.topics.includes(newTopic._id)) {
-      course.topics.push(newTopic._id);
-    }
-  }
-
-  // Update the selected course to reflect the new topic
-  if (selectedCourse.value && selectedCourse.value._id === courseId) {
-    selectedCourse.value = {
-      ...selectedCourse.value,
-      topics: [...selectedCourse.value.topics, newTopic._id],
-    };
-  }
-
-  showTopicForm.value = false;
-};
-// Open edit mode
-const editCourse = (course: any) => {
-  selectedCourse.value = { ...course };
-  showForm.value = true;
-
-  showTopicForm.value = false;
-};
 
 // Delete course and refresh list
 const deleteCourse = async (event: MouseEvent, courseId: string) => {
@@ -142,25 +113,17 @@ const deleteCourse = async (event: MouseEvent, courseId: string) => {
   });
 };
 
-// Reset form state
-const closeForm = () => {
-  selectedCourse.value = null;
-  showForm.value = false;
-};
-
 const closeTopicForm = () => {
   showTopicForm.value = false;
 };
+
 </script>
 
 <template>
-  <div class="p-4 shadow rounded-md">
+  <div class="p-2 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Courses</h2>
-    <p v-if="successMessage" class="text-green-500 mt-4">
-      {{ successMessage }}
-    </p>
     <Button
-      @click="showForm = true"
+      @click="newCourse"
       label="New Course"
       icon="pi pi-plus"
       class="mb-4"
@@ -175,12 +138,13 @@ const closeTopicForm = () => {
       @courseUpdated="handleCourseUpdated"
       @successMessage="successMessage = $event"
       @update:showTopicForm="showTopicForm = $event"
+      @newCourseId="(id) => setSelectedCourseId(id)"
     />
 
     <!-- Topic Form -->
     <ManageTopicForm
       v-model:visible="showTopicForm"
-      :courseId="selectedCourse?._id || null"
+      :course="selectedCourseForTopicForm"
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
@@ -214,14 +178,12 @@ const closeTopicForm = () => {
         <!-- Topics -->
         <Column header="Topics">
           <template #body="slotProps">
-            <ul class="list-disc ml-4">
-              <li
-                v-for="topic in getCourseTopics(slotProps.data)"
-                :key="topic?._id"
-              >
-                {{ topic?.title || "Unknown Topic" }}
-              </li>
-            </ul>
+            <Button
+              icon="pi pi-eye"
+              text
+              @click="displayTopics($event, slotProps.data)"
+              aria-label="View Topics"
+            />
           </template>
         </Column>
 
@@ -246,5 +208,14 @@ const closeTopicForm = () => {
     </div>
     <Toast />
     <ConfirmPopup />
+    <Popover ref="topicPopoverRef">
+      <div v-if="selectedCourseTopics" class="p-2 w-72 max-h-48 overflow-auto">
+        <ul class="text-sm list-disc px-4 py-2 text-gray-700 dark:text-gray-100">
+          <li v-for="topic in selectedCourseTopics" class="pl-2" :key="topic._id">
+            {{ topic.title || "Unknown Topic" }}
+          </li>
+        </ul>
+      </div>
+    </Popover>
   </div>
 </template>
