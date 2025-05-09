@@ -1,27 +1,29 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/authStore";
-import { useCourse } from "../../stores/courseStore";
+import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
 import { computed, onMounted, watchEffect, ref } from "vue";
 import type { MenuItem } from "primevue/menuitem";
 import { storeToRefs } from "pinia";
 import { useModalStore } from "../../stores/modalStore";
-const modalStore = useModalStore();
-// Sidebar for mobile
-const showSidebar = ref(false);
 
 const router = useRouter();
 const props = defineProps<{
   type: "default" | "admin";
 }>();
 
-defineEmits(["open-login"]);
-
+const modalStore = useModalStore();
 const authStore = useAuthStore();
 const { isAuthenticated, username, role, user, token } = storeToRefs(authStore);
 const { fetchCurrentUser, logOut } = authStore;
-const courseStore = useCourse();
+const courseStore = useCourseStore ();
+
+const showSidebar = ref(false);
+
+
+defineEmits(["open-login"]);
+
 const topicStore = useTopicStore();
 
 // Fetch courses and topics when needed

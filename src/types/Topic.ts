@@ -17,3 +17,12 @@ export interface Topic {
   createdAt: string;
   updatedAt: string;
 }
+
+export type TopicInput = {
+  title: string;
+  week: number;
+  summary: string;
+  course: string; 
+  key_points: string[];
+  resources: Array<Omit<Resource, "_id">>;
+};

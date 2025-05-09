@@ -3,6 +3,11 @@ import { ref, onMounted, computed } from "vue";
 import { useTopicStore } from "../../stores/topicStore";
 import ManageTopicForm from "./ManageTopicForm.vue";
 import type { Topic } from "../../types/Topic";
+import { useToast } from "primevue/usetoast";
+import { useConfirm } from "primevue/useconfirm";
+
+const toast = useToast();
+const confirm = useConfirm();
 
 const topicStore = useTopicStore();
 const showForm = ref(false);
@@ -26,7 +31,6 @@ const editTopic = (topic: Topic) => {
 // Handle topic submission (refresh list after adding/editing)
 const handleTopicUpdated = async () => {
   await topicStore.fetchTopics();
-  successMessage.value = "✅ Topic updated successfully!";
   showForm.value = false;
   selectedTopic.value = null;
 
@@ -36,25 +40,51 @@ const handleTopicUpdated = async () => {
 };
 
 // Delete topic
-const deleteTopic = async (topicId: string) => {
-  if (confirm("Are you sure you want to delete this topic?")) {
-    await topicStore.deleteTopic(topicId);
-    await topicStore.fetchTopics();
-    successMessage.value = "✅ Topic deleted successfully!";
-
-    setTimeout(() => {
-      successMessage.value = null;
-    }, 3000);
-  }
+const deleteTopic = async (event: MouseEvent, topic: Topic) => {
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: `Are you sure you want to delete the topic "${topic.title}"?`,
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Yes",
+    rejectLabel: "No",
+    accept: async () => {
+      await topicStore.deleteTopic(topic._id);
+      await topicStore.fetchTopics();
+      toast.add({
+        severity: "success",
+        summary: "Deleted",
+        detail: "Topic deleted successfully!",
+        life: 3000,
+      });
+    },
+    reject: () => {
+      toast.add({
+        severity: "info",
+        summary: "Cancelled",
+        detail: "Topic deletion cancelled.",
+        life: 2500,
+      });
+    },
+  });
 };
 // Refresh topics
 const refreshTopics = async () => {
   try {
     await topicStore.fetchTopics();
-    successMessage.value = "✅ Topics refreshed successfully!";
+    toast.add({
+      severity: "success",
+      summary: "Refreshed",
+      detail: "Topics refreshed successfully!",
+      life: 3000,
+    });
   } catch (err) {
     console.error("Error refreshing topics:", err);
-    successMessage.value = "❌ Failed to refresh topics.";
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "Failed to refresh topics.",
+      life: 3000,
+    });
   }
 };
 
@@ -66,12 +96,8 @@ const closeForm = () => {
 </script>
 
 <template>
-  <!-- ✅ Success Message -->
-  <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
-    {{ successMessage }}
-  </div>
-
   <div class="p-4 shadow rounded-md">
+    
     <h2 class="text-2xl font-bold mb-4">Manage Topics</h2>
 
     <Button
@@ -115,7 +141,7 @@ const closeForm = () => {
               icon="pi pi-pencil"
             />
             <Button
-              @click="deleteTopic(slotProps.data._id)"
+              @click="(e) => deleteTopic(e, slotProps.data)"
               severity="danger"
               icon="pi pi-trash"
             />
@@ -127,5 +153,7 @@ const closeForm = () => {
         </template>
       </DataTable>
     </div>
+    <Toast />
+    <ConfirmPopup/>
   </div>
 </template>

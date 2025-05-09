@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useQuizStore } from "../../stores/quizStore";
 import { useTopicStore } from "../../stores/topicStore";
-import { useCourse } from "../../stores/courseStore";
+import { useCourseStore } from "../../stores/courseStore";
 import { storeToRefs } from "pinia";
 
 const quizStore = useQuizStore();
@@ -11,7 +11,7 @@ const { loading, error } = storeToRefs(quizStore);
 const topicStore = useTopicStore();
 const { topics } = storeToRefs(topicStore);
 
-const courseStore = useCourse();
+const courseStore = useCourseStore();
 const { courses } = storeToRefs(courseStore);
 
 const selectedTopic = ref<string | null>(null);

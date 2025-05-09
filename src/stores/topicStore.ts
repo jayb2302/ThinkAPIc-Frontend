@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import { storeToRefs } from "pinia";
 import {
   getTopics,
   getTopicById,
@@ -7,15 +8,15 @@ import {
   updateTopicById,
   deleteTopicById,
 } from "../services/topicService";
-import type { Topic } from "../types/Topic";
+import type { Topic, TopicInput } from "../types/Topic";
 import type { Course } from "../types/Course";
-import { useCourse } from "../stores/courseStore";
+import { useCourseStore } from "../stores/courseStore";
 
 export const useTopicStore = defineStore("topics", () => {
   const topics = ref<Topic[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-  const courseStore = useCourse();
+  const courseStore = useCourseStore();
 
   // 🔹 Fetch all topics
   const fetchTopics = async () => {
@@ -76,6 +77,35 @@ export const useTopicStore = defineStore("topics", () => {
     }
   };
 
+  // Combined create or update function
+  const saveTopic = async (
+    topicData: Partial<TopicInput>,
+    topicId?: string
+  ): Promise<Topic> => {
+    loading.value = true;
+    try {
+      if (topicId) {
+        const updatedTopic = {
+          ...(topicData as TopicInput),
+          _id: topicId,
+        };
+        const result = await updateTopicById(topicId, updatedTopic as unknown as Partial<Topic>);
+        const index = topics.value.findIndex((t) => t._id === topicId);
+        if (index !== -1) topics.value[index] = result;
+        return result;
+      } else {
+        const createdTopic = await createTopic(topicData as unknown as Omit<Topic, '_id'>);
+        topics.value.push(createdTopic);
+        return createdTopic;
+      }
+    } catch (err) {
+      error.value = "Failed to save topic.";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // 🔹 Delete a topic
   const deleteTopic = async (id: string) => {
     loading.value = true;
@@ -91,12 +121,14 @@ export const useTopicStore = defineStore("topics", () => {
       loading.value = false;
     }
   };
-  
+
   const removeTopicFromCourses = (topicId: string) => {
     // Loop through all courses and remove the topic from the topics array
     courseStore.courses.forEach((course: Course) => {
       if (course.topics.includes(topicId)) {
-        course.topics = course.topics.filter((topicIdInCourse: string) => topicIdInCourse !== topicId);
+        course.topics = course.topics.filter(
+          (topicIdInCourse: string) => topicIdInCourse !== topicId
+        );
       }
     });
   };
@@ -108,6 +140,47 @@ export const useTopicStore = defineStore("topics", () => {
     );
   });
 
+  // 🔹 Validate a topic object
+  const isTopicValid = (topic: Partial<Topic>): boolean => {
+    return Boolean(
+      topic.title &&
+        typeof topic.week === "number" &&
+        !isNaN(topic.week) &&
+        topic.summary &&
+        topic.course
+    );
+  };
+
+  const handleTopicCreated = (newTopic: Topic) => {
+    if (!topics.value.some((t: Topic) => t._id === newTopic._id)) {
+      topics.value.push(newTopic);
+    }
+
+    const courseId =
+      typeof newTopic.course === "string"
+        ? newTopic.course
+        : newTopic.course._id;
+
+    const course = courseStore.courses.find((c) => c._id === courseId);
+
+    if (course && Array.isArray(course.topics)) {
+      if (!course.topics.includes(newTopic._id)) {
+        course.topics.push(newTopic._id);
+      }
+    }
+
+    const { selectedCourse, showTopicForm } = storeToRefs(courseStore);
+
+    if (selectedCourse.value && selectedCourse.value._id === courseId) {
+      selectedCourse.value = {
+        ...selectedCourse.value,
+        topics: [...selectedCourse.value.topics, newTopic._id],
+      };
+    }
+
+    showTopicForm.value = false;
+  };
+
   return {
     topics,
     loading,
@@ -118,5 +191,8 @@ export const useTopicStore = defineStore("topics", () => {
     updateTopic,
     deleteTopic,
     getTopicTitleById,
+    saveTopic,
+    isTopicValid,
+    handleTopicCreated,
   };
 });

@@ -85,15 +85,15 @@ watch(
 );
 
 // Delete course and refresh list
-const deleteCourse = async (event: MouseEvent, courseId: string) => {
+const deleteCourse = async (event: MouseEvent, course: Course) => {
   confirm.require({
     target: event.currentTarget as HTMLElement,
-    message: "Are you sure you want to delete this course?",
+    message: `Are you sure you want to delete the course "${course.title}"?`,
     icon: "pi pi-exclamation-triangle",
     acceptLabel: "Yes",
     rejectLabel: "No",
     accept: async () => {
-      await courseStore.deleteCourse(courseId);
+      await courseStore.deleteCourse(course._id);
       await courseStore.fetchCourses();
       toast.add({
         severity: "success",
@@ -200,7 +200,7 @@ const closeTopicForm = () => {
               icon="pi pi-trash"
               severity="danger"
               fluid
-              @click="deleteCourse($event, slotProps.data._id)"
+              @click="(e) => deleteCourse(e, slotProps.data)"
             />
           </template>
         </Column>
