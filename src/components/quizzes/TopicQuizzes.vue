@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useProgressStore } from "../../stores/progressStore";
 import { useQuizStore } from "../../stores/quizStore";
@@ -49,6 +49,18 @@ onMounted(async () => {
   }
 });
 
+watch(
+  () => quizzes.value,
+  (newQuizzes) => {
+    newQuizzes.forEach((q) => {
+      if (!(q._id in selectedOptions.value)) {
+        selectedOptions.value[q._id] = undefined;
+      }
+    });
+  },
+  { immediate: true }
+);
+
 const closeDialog = (value: boolean) => {
   emit("update:visible", value);
   if (value === false && authStore.user) {
@@ -79,9 +91,7 @@ const submitAll = async () => {
 };
 
 const hasUnansweredQuestions = () => {
-  return quizzes.value.some(
-    (q) => selectedOptions.value[q._id] == null
-  );
+  return quizzes.value.some((q) => selectedOptions.value[q._id] == null);
 };
 
 const submitQuizzesAndHandleProgress = async () => {

@@ -1,24 +1,41 @@
 <script setup lang="ts">
-import { useToast } from "primevue/usetoast";
-const toast = useToast();
 import { ref, watch, onMounted } from "vue";
+import { useToast } from "primevue/usetoast";
+
+// 🏪 Stores
 import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
-import type { Topic, TopicInput } from "../../types/Topic";
 
-const emit = defineEmits(["close", "topicUpdated", "update:visible"]);
-
+// 🧾 Types
 import type { Course } from "../../types/Course";
+import type { Topic } from "../../types/Topic";
 
+// 🧰 Helpers
+import {
+  resetMessages,
+  validateForm,
+  getSuccessMessage,
+  handleError,
+  buildTopicInput,
+} from "../../helpers/topicHelpers";
+
+// 🚨 Emits & Props
+const emit = defineEmits(["close", "topicUpdated", "update:visible"]);
 const props = defineProps<{
   topic?: Topic | null;
   course?: Course | null;
   visible: boolean;
 }>();
 
+// 🏬 Store setup
 const courseStore = useCourseStore();
-const topicStore = useTopicStore();
+const { fetchCourses } = courseStore;
 
+const topicStore = useTopicStore();
+const { saveTopic } = topicStore;
+const toast = useToast();
+
+// 🧠 State
 const title = ref("");
 const week = ref<number | null>(null);
 const summary = ref("");
@@ -30,8 +47,10 @@ const newResource = ref({ title: "", link: "" });
 const successMessage = ref("");
 const errorMessage = ref("");
 const isEditing = ref(false);
+const editingKeyPointIndex = ref<number | null>(null);
+const editingResourceIndex = ref<number | null>(null);
 
-// Reset form
+// 🧩 Form Helpers
 const resetForm = () => {
   title.value = "";
   week.value = 1;
@@ -44,29 +63,19 @@ const resetForm = () => {
   isEditing.value = false;
 };
 
-const setTopicFields = (topic: Topic) => {
-  title.value = topic.title;
-  week.value = topic.week;
-  summary.value = topic.summary || "Topic Summary";
-  keyPoints.value = topic.key_points || [];
-  resources.value = topic.resources || [];
-};
-
 const ensureCoursesLoaded = async () => {
-  if (!courseStore.courses.length) await courseStore.fetchCourses();
+  if (!courseStore.courses.length) await fetchCourses();
 };
 
-// Watch for topic changes & populate form when editing
+// 🧩 Watchers
 watch(
   () => props.topic,
   async (newTopic) => {
     if (!newTopic) {
-      // When there's no topic, reset the form and initialize courseId
       resetForm();
       isEditing.value = false;
       selectedCourse.value = props.course ?? null;
     } else {
-      // When there's an existing topic (edit mode)
       isEditing.value = true;
       setTopicFields(newTopic);
       await ensureCoursesLoaded();
@@ -76,7 +85,6 @@ watch(
   { immediate: true }
 );
 
-// Watch for course to ensure selectedCourse is set correctly when creating a new topic
 watch(
   () => props.course,
   async (newCourse) => {
@@ -88,7 +96,16 @@ watch(
   { immediate: true }
 );
 
-// Add key point
+// 🧩 Set Topic Fields
+const setTopicFields = (topic: Topic) => {
+  title.value = topic.title;
+  week.value = topic.week;
+  summary.value = topic.summary || "Topic Summary";
+  keyPoints.value = topic.key_points || [];
+  resources.value = topic.resources || [];
+};
+
+// 🧩 Key Point Handlers
 const addKeyPoint = () => {
   if (newKeyPoint.value.trim()) {
     keyPoints.value.push(newKeyPoint.value.trim());
@@ -96,12 +113,16 @@ const addKeyPoint = () => {
   }
 };
 
-// Remove key point
-const removeKeyPoint = (index: number) => {
-  keyPoints.value.splice(index, 1);
+const removeKeyPoint = (index: number) => keyPoints.value.splice(index, 1);
+
+const isEditingKeyPoint = (index: number) =>
+  editingKeyPointIndex.value === index;
+
+const toggleEditingKeyPoint = (index: number) => {
+  editingKeyPointIndex.value = isEditingKeyPoint(index) ? null : index;
 };
 
-// Add resource
+// 🧩 Resource Handlers
 const addResource = () => {
   if (newResource.value.title.trim() && newResource.value.link.trim()) {
     resources.value.push({ ...newResource.value });
@@ -109,147 +130,106 @@ const addResource = () => {
   }
 };
 
-// Remove resource
-const removeResource = (index: number) => {
-  resources.value.splice(index, 1);
-};
+const removeResource = (index: number) => resources.value.splice(index, 1);
 
-// Key Point Editing State
-const editingKeyPointIndex = ref<number | null>(null);
-
-const isEditingKeyPoint = (index: number) => {
-  return editingKeyPointIndex.value === index;
-};
-
-const toggleEditingKeyPoint = (index: number) => {
-  if (isEditingKeyPoint(index)) {
-    editingKeyPointIndex.value = null; // Stop editing
-  } else {
-    editingKeyPointIndex.value = index; // Start editing
-  }
-};
-
-// Resource Editing State
-const editingResourceIndex = ref<number | null>(null);
-
-const isEditingResource = (index: number) => {
-  return editingResourceIndex.value === index;
-};
+const isEditingResource = (index: number) =>
+  editingResourceIndex.value === index;
 
 const toggleEditingResource = (index: number) => {
-  if (isEditingResource(index)) {
-    editingResourceIndex.value = null; // Stop editing
-  } else {
-    editingResourceIndex.value = index; // Start editing
-  }
+  editingResourceIndex.value = isEditingResource(index) ? null : index;
 };
 
-// Get Button State for editing
-const getButtonState = (index: number, isResource: boolean = false) => {
-  const isEditing = isResource
+// 🧩 Button State Helper
+const getButtonState = (index: number, isResource = false) => {
+  const editing = isResource
     ? isEditingResource(index)
     : isEditingKeyPoint(index);
   return {
-    severity: isEditing ? "success" : "info",
-    icon: isEditing ? "pi pi-check" : "pi pi-pencil",
+    severity: editing ? "success" : "info",
+    icon: editing ? "pi pi-check" : "pi pi-pencil",
   };
 };
 
-// Submit topic
-const validateForm = (): boolean => {
-  const isInvalid = [
-    !title.value,
-    week.value === null || isNaN(Number(week.value)),
-    !summary.value,
-    !selectedCourse.value,
-  ].some(Boolean);
-
-  if (isInvalid) {
-    errorMessage.value = "All fields are required.";
-    return false;
-  }
-
-  return true;
-};
-
-const handleApiResponse = (newTopic: Topic, message: string) => {
-  successMessage.value = message;
-  emit("topicUpdated", newTopic);
-  resetForm();
-};
-
+// 🚀 Actions
 const submitTopic = async () => {
   try {
-    resetMessages();
-    if (!validateForm()) return;
-
-    const topicData: TopicInput = {
-      title: title.value,
-      week: week.value ?? 1,
-      summary: summary.value,
-      course: selectedCourse.value!._id,
-      key_points: keyPoints.value,
-      resources: resources.value.map((r) => ({ ...r, _id: "" })),
-    };
-
-    const topicId = isEditing.value ? props.topic?._id : undefined;
-    const savedTopic = await topicStore.saveTopic(topicData, topicId);
-
-    await courseStore.fetchCourses();
-    const message = getSuccessMessage();
-
-    handleApiResponse(savedTopic, message);
-
-    toast.add({
-      severity: "success",
-      summary: "Success",
-      detail: message,
-      life: 3000,
-    });
+    prepareSubmission();
+    const topicId = getTopicId();
+    const topicData = getTopicInput();
+    const savedTopic = await saveTopic(topicData, topicId);
+    await postSubmitActions(savedTopic);
   } catch (error) {
-    handleError(error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: errorMessage.value,
-      life: 3000,
-    });
+    handleFailure(error);
   }
 };
 
-// Reset success & error messages
-const resetMessages = () => {
-  successMessage.value = "";
-  errorMessage.value = "";
+const prepareSubmission = () => {
+  resetMessages(successMessage, errorMessage);
+  if (!isFormValid()) throw new Error("Form validation failed");
+};
+
+const getTopicId = () => (isEditing.value ? props.topic?._id : undefined);
+
+const getTopicInput = () =>
+  buildTopicInput({
+    title: title.value,
+    week: week.value,
+    summary: summary.value,
+    courseId: selectedCourse.value!._id,
+    keyPoints: keyPoints.value,
+    resources: resources.value,
+  });
+
+const postSubmitActions = async (savedTopic: Topic) => {
+  await fetchCourses();
+  handleSuccess(savedTopic);
+};
+
+const isFormValid = () => {
+  return validateForm({
+    title: title.value,
+    week: week.value,
+    summary: summary.value,
+    course: selectedCourse.value,
+  });
+};
+
+const handleSuccess = (savedTopic: Topic) => {
+  const message = getSuccessMessage(isEditing.value);
+  successMessage.value = message;
+  emit("topicUpdated", savedTopic);
+  resetForm();
+  toast.add({
+    severity: "success",
+    summary: "Success",
+    detail: message,
+    life: 3000,
+  });
+};
+
+const handleFailure = (error: unknown) => {
+  handleError(error, errorMessage);
+  toast.add({
+    severity: "error",
+    summary: "Error",
+    detail: errorMessage.value,
+    life: 3000,
+  });
+};
+
+const closeForm = () => {
+  resetForm();
+  emit("update:visible", false);
 };
 
 onMounted(async () => {
   if (!courseStore.courses.length) {
     await courseStore.fetchCourses();
   }
-
   if (!selectedCourse.value && props.course) {
     selectedCourse.value = props.course;
   }
 });
-
-// Get the appropriate success message
-const getSuccessMessage = () =>
-  isEditing.value
-    ? " Topic updated successfully!"
-    : " Topic added successfully!";
-
-// Handle API errors
-const handleError = (error: any) => {
-  errorMessage.value =
-    error.response?.data?.error || "Something went wrong. Please try again.";
-};
-
-// Close form
-const closeForm = () => {
-  resetForm();
-  emit("update:visible", false);
-};
 </script>
 
 <template>
