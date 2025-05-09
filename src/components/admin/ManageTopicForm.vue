@@ -237,7 +237,8 @@ onMounted(async () => {
     v-model:visible="props.visible"
     @update:visible="(val) => emit('update:visible', val)"
     modal
-    class="px-4 overflow-auto"
+    style="max-height: none"
+    class="w-full px-2 md:px-14 h-svh overflow-auto py-10"
     :pt="{
       root: { class: '!border-0 !bg-transparent' },
       mask: { class: 'backdrop-blur-sm' },
@@ -245,25 +246,22 @@ onMounted(async () => {
   >
     <template #container="{ closeCallback }">
       <div
-        class="flex flex-col p-6 gap-6 rounded-2xl"
+        class="flex flex-col p-4 md:p-8 gap-4 rounded-2xl"
         style="
           background-image: radial-gradient(
-            circle at left top,
-            var(--p-primary-400),
-            var(--p-primary-700)
+            circle at center center,
+            var(--p-primary-300),
+            var(--p-primary-200)
           );
         "
       >
         <Toast />
-        <h1 class="text-2xl font-bold text-primary-100">
+        <h1 class="text-2xl font-bold">
           <i class="pi pi-thumbtack text-4xl"> </i>
           {{ isEditing ? "Edit Topic" : "Add New Topic" }}
         </h1>
 
-        <form
-          @submit.prevent="submitTopic"
-          class="p-2 shadow-md space-y-4 rounded-md"
-        >
+        <form @submit.prevent="submitTopic" class="space-y-4 rounded-md">
           <!-- Course form fields -->
           <FloatLabel variant="on">
             <InputText v-model="title" label="Topic Title" fluid />
@@ -279,6 +277,7 @@ onMounted(async () => {
               :min="1"
               :max="18"
               fluid
+              :inputStyle="{ padding: '0.5rem' }"
             />
             <label for="minmax-buttons" class="block">Week</label>
           </FloatLabel>
@@ -300,6 +299,7 @@ onMounted(async () => {
               inputId="course_select"
               :options="courseStore.courses"
               optionLabel="title"
+              placeholder="Select a Course"
               fluid
             />
           </FloatLabel>
@@ -334,7 +334,7 @@ onMounted(async () => {
             />
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex flex-col md:flex-row gap-2">
             <FloatLabel variant="on" class="flex-grow">
               <InputText
                 v-model="newKeyPoint"
@@ -349,7 +349,7 @@ onMounted(async () => {
               @click="addKeyPoint"
               class="min-w-32"
               icon="pi pi-plus"
-              label="Add Key Point"
+              label="Add"
             />
           </div>
 
@@ -358,7 +358,7 @@ onMounted(async () => {
           <div
             v-for="(resource, index) in resources"
             :key="index"
-            class="flex items-center p-2 gap-2 bg-gray-100 dark:bg-gray-950 rounded-md"
+            class="flex flex-col md:flex-row items-center p-2 gap-2 bg-gray-100 dark:bg-gray-950 rounded-md"
           >
             <span v-if="!isEditingResource(index)" class="flex-grow">
               {{ resource.title }} -
@@ -366,7 +366,7 @@ onMounted(async () => {
                 resource.link
               }}</a>
             </span>
-            <div v-else class="flex w-full gap-2">
+            <div v-else class=" w-full gap-2">
               <InputText
                 v-model="resources[index].title"
                 label="Resource Title"
@@ -384,22 +384,26 @@ onMounted(async () => {
                 />
               </IconField>
             </div>
-            <Button
-              type="button"
-              @click="toggleEditingResource(index)"
-              :severity="getButtonState(index, true).severity"
-              :icon="getButtonState(index, true).icon"
-            />
-            <Button
-              type="button"
-              @click="removeResource(index)"
-              severity="danger"
-              icon="pi pi-times"
-            />
+            
+              <Button
+                type="button"
+                @click="toggleEditingResource(index)"
+                :severity="getButtonState(index, true).severity"
+                :icon="getButtonState(index, true).icon"
+              />
+              <Button
+                type="button"
+                @click="removeResource(index)"
+                severity="danger"
+                icon="pi pi-times"
+              />
+            
           </div>
 
-          <div class="resources flex w-full space-x-2">
-            <FloatLabel variant="on" class="w-1/3">
+          <div
+            class="resources flex flex-col md:flex-row w-full space-y-2 md:space-y-0 md:space-x-2"
+          >
+            <FloatLabel variant="on" class="w-full md:w-1/3">
               <InputText
                 v-model="newResource.title"
                 label="Resource Title"
@@ -407,7 +411,7 @@ onMounted(async () => {
               />
               <label for="resource_title" class="block mb-2">Title</label>
             </FloatLabel>
-            <FloatLabel variant="on" class="flex-grow">
+            <FloatLabel variant="on" class="w-full md:w-2/3">
               <IconField class="">
                 <InputIcon icon="pi pi-link " class="pi pi-link" />
                 <InputText v-model="newResource.link" label="Link" fluid />
@@ -417,34 +421,30 @@ onMounted(async () => {
             <Button
               type="button"
               @click="addResource"
-              label="Add Resource"
+              label="Add"
               class="min-w-32"
               icon="pi pi-plus"
             />
           </div>
 
-          <div class="button-group flex justify-end space-x-2">
-            <Button
-              :label="isEditing ? 'Update Topic' : 'Submit Topic'"
-              icon="pi pi-check"
-              type="submit"
-              severity="success"
-            />
+          <div class="button-group flex items-center gap-4">
             <Button
               type="button"
               label="Cancel"
-              severity="secondary"
               icon="pi pi-times"
               @click="
                 closeCallback;
                 closeForm();
               "
+              class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50"
+            />
+            <Button
+              :label="isEditing ? 'Update' : 'Submit'"
+              icon="pi pi-check"
+              type="submit"
+              class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-green-600/30 hover:!bg-green-700/10 hover:!text-gray-50"
             />
           </div>
-
-          <p v-if="errorMessage" class="text-red-500 mt-4">
-            {{ errorMessage }}
-          </p>
         </form>
       </div>
     </template>
