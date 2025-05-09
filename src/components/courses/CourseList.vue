@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useCourseStore } from "../../stores/courseStore";
+import { getUserById } from "../../services/userService";
+import type { User } from "../../types/User";
+
+const courseStore = useCourseStore();
+const router = useRouter();
+const teachers = ref<Record<string, User>>({});
+
+const goToCourse = (id: string) => {
+  router.push(`/courses/${id}`);
+};
+
+onMounted(async () => {
+  await courseStore.fetchCourses();
+
+  for (const course of courseStore.courses) {
+    if (course.teacher) {
+      const teacherData = await getUserById(course.teacher);
+      teachers.value[course._id] = teacherData;
+    }
+  }
+});
+</script>
+
 <template>
   <h1 class="text-2xl font-bold mb-4">My Courses</h1>
   <div
@@ -27,33 +54,6 @@
     </Card>
   </div>
 </template>
-
-<script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useCourse } from "../../stores/courseStore";
-import { getUserById } from "../../services/userService";
-import type { User } from "../../types/User";
-
-const courseStore = useCourse();
-const router = useRouter();
-const teachers = ref<Record<string, User>>({});
-
-const goToCourse = (id: string) => {
-  router.push(`/courses/${id}`);
-};
-
-onMounted(async () => {
-  await courseStore.fetchCourses();
-
-  for (const course of courseStore.courses) {
-    if (course.teacher) {
-      const teacherData = await getUserById(course.teacher);
-      teachers.value[course._id] = teacherData;
-    }
-  }
-});
-</script>
 
 <style scoped>
 .p-card {

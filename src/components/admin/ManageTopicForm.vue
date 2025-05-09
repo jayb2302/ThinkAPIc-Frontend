@@ -1,23 +1,28 @@
 <script setup lang="ts">
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 import { ref, watch, onMounted } from "vue";
-import api from "../../services/api";
-import { useCourse } from "../../stores/courseStore";
-import type { Topic } from "../../types/Topic";
+import { useCourseStore } from "../../stores/courseStore";
+import { useTopicStore } from "../../stores/topicStore";
+import type { Topic, TopicInput } from "../../types/Topic";
 
 const emit = defineEmits(["close", "topicUpdated", "update:visible"]);
 
+import type { Course } from "../../types/Course";
+
 const props = defineProps<{
   topic?: Topic | null;
-  courseId?: string | null;
+  course?: Course | null;
   visible: boolean;
 }>();
 
-const courseStore = useCourse();
+const courseStore = useCourseStore();
+const topicStore = useTopicStore();
 
 const title = ref("");
 const week = ref<number | null>(null);
 const summary = ref("");
-const selectedCourse = ref<string | null>(props.courseId || null);
+const selectedCourse = ref<Course | null>(props.course || null);
 const keyPoints = ref<string[]>([]);
 const newKeyPoint = ref("");
 const resources = ref<{ title: string; link: string }[]>([]);
@@ -26,17 +31,12 @@ const successMessage = ref("");
 const errorMessage = ref("");
 const isEditing = ref(false);
 
-// Fetch courses on mount
-onMounted(async () => {
-  await courseStore.fetchCourses();
-});
-
 // Reset form
 const resetForm = () => {
   title.value = "";
   week.value = 1;
   summary.value = "";
-  selectedCourse.value = courseStore.courses[0]?._id ?? null;
+  selectedCourse.value = props.course ?? null;
   keyPoints.value = [];
   newKeyPoint.value = "";
   resources.value = [];
@@ -64,24 +64,25 @@ watch(
       // When there's no topic, reset the form and initialize courseId
       resetForm();
       isEditing.value = false;
-      selectedCourse.value = props.courseId ?? null;
+      selectedCourse.value = props.course ?? null;
     } else {
       // When there's an existing topic (edit mode)
       isEditing.value = true;
       setTopicFields(newTopic);
       await ensureCoursesLoaded();
-      selectedCourse.value = newTopic.course._id;
+      selectedCourse.value = newTopic.course;
     }
   },
   { immediate: true }
 );
 
-// Watch for courseId to ensure selectedCourse is set correctly when creating a new topic
+// Watch for course to ensure selectedCourse is set correctly when creating a new topic
 watch(
-  () => props.courseId,
-  (newCourseId) => {
-    if (newCourseId) {
-      selectedCourse.value = newCourseId;
+  () => props.course,
+  async (newCourse) => {
+    if (newCourse?._id) {
+      await ensureCoursesLoaded();
+      selectedCourse.value = newCourse;
     }
   },
   { immediate: true }
@@ -145,7 +146,9 @@ const toggleEditingResource = (index: number) => {
 
 // Get Button State for editing
 const getButtonState = (index: number, isResource: boolean = false) => {
-  const isEditing = isResource ? isEditingResource(index) : isEditingKeyPoint(index);
+  const isEditing = isResource
+    ? isEditingResource(index)
+    : isEditingKeyPoint(index);
   return {
     severity: isEditing ? "success" : "info",
     icon: isEditing ? "pi pi-check" : "pi pi-pencil",
@@ -169,15 +172,6 @@ const validateForm = (): boolean => {
   return true;
 };
 
-const getTopicData = () => ({
-  title: title.value,
-  week: week.value,
-  summary: summary.value,
-  course: selectedCourse.value,
-  key_points: keyPoints.value,
-  resources: resources.value,
-});
-
 const handleApiResponse = (newTopic: Topic, message: string) => {
   successMessage.value = message;
   emit("topicUpdated", newTopic);
@@ -188,13 +182,38 @@ const submitTopic = async () => {
   try {
     resetMessages();
     if (!validateForm()) return;
-    //console.log("📤 Submitting Topic:", getTopicData());
 
-    const savedTopic = await saveTopic();
+    const topicData: TopicInput = {
+      title: title.value,
+      week: week.value ?? 1,
+      summary: summary.value,
+      course: selectedCourse.value!._id,
+      key_points: keyPoints.value,
+      resources: resources.value.map((r) => ({ ...r, _id: "" })),
+    };
+
+    const topicId = isEditing.value ? props.topic?._id : undefined;
+    const savedTopic = await topicStore.saveTopic(topicData, topicId);
+
     await courseStore.fetchCourses();
-    handleApiResponse(savedTopic, getSuccessMessage());
+    const message = getSuccessMessage();
+
+    handleApiResponse(savedTopic, message);
+
+    toast.add({
+      severity: "success",
+      summary: "Success",
+      detail: message,
+      life: 3000,
+    });
   } catch (error) {
     handleError(error);
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: errorMessage.value,
+      life: 3000,
+    });
   }
 };
 
@@ -204,23 +223,24 @@ const resetMessages = () => {
   errorMessage.value = "";
 };
 
-// Make API request based on edit mode
-const saveTopic = async (): Promise<Topic> => {
-  const url = isEditing.value ? `/topics/${props.topic!._id}` : "/topics";
-  const method = isEditing.value ? "put" : "post";
-  const response = await api[method](url, getTopicData());
-  return response.data;
-};
+onMounted(async () => {
+  if (!courseStore.courses.length) {
+    await courseStore.fetchCourses();
+  }
+
+  if (!selectedCourse.value && props.course) {
+    selectedCourse.value = props.course;
+  }
+});
 
 // Get the appropriate success message
 const getSuccessMessage = () =>
   isEditing.value
-    ? "✅ Topic updated successfully!"
-    : "✅ Topic added successfully!";
+    ? " Topic updated successfully!"
+    : " Topic added successfully!";
 
 // Handle API errors
 const handleError = (error: any) => {
-  //console.error("❌ Error submitting topic:", error);
   errorMessage.value =
     error.response?.data?.error || "Something went wrong. Please try again.";
 };
@@ -254,8 +274,9 @@ const closeForm = () => {
           );
         "
       >
-        <h1 class="text-2xl font-bold text-primary-100 ">
-          <i class="pi pi-thumbtack text-4xl "> </i>
+        <Toast />
+        <h1 class="text-2xl font-bold text-primary-100">
+          <i class="pi pi-thumbtack text-4xl"> </i>
           {{ isEditing ? "Edit Topic" : "Add New Topic" }}
         </h1>
 
@@ -299,7 +320,6 @@ const closeForm = () => {
               inputId="course_select"
               :options="courseStore.courses"
               optionLabel="title"
-              optionValue="_id"
               fluid
             />
           </FloatLabel>
@@ -309,7 +329,7 @@ const closeForm = () => {
           <div
             v-for="(point, index) in keyPoints"
             :key="index"
-            class="flex items-center p-2 gap-2  bg-gray-100 dark:bg-gray-950 rounded-md"
+            class="flex items-center p-2 gap-2 bg-gray-100 dark:bg-gray-950 rounded-md"
           >
             <span v-if="!isEditingKeyPoint(index)" class="flex-grow">{{
               point
@@ -358,7 +378,7 @@ const closeForm = () => {
           <div
             v-for="(resource, index) in resources"
             :key="index"
-            class="flex items-center  p-2 gap-2  bg-gray-100 dark:bg-gray-950 rounded-md"
+            class="flex items-center p-2 gap-2 bg-gray-100 dark:bg-gray-950 rounded-md"
           >
             <span v-if="!isEditingResource(index)" class="flex-grow">
               {{ resource.title }} -
@@ -373,10 +393,15 @@ const closeForm = () => {
                 class="flex-1"
                 fluid
               />
-             
+
               <IconField class="flex-grow">
                 <InputIcon icon="pi pi-link " class="pi pi-link" />
-                <InputText v-model="resources[index].link" class="" label="Link" fluid />
+                <InputText
+                  v-model="resources[index].link"
+                  class=""
+                  label="Link"
+                  fluid
+                />
               </IconField>
             </div>
             <Button
@@ -409,13 +434,13 @@ const closeForm = () => {
               </IconField>
               <label for="resource_link" class="block mb-2">Link</label>
             </FloatLabel>
-          <Button
-            type="button"
-            @click="addResource"
-            label="Add Resource"
-            class="min-w-32"
-            icon="pi pi-plus"
-          />
+            <Button
+              type="button"
+              @click="addResource"
+              label="Add Resource"
+              class="min-w-32"
+              icon="pi pi-plus"
+            />
           </div>
 
           <div class="button-group flex justify-end space-x-2">
@@ -437,9 +462,6 @@ const closeForm = () => {
             />
           </div>
 
-          <p v-if="successMessage" class="text-green-500 mt-4">
-            {{ successMessage }}
-          </p>
           <p v-if="errorMessage" class="text-red-500 mt-4">
             {{ errorMessage }}
           </p>

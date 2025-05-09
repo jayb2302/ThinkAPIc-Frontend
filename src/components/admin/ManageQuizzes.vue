@@ -98,7 +98,7 @@ const topicOptions = computed(() =>
   <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
     {{ successMessage }}
   </div>
-  <div class="p-4 shadow rounded-md">
+  <div class="p-2 shadow rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
     <Button
@@ -116,57 +116,67 @@ const topicOptions = computed(() =>
       @close="closeForm"
     />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">
-    <DataTable :value="quizList" tableStyle="" >
-      <template #header>
-        <div class="flex flex-wrap items-center justify-between gap-2 w-full ">
-          <span class="text-xl font-bold">Quizzes</span>
-          <Button icon="pi pi-refresh" rounded raised @click="refreshQuizzes" />
-        </div>
-      </template>
-
-      <!-- Question Column -->
-      <Column field="question" header="Question" class="w-1/2"></Column>
-
-      <!-- Topic Column -->
-      <Column>
+      <DataTable :value="quizList" tableStyle="">
         <template #header>
-          <div class="flex flex-col">
-            <Select
-              v-model="selectedTopic"
-              :options="topicOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Filter by Topic"
-              class="w-full"
-              clearable
+          <div class="flex flex-wrap items-center justify-between gap-2 w-full">
+            <span class="text-xl font-bold">Quizzes</span>
+            <Button
+              icon="pi pi-refresh"
+              rounded
+              raised
+              @click="refreshQuizzes"
             />
           </div>
         </template>
-        <template #body="slotProps">
-          {{ slotProps.data.topic?.title || "No Topic" }}
-        </template>
-      </Column>
 
-      <!-- Actions Column -->
-      <Column header="Actions">
-        <template #body="slotProps">
-          <Button
-            @click="editQuiz(slotProps.data)"
-            severity="info"
-            icon="pi pi-pencil"
-          />
-          <Button
-            @click="deleteQuiz(slotProps.data._id)"
-            severity="danger"
-            icon="pi pi-trash"
-          />
-        </template>
-      </Column>
+        <!-- Question Column -->
+        <Column field="question" header="Question" class="w-1/2"></Column>
 
-      <template #footer>
-        In total, there are {{ quizList ? quizList.length : 0 }} quizzes.
-      </template>
-    </DataTable>
+        <!-- Topic Column -->
+        <Column>
+          <template #header>
+            <div class="flex flex-col">
+              <Select
+                v-model="selectedTopic"
+                :options="topicOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Filter by Topic"
+                class="w-full"
+                clearable
+              />
+            </div>
+          </template>
+          <template #body="slotProps">
+            {{ slotProps.data.topic?.title || "No Topic" }}
+          </template>
+        </Column>
+
+        <!-- Actions Column -->
+        <Column header="Actions">
+          <template #body="slotProps">
+            <Button
+              @click="editQuiz(slotProps.data)"
+              severity="info"
+              icon="pi pi-pencil"
+            />
+            <Button
+              @click="deleteQuiz(slotProps.data._id)"
+              severity="danger"
+              icon="pi pi-trash"
+            />
+          </template>
+        </Column>
+
+        <template #footer>
+          In total, there are {{ quizList ? quizList.length : 0 }} quizzes.
+        </template>
+        <template #empty>
+          <div class="p-4 text-center text-gray-500">
+            No quizzes found for this topic.
+          </div>
+        </template>
+      </DataTable>
     </div>
   </div>
 </template>
