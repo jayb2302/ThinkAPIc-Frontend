@@ -80,6 +80,10 @@ export const useCourseStore = defineStore("courses", () => {
       courses.value = courses.value.filter((course) => course._id !== id);
     });
 
+  const findCourseById = (id: string): Course | undefined => {
+    return courses.value.find((course) => course._id === id);
+  };
+
   // UI state helpers
   const editCourse = (course: Course) => {
     selectedCourse.value = { ...course };
@@ -194,6 +198,7 @@ export const useCourseStore = defineStore("courses", () => {
     error,
     errorMessage,
     fetchCourses,
+    findCourseById,
     handleCourseUpdated,
     isEditing,
     loading,

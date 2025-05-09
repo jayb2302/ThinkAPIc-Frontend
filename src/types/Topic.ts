@@ -1,4 +1,4 @@
-import type { Course } from './Course'; 
+import type { Course } from "./Course";
 
 export interface Resource {
   _id: string;
@@ -6,23 +6,27 @@ export interface Resource {
   link: string;
 }
 
-export interface Topic {
-  _id: string;
+export type ResourceInput = Omit<Resource, "_id">;
+
+type BaseTopicFields = {
   title: string;
   week: number;
   summary: string;
   key_points: string[];
+  resources: ResourceInput[];
+};
+
+export interface Topic extends Omit<BaseTopicFields, "resources"> {
+  _id: string;
   resources: Resource[];
-  course: Course; 
+  course: Course;
   createdAt: string;
   updatedAt: string;
 }
 
-export type TopicInput = {
-  title: string;
-  week: number;
-  summary: string;
-  course: string; 
-  key_points: string[];
-  resources: Array<Omit<Resource, "_id">>;
+export type TopicInput = BaseTopicFields & {
+  course: string;
 };
+
+export type NewTopicInput = TopicInput;
+export type UpdateTopicInput = TopicInput & { _id: string };
