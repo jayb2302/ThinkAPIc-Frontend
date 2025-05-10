@@ -47,17 +47,15 @@ watchEffect(async () => {
   }
 });
 
-const logout = () => {
-  logOut();
-  if (props.type === "admin") {
-    router.push("/");
-  }
+const navigate = (path: string) => async () => {
+  await router.push(path);
+  showSidebar.value = false;
 };
 
 const items = computed<MenuItem[]>(() => {
   if (props.type === "admin") {
     return [
-      { label: "Home", icon: "pi pi-home", command: () => router.push("/") },
+      { label: "Home", icon: "pi pi-home", command: navigate("/") },
       {
         label: "Dashboard",
         icon: "pi pi-th-large",
@@ -65,33 +63,29 @@ const items = computed<MenuItem[]>(() => {
           {
             label: "Manage Quizzes",
             icon: "pi pi-question-circle",
-            command: () => router.push("/admin/quizzes"),
+            command: navigate("/admin/quizzes"),
           },
           {
             label: "Manage Topics",
             icon: "pi pi-list",
-            command: () => router.push("/admin/topics"),
+            command: navigate("/admin/topics"),
           },
           {
             label: "Manage Courses",
             icon: "pi pi-briefcase",
-            command: () => router.push("/admin/courses"),
+            command: navigate("/admin/courses"),
           },
           {
             label: "Manage Users",
             icon: "pi pi-users",
-            command: () => router.push("/admin/users"),
+            command: navigate("/admin/users"),
           },
         ],
       },
-      // { label: "Quizzes", icon: "pi pi-book", command: () => router.push("/admin/quizzes") },
-      // { label: "Topics", icon: "pi pi-list", command: () => router.push("/admin/topics") },
-      // { label: "Courses", icon: "pi pi-briefcase", command: () => router.push("/admin/courses") },
-      // { label: "Users", icon: "pi pi-users", command: () => router.push("/admin/users") },
     ];
   } else {
     return [
-      { label: "Home", icon: "pi pi-home", command: () => router.push("/") },
+      { label: "Home", icon: "pi pi-home", command: navigate("/") },
       {
         label: "Courses",
         icon: "pi pi-book",
@@ -99,33 +93,38 @@ const items = computed<MenuItem[]>(() => {
           label: course.title,
           items: (course.topics || []).map((topicId) => ({
             label: topicStore.getTopicTitleById(topicId),
-            command: () => router.push(`/topics/${topicId}`),
+            command: navigate(`/topics/${topicId}`),
           })),
         })),
       },
       {
         label: "Quizzes",
         icon: "pi pi-question-circle",
-        command: () => router.push("/quizzes"),
+        command: navigate("/quizzes"),
       },
       {
         label: "Topics",
         icon: "pi pi-th-large",
-        command: () => router.push("/topics"),
+        command: navigate("/topics"),
       },
       {
         label: "Admin",
         icon: "pi pi-cog",
-        command: () => router.push("/admin"),
+        command: navigate("/admin"),
         visible: authStore.isAdmin,
       },
     ];
   }
 });
+
+const logout = () => {
+  logOut();
+  navigate("/");
+};
 </script>
 
 <template>
-  <!-- Mobile Sidebar and Toggle (visible only on mobile) -->
+  <!-- Mobile Sidebar and Toggle -->
   <div class="block md:hidden mb-2">
     <div class="absolute top-4 right-4 z-50">
       <Button
