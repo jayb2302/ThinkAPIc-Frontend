@@ -26,7 +26,7 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="mb-4">
     <h2 class="text-2xl font-bold mb-6">📚 Your Topic Progress</h2>
 
     <div v-if="progressStore.logs.length === 0" class="text-gray-500">
