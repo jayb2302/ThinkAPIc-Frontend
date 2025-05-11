@@ -12,7 +12,7 @@ const authStore = useAuthStore();
       Prepare for your web development exams
     </p>
 
-    <div v-if="authStore.user">
+    <div v-if="authStore.user" class="mt-4">
       <ProgressLog />
       <Courses />
     </div>

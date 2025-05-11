@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useCourseStore } from "../../stores/courseStore";
 import { getUserById } from "../../services/userService";
 import type { User } from "../../types/User";
+import CourseCard from './CourseCard.vue';
 
 const courseStore = useCourseStore();
 const router = useRouter();
@@ -28,30 +29,15 @@ onMounted(async () => {
 <template>
   <h1 class="text-2xl font-bold mb-4">My Courses</h1>
   <div
-    class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 shadow rounded-md dark:bg-gray-800"
+    class="grid grid-cols-1 md:grid-cols-3 gap-4  shadow rounded-md dark:bg-gray-800"
   >
-    <Card
+    <CourseCard
       v-for="course in courseStore.courses"
       :key="course._id"
-      class="shadow-md cursor-pointer !hover:shadow-lg transition"
-      @click="goToCourse(course._id)"
-    >
-      <template #title>
-        <h1>
-          {{ course.title }}
-        </h1>
-      </template>
-      <template #content>
-        <p class="text-sm font-bold text-gray-600">
-          {{ teachers[course._id]?.username || "Unknown" }}
-        </p>
-        <p class="text-sm text-gray-500 italic">{{ course.semester }}</p>
-        <p class="pt-2">
-          {{ course.description.substring(0, 100)
-          }}{{ course.description.length > 100 ? "..." : "" }}
-        </p>
-      </template>
-    </Card>
+      :course="course"
+      :teacher="teachers[course._id]"
+      :onClick="goToCourse"
+    />
   </div>
 </template>
 

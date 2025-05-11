@@ -65,7 +65,9 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-
+.rb {
+  border: 1px solid red;
+}
 
 /* #app {
   max-width: 1480px;
