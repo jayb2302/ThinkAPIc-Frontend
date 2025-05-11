@@ -40,25 +40,24 @@ onMounted(async () => {
 <template>
   <div v-if="course" class="p-6 shadow rounded-md bg-gray-50 dark:bg-gray-800">
     <h1 class="text-2xl font-bold mb-4">{{ course.title }}</h1>
-    <span class="flex gap-2 text-sm">
-      <p class="mb-2">
+    <span class="flex gap-2 text-sm divide-y-1 md:divide-x-1 md:divide-y-0">
+      <p class="mb-2 pr-3">
         <strong><i class="pi pi-thumbtack"></i></strong>
         {{ formatDate(course.createdAt) }}
       </p>
-      |
-      <p class="mb-4">
+      <p class="mb-4 pl-2">
         <strong><i class="pi pi-history"></i></strong>
         {{ formatDate(course.updatedAt) }}
       </p>
     </span>
-    <span class="flex gap-2">
-      <p class="mb-2">
+    <span class="flex flex-col md:flex-row gap-2 divide-y-1 md:divide-x-1 md:divide-y-0">
+      <p class="mb-2 pr-3">
         <strong>Teacher:</strong>
         {{ teacher?.username || "Unknown" }}
       </p>
-      |
-      <p class="mb-2"><strong>Semester:</strong> {{ course.semester }}</p>
-      |
+      
+      <p class="mb-2 pr-3"><strong>Semester:</strong> {{ course.semester }}</p>
+      
       <p class="mb-2"><strong>Scope:</strong> {{ course.scope }}</p>
     </span>
     <p class="mb-2">{{ course.description }}</p>
@@ -89,7 +88,8 @@ onMounted(async () => {
       <!-- Competencies -->
       <AccordionPanel value="2">
         <AccordionHeader class="items-start">
-        <i class="pi pi-trophy"></i>Competencies</AccordionHeader>
+          <i class="pi pi-trophy"></i>Competencies</AccordionHeader
+        >
         <AccordionContent>
           <ul class="list-disc ml-6">
             <li v-for="(competency, i) in course.competencies" :key="i">
@@ -99,21 +99,18 @@ onMounted(async () => {
         </AccordionContent>
       </AccordionPanel>
     </Accordion>
-    <!-- DataView for Topics -->
-    <h2 class="text-xl font-semibold mb-2">
-      <i class="pi pi-th-large"></i> Topics
-    </h2>
-    
-    <div class="w-full flex flex-wrap gap-2">
-    <div v-for="topic in courseTopics"  :key="topic?._id" class="flex-1/3   ">
-      <TopicCard :topic="topic" class="" />
+
+    <div class=" my-6">
+      <!-- DataView for Topics -->
+      <h2 class="text-xl font-semibold mb-2">
+        <i class="pi pi-th-large"></i> Topics
+      </h2>
+      <div v-for="topic in courseTopics" :key="topic?._id" class=" ">
+        <TopicCard :topic="topic" class="" />
+      </div>
     </div>
-    </div>
-    
 
-
-
-    <h2 class="text-xl font-semibold mb-2">
+    <!-- <h2 class="text-xl font-semibold mb-2">
       <i class="pi pi-th-large"></i> Topics
     </h2>
     <ul>
@@ -124,6 +121,6 @@ onMounted(async () => {
           </span>
         </router-link>
       </li>
-    </ul>
+    </ul> -->
   </div>
 </template>

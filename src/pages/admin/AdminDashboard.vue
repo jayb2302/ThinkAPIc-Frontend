@@ -41,7 +41,7 @@ const goTo = (route: string) => {
 </script>
 
 <template>
-  <div class="p-4 dark:bg-gray-800 dark:text-gray-100 shadow rounded-md">
+  <div class="dark:bg-gray-800 dark:text-gray-100 shadow rounded-md">
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->
@@ -51,71 +51,83 @@ const goTo = (route: string) => {
 
     <!-- Dashboard Stats -->
     <div v-else>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Panel
-          header="Quizzes"
-          class="bg-blue-500 text-white rounded-md shadow-md"
+      <div class="overflow-x-auto mb-6">
+        <div
+          class="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2 text-md"
         >
-          <p class="text-3xl font-bold">{{ totalQuizzes }}</p>
-        </Panel>
+          <Panel
+            header="Courses"
+            class="min-w-[15rem] sm:min-w-0 bg-purple-500 font-bold text-white rounded-md shadow-md"
+            icon="pi pi-briefcase"
+          >
+            <p class="text-3xl text-center text-shadow-2 font-bold">
+              {{ totalCourses }}
+            </p>
+            <template #footer>
+              <Button
+                @click="goTo('/admin/courses')"
+                label="Manage Courses"
+                class="bg-purple-300 w-full p-2 rounded-md"
+              />
+            </template>
+          </Panel>
 
-        <Panel
-          header="Topics"
-          class="bg-green-500 text-white rounded-md shadow-md"
-        >
-          <p class="text-3xl font-bold">{{ totalTopics }}</p>
-        </Panel>
-
-        <Panel
-          header="Courses"
-          class="bg-purple-500 text-white rounded-md shadow-md"
-        >
-          <p class="text-3xl font-bold">{{ totalCourses }}</p>
-        </Panel>
-
-        <Panel
-          header="Users"
-          class="bg-yellow-500 text-white rounded-md shadow-md"
-        >
-          <p class="text-3xl font-bold">{{ totalUsers }}</p>
-        </Panel>
+          <Panel
+            header="Topics"
+            class="min-w-[15rem] sm:min-w-0 bg-green-500 text-white rounded-md shadow-md"
+          >
+            <p class="text-3xl font-bold text-center">{{ totalTopics }}</p>
+            <template #footer>
+              <Button
+                @click="goTo('/admin/topics')"
+                label="Manage Topics"
+                class="w-full bg-green-300 p-2 rounded-md"
+              />
+            </template>
+          </Panel>
+          <Panel
+            header="Quizzes"
+            class="min-w-[15rem] sm:min-w-0 bg-blue-500 text-white rounded-md shadow-md w-full"
+          >
+            <p class="text-3xl font-bold text-center">{{ totalQuizzes }}</p>
+            <template #footer>
+              <Button
+                @click="goTo('/admin/quizzes')"
+                label="Manage Quizzes"
+                class="bg-blue-300 p-2 rounded-md w-full"
+              />
+            </template>
+          </Panel>
+          <Panel
+            header="Students"
+            class="min-w-[15rem] sm:min-w-0 bg-yellow-500 text-white rounded-md shadow-md"
+          >
+            <p class="text-3xl font-bold text-center">{{ totalUsers }}</p>
+            <template #footer>
+            <Button
+              @click="goTo('/admin/users')"
+              label="Manage Students"
+              class="w-full bg-purple-300 p-2 rounded-md"
+            />
+            </template>
+          </Panel>
+        </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="grid grid-cols-4 gap-4 mb-6">
-        <Button
-          @click="goTo('/admin/quizzes')"
-          label="Manage Quizzes"
-          icon="pi pi-question-circle"
-          class="bg-blue-300 p-2 rounded-md"
-        />
-        <Button
-          @click="goTo('/admin/topics')"
-          label="Manage Topics"
-          icon="pi pi-list"
-          class="bg-green-300 p-2 rounded-md"
-        />
-        <Button
-          @click="goTo('/admin/courses')"
-          label="Manage Courses"
-          icon="pi pi-briefcase"
-          class="bg-purple-300 p-2 rounded-md"
-        />
-        <Button
-          @click="goTo('/admin/users')"
-          label="Manage Users"
-          icon="pi pi-users"
-          class="bg-purple-300 p-2 rounded-md"
-        />
-      </div>
+      <div class="grid grid-cols-4 gap-4 mb-6"></div>
 
       <!-- Recent Quizzes -->
-      <div class="bg-gray-100 dark:bg-gray-700 shadow text-left p-4 rounded-md ">
+      <div class="bg-gray-100 dark:bg-gray-700 shadow text-left p-4 rounded-md">
         <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
-        <ul class=" divide-y divide-gray-300">
-          <li v-for="quiz in latestQuizzes" :key="quiz._id" class="mb-2 flex flex-col">
-            <strong> 📝 {{ quiz.question }} </strong> 
-            Topic: {{ quiz.topic.title }} 
+        <ul class="divide-y divide-gray-300">
+          <li
+            v-for="quiz in latestQuizzes"
+            :key="quiz._id"
+            class="mb-2 flex flex-col"
+          >
+            <strong> 📝 {{ quiz.question }} </strong>
+            Topic: {{ quiz.topic.title }}
           </li>
         </ul>
       </div>

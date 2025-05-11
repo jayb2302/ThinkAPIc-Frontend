@@ -17,10 +17,9 @@ const modalStore = useModalStore();
 const authStore = useAuthStore();
 const { isAuthenticated, username, role, user, token } = storeToRefs(authStore);
 const { fetchCurrentUser, logOut } = authStore;
-const courseStore = useCourseStore ();
+const courseStore = useCourseStore();
 
 const showSidebar = ref(false);
-
 
 defineEmits(["open-login"]);
 
@@ -126,19 +125,33 @@ const logout = () => {
 <template>
   <!-- Mobile Sidebar and Toggle -->
   <div class="block md:hidden mb-2">
-    <div class="absolute top-4 right-4 z-50">
-      <Button
-        icon="pi pi-bars"
-        @click="showSidebar = true"
-        aria-label="Open Menu"
-        class="p-button-rounded p-button-text"
-      />
+    <div class="flex absolute top-0 left-0 bg-gradient-to-b from-gray-400 to-gray-50 justify-between w-full z-50 p-2">
+      <div class="mobile-navigation flex items-center gap-2">
+        <img
+          src="/ExplodingHead.svg"
+          alt="Logo"
+          class="w-10 h-10 rounded-full shadow-md"
+        />
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+          ThinkAPIc
+        </h1>
+      </div>
+        <Button
+          icon="pi pi-bars"
+          @click="showSidebar = true"
+          aria-label="Open Menu"
+          class="p-button-rounded p-button-text"
+        />
     </div>
-    <Drawer v-model:visible="showSidebar" position="right" modal style="width: 25rem;">
+    <Drawer
+      v-model:visible="showSidebar"
+      position="right"
+      modal
+      style="width: 25rem"
+    >
       <template #header>
         <div class="flex justify-between items-center w-full">
           <span class="text-lg font-semibold">Menu</span>
-        
         </div>
       </template>
       <div class="space-y-4 flex flex-col items-start">

@@ -58,6 +58,7 @@ const toggleForm = () => {
       :visible="props.visible"
       @update:visible="(value) => emit('update:visible', value)"
       modal
+      class="w-full md:w-auto "
       :pt="{
         root: { class: '!border-0 !bg-transparent' },
         mask: { class: 'backdrop-blur-sm' },
@@ -66,8 +67,14 @@ const toggleForm = () => {
       <template #container="{ closeCallback }">
         <form
           @submit.prevent="handleLogin"
-          class="flex flex-col px-8 py-8 gap-6 rounded-2xl"
-          style="background-image: radial-gradient(circle at left top, var(--p-primary-400), var(--p-primary-700));"
+          class="flex flex-col px-4 md:px-8 py-8 gap-6 rounded-2xl"
+          style="
+            background-image: radial-gradient(
+              circle at left top,
+              var(--p-primary-300),
+              var(--p-primary-400)
+            );
+          "
         >
           <img
             src="/ExplodingHead.svg"
@@ -82,10 +89,11 @@ const toggleForm = () => {
                 id="username"
                 v-model="email"
                 type="email"
-                class="!bg-white/20 !border-0 !text-slate-300 w-80"
+                class="!bg-white/20 !border-0 !text-gray-500"
                 required
+                fluid
               />
-              <label for="username" class="font-semibold">Email</label>
+              <label for="username" class="font-semibold ">Email</label>
             </FloatLabel>
           </div>
 
@@ -95,14 +103,16 @@ const toggleForm = () => {
               <Password
                 id="password"
                 v-model="password"
-                inputClass="!bg-white/20 !border-0 !text-slate-0 w-80"
+                inputClass="!bg-white/20 !border-0 !text-gray-500 "
                 type="text"
                 :feedback="false"
                 toggleMask
                 required
                 fluid
               />
-              <label for="password" class="text-primary-50 font-semibold">Password</label>
+              <label for="password" class="text-primary-100 font-semibold"
+                >Password</label
+              >
             </FloatLabel>
           </div>
 
@@ -112,14 +122,18 @@ const toggleForm = () => {
               <Password
                 id="confirm-password"
                 v-model="confirmPassword"
-                inputClass="!bg-white/20 !border-0 !text-slate-0 w-80"
+                inputClass="!bg-white/20 !border-0 !text-slate-0 "
                 type="text"
                 :feedback="false"
                 toggleMask
                 required
                 fluid
               />
-              <label for="confirm-password" class="text-primary-50 font-semibold">Confirm Password</label>
+              <label
+                for="confirm-password"
+                class="text-primary-50 font-semibold"
+                >Confirm Password</label
+              >
             </FloatLabel>
           </div>
 
@@ -130,8 +144,9 @@ const toggleForm = () => {
                 id="name"
                 v-model="username"
                 type="text"
-                class="!bg-white/20 !border-0 !text-slate-300 w-80"
+                class="!bg-white/20 !border-0 !text-slate-300 "
                 required
+                fluid
               />
               <label for="name" class="font-semibold">Name</label>
             </FloatLabel>
@@ -147,32 +162,32 @@ const toggleForm = () => {
               label="Cancel"
               @click="closeCallback"
               text
-              class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
+              class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50"
             />
             <Button
               v-if="!isRegistering"
               label="Sign-In"
               type="submit"
               text
-              class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
+              class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-green-600/30 hover:!bg-green-700/10 hover:!text-gray-50"
             />
             <Button
               v-if="isRegistering"
               label="Register"
               @click="handleRegister"
               text
-              class="!p-2 w-full !text-slate-300 !border !border-white/30 hover:!bg-white/10"
+              class="!p-2 w-full !text-gray-600 !border !border-green-700/30 hover:!bg-green-700/10 hover:!text-gray-50"
             />
           </div>
 
           <div class="text-center mt-2">
             <span v-if="!isRegistering">
               Don't have an account?
-              <a href="#" @click="toggleForm" class="text-blue-500">Register</a>
+              <a href="#" @click="toggleForm" class="text-slate-900">Register</a>
             </span>
             <span v-if="isRegistering">
               Already have an account?
-              <a href="#" @click="toggleForm" class="text-blue-500">Login</a>
+              <a href="#" @click="toggleForm" class="text-slate-900">Login</a>
             </span>
           </div>
         </form>
