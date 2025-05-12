@@ -7,12 +7,14 @@ import { computed, onMounted, watchEffect, ref } from "vue";
 import type { MenuItem } from "primevue/menuitem";
 import { storeToRefs } from "pinia";
 import { useModalStore } from "../../stores/modalStore";
+import { useKeyboardShortcuts } from "../../utils/useKeyboardShorts";
 
 const router = useRouter();
 const props = defineProps<{
   type: "default" | "admin";
 }>();
 
+// Keyboard shortcuts
 const modalStore = useModalStore();
 const authStore = useAuthStore();
 const { isAuthenticated, username, role, user, token } = storeToRefs(authStore);
@@ -51,6 +53,14 @@ const navigate = (path: string) => async () => {
   showSidebar.value = false;
 };
 
+// Register keyboard shortcuts after navigate is defined
+useKeyboardShortcuts([
+  { combo: '⌃+H', callback: navigate('/') },
+  { combo: '⌃+Q', callback: navigate(props.type === 'admin' ? '/admin/quizzes' : '/quizzes') },
+  { combo: '⌃+T', callback: navigate('/topics') },
+  { combo: '⌃+A', callback: navigate('/admin') },
+]);
+
 const items = computed<MenuItem[]>(() => {
   if (props.type === "admin") {
     return [
@@ -84,7 +94,7 @@ const items = computed<MenuItem[]>(() => {
     ];
   } else {
     return [
-      { label: "Home", icon: "pi pi-home", command: navigate("/") },
+      { label: "Home", icon: "pi pi-home", command: navigate("/"), shortcut: "⌃+H" },
       {
         label: "Courses",
         icon: "pi pi-book",
@@ -98,17 +108,20 @@ const items = computed<MenuItem[]>(() => {
       },
       {
         label: "Quizzes",
+        shortcut: "⌃+Q",
         icon: "pi pi-question-circle",
         command: navigate("/quizzes"),
       },
       {
         label: "Topics",
         icon: "pi pi-th-large",
+        shortcut: "⌃+T",
         command: navigate("/topics"),
       },
       {
         label: "Admin",
         icon: "pi pi-cog",
+        shortcut: "⌃+A",
         command: navigate("/admin"),
         visible: authStore.isAdmin,
       },
@@ -239,6 +252,11 @@ const logout = () => {
             v-if="item.items"
             class="pi pi-angle-down text-primary ml-auto"
           />
+          <span
+            v-if="item.shortcut"
+            class="text-xs text-gray-400 shadow-sm p-1 rounded-md border-gray-300 ml-auto"
+            >{{ item.shortcut }}</span
+          >
         </a>
       </template>
     </PanelMenu>
