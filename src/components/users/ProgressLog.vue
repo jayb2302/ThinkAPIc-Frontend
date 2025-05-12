@@ -36,14 +36,14 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
       No quiz attempts yet.
     </div>
 
-    <div v-else class="overflow-x-auto mb-6">
+    <div v-else class="overflow-x-auto mb-6 ">
       <div
-        class="flex sm:grid sm:grid-rows-1 md:grid-cols-3 lg:grid-cols-4 gap-4 min-w-[768px]"
+        class="flex sm:grid sm:grid-rows-1 md:grid-cols-3 lg:grid-cols-2 gap-4"
       >
         <Card
           v-for="topic in completedTopics"
           :key="topic.topicId"
-          class="shadow-md min-w-[18rem]"
+          class="shadow-md min-w-[20rem] "
         >
           <template #title>
 
