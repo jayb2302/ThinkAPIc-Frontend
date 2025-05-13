@@ -172,7 +172,6 @@ export const useCourseStore = defineStore("courses", () => {
       isEditing,
       selectedCourse.value
     );
-    successMessage.value = "✅ Course submitted successfully!";
     return response;
   };
 

@@ -41,7 +41,7 @@ const goTo = (route: string) => {
 </script>
 
 <template>
-  <div class="dark:bg-gray-800 dark:text-gray-100 shadow rounded-md">
+  <div class="dark:bg-gray-800 dark:text-gray-100 w-full p-2 shadow rounded-md">
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->

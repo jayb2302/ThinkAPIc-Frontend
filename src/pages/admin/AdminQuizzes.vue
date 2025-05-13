@@ -3,7 +3,7 @@ import ManageQuizzes from "@/components/admin/ManageQuizzes.vue";
 </script>
 
 <template>
-  <div class="p-2">
+  <div class="w-full">
     <ManageQuizzes />
   </div>
 </template>

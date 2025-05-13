@@ -16,7 +16,7 @@ const api = axios.create({
   withCredentials: true
 });
 
-// ✅ Automatically attach token to requests
+// Automatically attach token to requests
 api.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
@@ -27,7 +27,7 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// ✅ Handle API errors globally
+// Handle API errors globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -35,11 +35,16 @@ api.interceptors.response.use(
       console.error('API Error:', error.response.status, error.response.data);
 
       const isLoginRequest = error.config?.url?.includes('/auth/login');
+      const isJwtExpired = error.response.status === 401 && error.response.data.message === 'jwt expired';
 
       if (error.response.status === 401 && !isLoginRequest) {
         const authStore = useAuthStore();
         authStore.logOut();
         window.location.href = '/';
+        if (isJwtExpired) {
+          const event = new CustomEvent('token-expired');
+          window.dispatchEvent(event);
+        }
       }
     } else {
       console.error('Network/Server Error:', error);

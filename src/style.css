@@ -1,6 +1,5 @@
 @import "tailwindcss";
-@import 'primeicons/primeicons.css';
-
+@import "primeicons/primeicons.css";
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -16,14 +15,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 .p-button-danger {
-  background-color: #b91c1c !important;
-  border-color: #9f524c !important;
+  border-color: #b91c1c !important;
+  background-color: #712525 !important;
+  
 }
 .p-button-info {
   background-color: #065985 !important;
   border-color: #0e7490 !important;
 }
-
 
 a {
   font-weight: 500;

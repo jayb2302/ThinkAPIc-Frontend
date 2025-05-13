@@ -19,8 +19,13 @@ const courseStore = useCourseStore();
 const topicStore = useTopicStore();
 
 const { selectedCourse, showForm } = storeToRefs(courseStore);
-const { closeForm, handleCourseUpdated, setSelectedCourseId, editCourse, resetCourseDraft} = courseStore;
-
+const {
+  closeForm,
+  handleCourseUpdated,
+  setSelectedCourseId,
+  editCourse,
+  resetCourseDraft,
+} = courseStore;
 
 const { handleTopicCreated } = topicStore;
 
@@ -116,7 +121,6 @@ const deleteCourse = async (event: MouseEvent, course: Course) => {
 const closeTopicForm = () => {
   showTopicForm.value = false;
 };
-
 </script>
 
 <template>
@@ -149,7 +153,7 @@ const closeTopicForm = () => {
       @close="closeTopicForm"
     />
     <div class="rounded-md shadow border border-gray-200">
-      <DataTable :value="courseStore.courses" tableStyle="">
+      <DataTable :value="courseStore.courses" paginator :rows="6" tableStyle="">
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Courses</h2>
@@ -188,7 +192,7 @@ const closeTopicForm = () => {
         </Column>
 
         <!-- Actions -->
-        <Column header="Actions" class="space-x-2">
+        <Column header="Actions" class="space-x-2 ">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -210,8 +214,14 @@ const closeTopicForm = () => {
     <ConfirmPopup />
     <Popover ref="topicPopoverRef">
       <div v-if="selectedCourseTopics" class="p-2 w-72 max-h-48 overflow-auto">
-        <ul class="text-sm list-disc px-4 py-2 text-gray-700 dark:text-gray-100">
-          <li v-for="topic in selectedCourseTopics" class="pl-2" :key="topic._id">
+        <ul
+          class="text-sm list-disc px-4 py-2 text-gray-700 dark:text-gray-100"
+        >
+          <li
+            v-for="topic in selectedCourseTopics"
+            class="pl-2"
+            :key="topic._id"
+          >
             {{ topic.title || "Unknown Topic" }}
           </li>
         </ul>

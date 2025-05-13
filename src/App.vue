@@ -1,15 +1,40 @@
 <script setup lang="ts">
 // import Home from '@/pages/Home.vue'
 // import QuizList from '@/components/quizzes/QuizList.vue'
-import { onMounted } from 'vue';
+import { onMounted, onBeforeUnmount } from 'vue';
+import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from './stores/authStore';
+import { useTopicStore } from './stores/topicStore';
+
+const toast = useToast();
 
 const authStore = useAuthStore();
+const topicStore = useTopicStore();
 
-onMounted(() => {
+onMounted(async() => {
   if (localStorage.getItem('token') && !authStore.isAuthenticated) {
     authStore.fetchCurrentUser();
   }
+  if (!topicStore.topicsLoaded) {
+    await topicStore.fetchTopics();
+  }
+});
+
+const handleTokenExpired = () => {
+  toast.add({
+    severity: 'warn',
+    summary: 'Session Expired',
+    detail: 'You were logged out because your session expired.',
+    life: 4000
+  });
+};
+
+onMounted(() => {
+  window.addEventListener('token-expired', handleTokenExpired);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('token-expired', handleTokenExpired);
 });
 </script>
 

@@ -6,6 +6,7 @@ import { useTopicStore } from "../../stores/topicStore";
 import { getAdminUsers } from "../../services/userService";
 import type { Course } from "../../types/Course";
 import type { AdminUser } from "../../types/User";
+import { useToast } from "primevue/usetoast";
 
 const courseStore = useCourseStore();
 const topicStore = useTopicStore();
@@ -13,8 +14,9 @@ const topicStore = useTopicStore();
 const { draftCourse, successMessage, isEditing, showTopicForm } =
   storeToRefs(courseStore);
 const { resetCourseDraft, submitDraftCourse } = courseStore;
-
 const { topics } = storeToRefs(topicStore);
+
+const toast = useToast();
 
 // Emits and props
 const emit = defineEmits([
@@ -59,6 +61,26 @@ const formSections = [
   },
 ];
 
+// Helper functions for toggling editing state
+const editingIndices = ref<Record<string, number | null>>({
+  "Learning Objectives": null,
+  Skills: null,
+  Competencies: null,
+});
+
+const toggleEditingKeyPoint = (sectionLabel: string, index: number) => {
+  editingIndices.value[sectionLabel] =
+    editingIndices.value[sectionLabel] === index ? null : index;
+};
+
+const getButtonState = (sectionLabel: string, index: number) => {
+  const isEditing = editingIndices.value[sectionLabel] === index;
+  return {
+    severity: isEditing ? "success" : "info",
+    icon: isEditing ? "pi pi-check" : "pi pi-pencil",
+  };
+};
+
 // Fetch topics and admin users on mount
 onMounted(async () => {
   await topicStore.fetchTopics();
@@ -100,7 +122,7 @@ watch(
   }
 );
 
-// **Helper to Add Items (Avoid Repetition)**
+// Helper to Add Items
 const addItem = (list: Ref<string[]>, newItem: Ref<string>) => {
   if (newItem.value.trim()) {
     list.value.push(newItem.value.trim());
@@ -108,7 +130,7 @@ const addItem = (list: Ref<string[]>, newItem: Ref<string>) => {
   }
 };
 
-// **Helper to Remove Items**
+// Helper to Remove Items
 const removeItem = (list: Ref<string[]>, index: number) => {
   list.value.splice(index, 1);
 };
@@ -121,7 +143,13 @@ const handleSubmit = async () => {
     emit("successMessage", successMessage.value);
     emit("newCourseId", response._id);
 
-    // Reset the form
+    toast.add({
+      severity: "success",
+      summary: isEditing.value ? "Course Updated" : "Course Added",
+      detail: successMessage.value || "Saved successfully",
+      life: 3000,
+    });
+
     resetCourseDraft();
 
     nextTick(() => {
@@ -133,6 +161,12 @@ const handleSubmit = async () => {
     }
   } catch (err) {
     console.error("❌ Failed to submit course:", err);
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "Failed to save course.",
+      life: 3000,
+    });
   }
 };
 
@@ -167,7 +201,7 @@ const closeForm = () => {
         "
       >
         <h1 class="text-3xl font-bold mb-4">
-          <i class="pi pi-thumbtack"> </i>
+          <i class="pi pi-pencil"> </i>
           {{ isEditing ? "Edit Course" : "Add New Course" }}
         </h1>
 
@@ -238,7 +272,7 @@ const closeForm = () => {
         <div v-if="isEditing">
           <label class="block mb-2 font-bold">Topics for this course:</label>
           <ul
-            class="mb-2 shadow p-2 bg-gray-50 divide-gray-300 divide-y rounded"
+            class="mb-2 shadow p-2 h-50 overflow-auto bg-gray-50 divide-gray-300 divide-y rounded"
           >
             <li
               v-for="(topicId, index) in draftCourse.topics"
@@ -271,26 +305,44 @@ const closeForm = () => {
         <!-- Reusable Inputs for Learning Objectives, Skills, and Competencies -->
         <div class v-for="section in formSections" :key="section.label">
           <label class="block font-bold mb-4">{{ section.label }}</label>
-
           <div
-            v-for="(item, index) in section.list().value"
-            :key="index"
-            class="bg-gray-100 flex mb-2 shadow p-2 rounded-md"
+            class="mb-2 shadow p-2 bg-gray-50 divide-gray-300 divide-y rounded h-50 overflow-auto"
           >
-            <div class="overflow-auto w-full shadow flex items-center scroll-smooth rounded-md mb-2 p-2">
-              <span class="flex-grow capitalize font-bold w-full">{{
-                item
-              }}</span>
+            <div
+              v-for="(item, index) in section.list().value"
+              :key="index"
+              class="bg-gray-100 flex mb-2 shadow rounded-md"
+            >
+              <div
+                class="overflow-auto w-full shadow flex items-center scroll-smooth rounded-md p-2"
+              >
+                <template v-if="editingIndices[section.label] === index">
+                  <InputText
+                    v-model="section.list().value[index]"
+                    class="flex-grow p-inputtext-sm mr-2"
+                  />
+                </template>
+                <template v-else>
+                  <span class="flex-grow capitalize font-bold w-full">{{
+                    item
+                  }}</span>
+                </template>
 
-              <Button
-                type="button"
-                icon="pi pi-times"
-                severity="danger"
-                @click="removeItem(section.list(), index)"
-              />
+                <Button
+                  type="button"
+                  @click="toggleEditingKeyPoint(section.label, index)"
+                  :severity="getButtonState(section.label, index).severity"
+                  :icon="getButtonState(section.label, index).icon"
+                />
+                <Button
+                  type="button"
+                  icon="pi pi-times"
+                  severity="danger"
+                  @click="removeItem(section.list(), index)"
+                />
+              </div>
             </div>
           </div>
-
           <div class="form-section flex gap-2">
             <FloatLabel variant="on" class="flex-grow">
               <InputText
@@ -325,7 +377,7 @@ const closeForm = () => {
             class="!p-2 w-full !text-gray-600 !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50"
           />
           <Button
-            label="Submit"
+            :label="isEditing ? 'Update' : 'Submit'"
             icon="pi pi-check"
             @click="handleSubmit"
             text
@@ -335,4 +387,5 @@ const closeForm = () => {
       </div>
     </template>
   </Dialog>
+  <Toast />
 </template>

@@ -3,7 +3,7 @@ import ManageCourses from "@/components/admin/ManageCourses.vue";
 </script>
 
 <template>
-  <div class="p-2">
+  <div class="w-full">
     <ManageCourses />
   </div>
 </template>
