@@ -9,11 +9,12 @@ const { showLoginModal } = storeToRefs(modalStore);
 </script>
 
 <template>
-  <div class="flex flex-row-reverse h-svh bg-gray-50 overflow-auto">
+  <div
+    class="flex flex-col md:flex-row-reverse h-svh w-full bg-gray-50 overflow-auto"
+  >
     <!-- Sidebar NavigationMenu fixed only on md+ screens -->
-    <div class="md:block fixed top-0 left-0 h-full w-full ">
-      <NavigationMenu type="default" @open-login="showLoginModal = true" />
-    </div>
+
+    <NavigationMenu type="default" @open-login="showLoginModal = true" />
 
     <main class="w-full flex mt-14 md:mt-0 overflow-auto md:pl-80">
       <router-view />

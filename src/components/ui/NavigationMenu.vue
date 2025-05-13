@@ -155,13 +155,14 @@ const logout = () => {
 
 <template>
   <!-- Mobile Sidebar and Toggle -->
-  <div class="block md:hidden mb-2 w-full">
-    <div class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50 justify-between z-50 p-2">
+  <div class=" md:hidden w-full">
+    <div class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50  dark:from-gray-800 dark:to-gray-950 justify-between p-2">
       <div class="mobile-navigation flex items-center gap-2">
         <img
           src="/ExplodingHead.svg"
           alt="Logo"
-          class="w-10 h-10 rounded-full shadow-md"
+          @click="navigate('/')"
+          class="w-10 h-10 rounded-full shadow-md "
         />
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
           ThinkAPIc
@@ -179,6 +180,7 @@ const logout = () => {
       position="right"
       modal
       style="width: 25rem"
+      class="bg-gray-50 dark:!bg-gray-950"
     >
       <template #header>
         <div class="flex justify-between items-center w-full">
@@ -203,7 +205,7 @@ const logout = () => {
           :model="items"
           :expandedKeys="expandedKeys"
           @update:expandedKeys="val => expandedKeys = val"
-          class="bg-gray-200 dark:bg-gray-600 text-white rounded-md shadow-md w-full"
+          class="bg-gray-200 dark:bg-gray-950 text-white rounded-md shadow-md w-full"
         >
           <template #item="{ item }">
             <a
@@ -230,7 +232,7 @@ const logout = () => {
           v-if="isAuthenticated"
           @click="logout"
           icon="pi pi-sign-out"
-          class="p-2"
+          class="p-2 dark:!text-gray-200"
           label="Logout"
           fluid
           severity="danger"

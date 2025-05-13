@@ -35,16 +35,16 @@ onMounted(() => {
 
 <template>
   <div
-    class="p-6 shadow rounded-md bg-gray-50 dark:bg-gray-800 overflow-auto w-full"
+    class="p-4 bg-gray-50 dark:bg-gray-950 overflow-auto w-full"
     v-if="topic"
   >
     <h1 class="text-2xl font-bold mb-2">{{ topic.title }}</h1>
-    <span class="flex gap-2">
+    <span class="flex gap-2 dark:text-gray-300">
       <p class="mb-2"><strong>Week:</strong> {{ topic.week }}</p>
       |
       <div v-if="topic.course && typeof topic.course === 'object'">
         <strong>Course: </strong>
-        <router-link :to="`/courses/${topic.course._id}`" class="text-sky-600">
+        <router-link :to="`/courses/${topic.course._id}`" class="text-gray-100">
           <span class="hover:font-bold">
             {{ topic.course.title || "Untitled Course" }}
           </span>
@@ -53,24 +53,26 @@ onMounted(() => {
     </span>
     <p class="mb-4">{{ topic.summary || "No summary available." }}</p>
 
-    <div v-if="topic.key_points?.length" class="mb-4 shadow p-4 rounded">
-      <h2 class="font-semibold mb-1">Key Points:</h2>
+    <div v-if="topic.key_points?.length" class="mb-4 shadow-md dark:bg-gray-900 p-4 rounded">
+      <h2 class="font-semibold mb-2">Key Points:</h2>
       <ul class="list-inside mb-4">
         <li v-for="(point, index) in topic.key_points" :key="index">
-          - {{ point }}
+          <i class="pi pi-ethereum text-gray-600">
+          </i> 
+          {{ point }}
         </li>
       </ul>
     </div>
 
-    <div v-if="topic.resources?.length" class="mb-4 shadow p-4 rounded">
-      <h2 class="font-semibold mb-1">Resources:</h2>
+    <div v-if="topic.resources?.length" class="mb-4 shadow p-4 dark:bg-gray-900 rounded">
+      <h2 class="font-semibold mb-2">Resources:</h2>
       <ul class="list-inside">
         <li v-for="resource in topic.resources" :key="resource._id">
-          -
+          <i class="pi pi-link text-gray-600 dark:text-gray-100 pr-2"></i>
           <a
             :href="resource.link"
             target="_blank"
-            class="text-sky-600 hover:underline"
+            class="text-gray-600 dark:text-gray-100 hover:underline"
           >
             {{ resource.title }}
           </a>

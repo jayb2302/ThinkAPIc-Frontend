@@ -26,9 +26,12 @@ onMounted(() => {
   loadCourse();
 });
 
-watch(() => route.params.id, () => {
-  loadCourse();
-});
+watch(
+  () => route.params.id,
+  () => {
+    loadCourse();
+  }
+);
 
 async function loadCourse() {
   const id = route.params.id as string;
@@ -46,7 +49,7 @@ async function loadCourse() {
 </script>
 
 <template>
-  <div v-if="course" class="p-6 shadow rounded-md bg-gray-50 dark:bg-gray-800">
+  <div v-if="course" class="p-4 bg-gray-50 dark:bg-gray-800">
     <h1 class="text-2xl font-bold mb-4">{{ course.title }}</h1>
     <span class="flex gap-2 text-sm divide-y-1 md:divide-x-1 md:divide-y-0">
       <p class="mb-2 pr-3">
@@ -58,14 +61,16 @@ async function loadCourse() {
         {{ formatDate(course.updatedAt) }}
       </p>
     </span>
-    <span class="flex flex-col md:flex-row gap-2 divide-y-1 md:divide-x-1 md:divide-y-0">
+    <span
+      class="flex flex-col md:flex-row gap-2 divide-y-1 md:divide-x-1 md:divide-y-0"
+    >
       <p class="mb-2 pr-3">
         <strong>Teacher:</strong>
         {{ teacher?.username || "Unknown" }}
       </p>
-      
+
       <p class="mb-2 pr-3"><strong>Semester:</strong> {{ course.semester }}</p>
-      
+
       <p class="mb-2"><strong>Scope:</strong> {{ course.scope }}</p>
     </span>
     <p class="mb-2">{{ course.description }}</p>
@@ -108,7 +113,7 @@ async function loadCourse() {
       </AccordionPanel>
     </Accordion>
 
-    <div class=" my-6">
+    <div class="my-6">
       <!-- DataView for Topics -->
       <h2 class="text-xl font-semibold mb-2">
         <i class="pi pi-th-large"></i> Topics
@@ -117,18 +122,5 @@ async function loadCourse() {
         <TopicCard :topic="topic" class="" />
       </div>
     </div>
-
-    <!-- <h2 class="text-xl font-semibold mb-2">
-      <i class="pi pi-th-large"></i> Topics
-    </h2>
-    <ul>
-      <li v-for="topic in courseTopics" :key="topic?._id">
-        <router-link :to="`/topics/${topic._id}`" class="text-slate-500">
-          <span class="hover:font-bold">
-            {{ topic.title || "Untitled Topic" }}
-          </span>
-        </router-link>
-      </li>
-    </ul> -->
   </div>
 </template>
