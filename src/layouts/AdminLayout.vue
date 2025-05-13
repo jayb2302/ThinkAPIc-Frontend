@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import MessageToast from "../components/ui/MessageToast.vue";
 import NavigationMenu from "../components/ui/NavigationMenu.vue";
 
 </script>
@@ -11,7 +10,6 @@ import NavigationMenu from "../components/ui/NavigationMenu.vue";
     </div>
     <!-- Main Content Area -->
     <main class="w-full flex mt-14 md:mt-0 overflow-auto md:pl-80">
-      <MessageToast />
       <router-view />
     </main>
   </div>
