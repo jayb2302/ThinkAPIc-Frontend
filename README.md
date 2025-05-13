@@ -15,9 +15,13 @@ This is the **frontend** for ThinkAPIc, a platform designed to help web developm
 - **Frontend:** Vue 3 + Vite
 - **State Management:** Pinia
 - **Routing:** Vue Router
-- **UI Framework:** PrimeVue (or Vuetify, if preferred)
+- **UI Framework:** PrimeVue 
 - **API Requests:** Axios
-<!-- 
+
+## 🔗 API
+
+This frontend connects to the [ThinkAPIc REST API](https://github.com/jayb2302/ThinkAPIc).
+
 ## 🚀 Getting Started
 ### 1. Clone the Repository
 ```sh
@@ -36,36 +40,65 @@ Create a `.env` file and set the API URL:
 VITE_API_BASE_URL=http://localhost:4000/api
 ```
 
+This variable is used to configure where the frontend sends requests. During development, you can use:
+
+```
+VITE_API_BASE_URL=http://localhost:4000/api
+```
+
+
 ### 4. Run the Development Server
 ```sh
 npm run dev
 ```
 
+### 🧩 PrimeVue Setup
+
+PrimeVue is used as the UI framework. You need to install the core library and the default theme:
+
+```bash
+npm install primevue primeicons
+```
+
+Also import the theme and base styles in `main.ts`:
+
+```ts
+import 'primevue/resources/themes/lara-light-teal/theme.css'; // or another theme
+import 'primevue/resources/primevue.min.css';
+import 'primeicons/primeicons.css';
+```
+
+And register PrimeVue components globally:
+
+```ts
+import PrimeVue from 'primevue/config';
+app.use(PrimeVue);
+```
+
+> ✅ Note: Some components like `Toast`, `Dialog`, and `ConfirmPopup` require additional setup in the component tree.
+
 ## 📁 Project Structure
 ```
+/public                # Public assets
 /src
-  /assets        # Static assets
-  /components    # Reusable UI components
-  /layouts       # Layout components (Admin, Default)
-  /pages         # Main views (Home, Quizzes, Topics, Admin)
-  /router        # Vue Router configuration
-  /stores        # Pinia state management
-  /services      # API services (axios calls)
-  /utils         # Utility functions
+  /assets              # Static assets
+  /components
+    /admin             # Admin panel components (Course, Quiz, User, Topic forms)
+    /courses           # Course-related UI (cards, lists)
+    /quizzes           # Quiz components
+    /topics            # Topic UI components (cards, list, challenges)
+    /ui                # Shared UI (login, toast, navigation)
+    /users             # User-specific views (e.g., progress log)
+  /helpers             # Utility functions (e.g., topic helpers)
+  /layouts             # Layout wrappers (Admin, Default)
+  /pages
+    /admin             # Admin view pages (dashboard, management)
+    /                  # Main views (Home, Courses, Topics, etc.)
+  /router              # Vue Router setup
+  /services            # Axios API services
+  /stores              # Pinia state stores (auth, quiz, topic, etc.)
+  /types               # TypeScript interfaces and types
+  /utils               # Global composables and utility functions
 ```
 
-## 📦 Deployment
-To build for production:
-```sh
-npm run build
-```
-Deploy the `dist/` folder to a hosting provider like **Vercel**, **Netlify**, or **GitHub Pages**.
-
-## 🛠️ Future Enhancements
-- ✅ Role-based authentication for admins.
-- 📊 User analytics dashboard.
-- 🔔 Notifications for quiz submissions.
-
-## 📄 License
-MIT License - Free to use and modify. -->
 
