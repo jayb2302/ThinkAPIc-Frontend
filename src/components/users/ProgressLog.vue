@@ -29,14 +29,14 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
 </script>
 
 <template>
-  <div class="">
-    <h2 class="text-2xl font-bold">Your Progress</h2>
+  <div class="dark:bg-gray-950 p-0 mt-4">
+    <h2 class="text-2xl font-bold mb-4">Progress</h2>
 
     <div v-if="progressStore.logs.length === 0" class="text-gray-500">
       No quiz attempts yet.
     </div>
 
-    <div v-else class="overflow-x-auto mb-6 ">
+    <div v-else class="overflow-x-auto mb-6">
       <div
         class="flex sm:grid sm:grid-rows-1 md:grid-cols-3 lg:grid-cols-2 gap-4"
       >

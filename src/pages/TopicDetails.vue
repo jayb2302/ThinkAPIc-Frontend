@@ -35,7 +35,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="p-6 shadow rounded-md bg-gray-50 dark:bg-gray-800 overflow-auto"
+    class="p-6 shadow rounded-md bg-gray-50 dark:bg-gray-800 overflow-auto w-full"
     v-if="topic"
   >
     <h1 class="text-2xl font-bold mb-2">{{ topic.title }}</h1>

@@ -141,14 +141,13 @@ const retakeQuiz = () => {
     :visible="props.visible"
     modal
     :header="topicTitle"
-    :style="{ width: '50vw' }"
+
+    class="w-full md:w-1/3 "
     :dismissable-mask="true"
     :closable="true"
     @update:visible="closeDialog"
   >
-    <div class="p-4">
-      <h2 class="text-2xl mb-4">Quizzes</h2>
-
+    <div class="">
       <div v-if="quizzes.length === 0">No quizzes found for this topic.</div>
 
       <div v-else-if="!submitted">
@@ -158,7 +157,7 @@ const retakeQuiz = () => {
             <div
               v-for="option in currentQuiz.options"
               :key="option.order"
-              class="mb-2"
+              class=""
             >
               <RadioButton
                 :inputId="`${currentQuiz._id}-${option.order}`"
@@ -172,9 +171,10 @@ const retakeQuiz = () => {
             </div>
 
             <Button
-              class="mt-3"
+              class="mt-8"
               :label="isLastQuiz ? 'Submit All' : 'Next'"
               @click="isLastQuiz ? submitAll() : nextQuiz()"
+              fluid
             />
           </template>
         </Card>

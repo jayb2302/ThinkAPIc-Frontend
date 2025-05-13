@@ -25,6 +25,7 @@ import {
 export const useTopicStore = defineStore("topics", () => {
   // State and store setup
   const topics = ref<Topic[]>([]);
+  const topicsLoaded = ref<boolean>(false);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
 
@@ -36,6 +37,7 @@ export const useTopicStore = defineStore("topics", () => {
     loading.value = true;
     try {
       topics.value = await getTopics();
+      topicsLoaded.value = true;
     } catch (err) {
       error.value = "Failed to load topics.";
     } finally {
@@ -198,5 +200,6 @@ export const useTopicStore = defineStore("topics", () => {
     getTopicTitleById,
     isTopicValid,
     handleTopicCreated,
+    topicsLoaded,
   };
 });

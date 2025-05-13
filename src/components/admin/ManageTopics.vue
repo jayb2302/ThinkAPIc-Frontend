@@ -96,7 +96,7 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-4 shadow rounded-md">
+  <div class="p-2 shadow rounded-md">
     
     <h2 class="text-2xl font-bold mb-4">Manage Topics</h2>
 
