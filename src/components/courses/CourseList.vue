@@ -29,17 +29,26 @@ onMounted(async () => {
 
 <template>
   <h1 class="text-2xl font-bold mb-4">My Courses</h1>
-  <div
-    class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950"
-  >
-    <CourseCard
-      v-for="course in courseStore.courses"
-      :key="course._id"
-      :course="course"
-      :teacher="teachers[course._id]"
-      :onClick="goToCourse"
-    />
-  </div>
+  <template v-if="courseStore.loading">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div v-for="n in 3" :key="n" class="p-4 border rounded shadow">
+        <Skeleton width="80%" height="1.5rem" class="mb-2" />
+        <Skeleton width="60%" height="1rem" class="mb-1" />
+        <Skeleton width="40%" height="1rem" />
+      </div>
+    </div>
+  </template>
+  <template v-else>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950">
+      <CourseCard
+        v-for="course in courseStore.courses"
+        :key="course._id"
+        :course="course"
+        :teacher="teachers[course._id]"
+        :onClick="goToCourse"
+      />
+    </div>
+  </template>
 </template>
 
 <style scoped>

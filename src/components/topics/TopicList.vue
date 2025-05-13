@@ -63,10 +63,10 @@ watch(topics, (newTopics) => {
   console.log("Updated topics:", newTopics);
 });
 
-onMounted(() => {
+onMounted(async () => {
   if (topics.length === 0) {
-    topicStore.fetchTopics();
-  }
+  await topicStore.fetchTopics();
+}
 });
 </script>
 
@@ -74,7 +74,12 @@ onMounted(() => {
   <div class="mt-4 text-gray-600 h-full">
     <h2 class="text-2xl font-bold text-gray-800 mb-4">Topics</h2>
 
-    <div v-if="loading" class="text-blue-500 mt-4">Loading topics...</div>
+    <template v-if="loading">
+      <Skeleton width="8rem" height="1.5rem" class="mb-2" />
+      <Skeleton width="100%" height="1.5rem" class="mb-4" />
+      <Skeleton width="60%" height="1rem" class="mb-2" />
+      <Skeleton width="40%" height="1rem" class="mb-4" />
+    </template>
     <div v-else-if="error" class="text-red-500 mt-4">{{ error }}</div>
 
     <div class="mb-4 flex items-center gap-4">
