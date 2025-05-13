@@ -22,6 +22,7 @@ const { fetchCurrentUser, logOut } = authStore;
 const courseStore = useCourseStore();
 
 const showSidebar = ref(false);
+const expandedKeys = ref<{ [key: string]: boolean }>({});
 
 defineEmits(["open-login"]);
 
@@ -48,6 +49,16 @@ watchEffect(async () => {
   }
 });
 
+watchEffect(() => {
+  const currentPath = router.currentRoute.value.path;
+  if (currentPath.startsWith('/courses/')) {
+    expandedKeys.value['Courses'] = true;
+  }
+  if (currentPath.startsWith('/topics/')) {
+    expandedKeys.value['Topics'] = true;
+  }
+});
+
 const navigate = (path: string) => async () => {
   await router.push(path);
   showSidebar.value = false;
@@ -64,7 +75,7 @@ useKeyboardShortcuts([
 const items = computed<MenuItem[]>(() => {
   if (props.type === "admin") {
     return [
-      { label: "Home", icon: "pi pi-home", command: navigate("/") },
+      { label: "Home", icon: "pi pi-home", shortcut: "⌃+H", command: navigate("/") },
       {
         label: "Dashboard",
         icon: "pi pi-th-large",
@@ -98,10 +109,23 @@ const items = computed<MenuItem[]>(() => {
       {
         label: "Courses",
         icon: "pi pi-book",
+        key: "Courses",
         items: courseStore.courses.map((course) => ({
           label: course.title,
+          key: `course-${course._id}`,
+          command: navigate(`/courses/${course._id}`),
+        })),
+      },
+      {
+        label: "Topics",
+        icon: "pi pi-th-large",
+        key: "Topics",
+        items: courseStore.courses.map((course) => ({
+          label: course.title,
+          key: `topics-course-${course._id}`,
           items: (course.topics || []).map((topicId) => ({
             label: topicStore.getTopicTitleById(topicId),
+            key: `topic-${topicId}`,
             command: navigate(`/topics/${topicId}`),
           })),
         })),
@@ -111,12 +135,6 @@ const items = computed<MenuItem[]>(() => {
         shortcut: "⌃+Q",
         icon: "pi pi-question-circle",
         command: navigate("/quizzes"),
-      },
-      {
-        label: "Topics",
-        icon: "pi pi-th-large",
-        shortcut: "⌃+T",
-        command: navigate("/topics"),
       },
       {
         label: "Admin",
@@ -137,8 +155,8 @@ const logout = () => {
 
 <template>
   <!-- Mobile Sidebar and Toggle -->
-  <div class="block md:hidden mb-2">
-    <div class="flex absolute top-0 left-0 bg-gradient-to-b from-gray-400 to-gray-50 justify-between w-full z-50 p-2">
+  <div class="block md:hidden mb-2 w-full">
+    <div class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50 justify-between z-50 p-2">
       <div class="mobile-navigation flex items-center gap-2">
         <img
           src="/ExplodingHead.svg"
@@ -183,6 +201,8 @@ const logout = () => {
         />
         <PanelMenu
           :model="items"
+          :expandedKeys="expandedKeys"
+          @update:expandedKeys="val => expandedKeys = val"
           class="bg-gray-200 dark:bg-gray-600 text-white rounded-md shadow-md w-full"
         >
           <template #item="{ item }">
@@ -221,7 +241,7 @@ const logout = () => {
 
   <!-- Desktop Sidebar -->
   <nav
-    class="bg-gray-100 dark:bg-gray-800 p-2 space-y-4 min-w-80 flex-col items-start rounded hidden md:flex"
+    class="bg-gray-100 dark:bg-gray-950 p-2 space-y-4 min-w-80 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
   >
     <div v-if="isAuthenticated" class="capitalize">
       <span class="pi pi-user pr-2"></span>
@@ -238,7 +258,9 @@ const logout = () => {
     />
     <PanelMenu
       :model="items"
-      class="bg-gray-200 dark:bg-gray-600 text-white rounded-md shadow-md w-full"
+      :expandedKeys="expandedKeys"
+      @update:expandedKeys="val => expandedKeys = val"
+      class="bg-gray-200 dark:bg-gray-900 text-white rounded-md shadow-md w-full"
     >
       <template #item="{ item }">
         <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">
@@ -264,7 +286,7 @@ const logout = () => {
       v-if="isAuthenticated"
       @click="logout"
       icon="pi pi-sign-out"
-      class="p-2"
+      class="p-2 "
       label="Logout"
       fluid
       severity="danger"
