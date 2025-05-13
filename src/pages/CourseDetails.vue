@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import { formatDate } from "../utils/formatDate";
 import { getCourseById } from "../services/courseService";
@@ -22,7 +22,15 @@ const courseTopics = computed(() => {
     .filter((t): t is Topic => !!t);
 });
 
-onMounted(async () => {
+onMounted(() => {
+  loadCourse();
+});
+
+watch(() => route.params.id, () => {
+  loadCourse();
+});
+
+async function loadCourse() {
   const id = route.params.id as string;
   const fetchedCourse = await getCourseById(id);
   course.value = fetchedCourse as Course & { topics: string[] };
@@ -34,7 +42,7 @@ onMounted(async () => {
       console.error("Could not load teacher info:", err);
     }
   }
-});
+}
 </script>
 
 <template>
