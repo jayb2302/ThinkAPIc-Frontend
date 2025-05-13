@@ -9,13 +9,17 @@ const { showLoginModal } = storeToRefs(modalStore);
 </script>
 
 <template>
-  <div class="flex flex-row-reverse w-full h-svh bg-gray-50 overflow-auto">
-    <!-- Handle open-login from NavigationMenu to control showLoginModal -->
-    <NavigationMenu type="default" @open-login="showLoginModal = true" />
-    <main class="w-full flex mt-14 md:mt-2">
+  <div class="flex flex-row-reverse h-svh bg-gray-50 overflow-auto">
+    <!-- Sidebar NavigationMenu fixed only on md+ screens -->
+    <div class="md:block fixed top-0 left-0 h-full w-full ">
+      <NavigationMenu type="default" @open-login="showLoginModal = true" />
+    </div>
+
+    <main class="w-full flex mt-14 md:mt-0 overflow-auto md:pl-80">
       <router-view />
     </main>
-    <!-- Pass showLoginModal to Login.vue to manage its visibility -->
+
+    <!-- Login Modal -->
     <Login v-model:visible="showLoginModal" key="login-modal" />
   </div>
 </template>

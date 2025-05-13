@@ -15,6 +15,7 @@ import { definePreset } from "@primeuix/themes";
 import Aura from "@primeuix/themes/aura";
 
 import ConfirmPopup from "primevue/confirmpopup";
+import DatePicker from "primevue/datepicker";
 import Toast from "primevue/toast";
 import Button from "primevue/button";
 import RadioButton from "primevue/radiobutton";
@@ -81,6 +82,7 @@ app.use(ConfirmationService);
 app.use(ToastService);
 
 app.component("ConfirmPopup", ConfirmPopup);
+app.component("DatePicker", DatePicker);
 app.component("Toast", Toast);
 app.component("Card", Card);
 app.component("Button", Button);
