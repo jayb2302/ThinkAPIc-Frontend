@@ -3,12 +3,18 @@
 // import QuizList from '@/components/quizzes/QuizList.vue'
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/authStore';
+import { useTopicStore } from './stores/topicStore';
+
 
 const authStore = useAuthStore();
+const topicStore = useTopicStore();
 
-onMounted(() => {
+onMounted(async() => {
   if (localStorage.getItem('token') && !authStore.isAuthenticated) {
     authStore.fetchCurrentUser();
+  }
+  if (!topicStore.topicsLoaded) {
+    await topicStore.fetchTopics();
   }
 });
 </script>
