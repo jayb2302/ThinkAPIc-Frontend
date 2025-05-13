@@ -116,7 +116,6 @@ const deleteCourse = async (event: MouseEvent, course: Course) => {
 const closeTopicForm = () => {
   showTopicForm.value = false;
 };
-
 </script>
 
 <template>

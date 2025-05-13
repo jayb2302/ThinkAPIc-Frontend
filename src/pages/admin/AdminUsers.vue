@@ -2,7 +2,7 @@
 import ManageUsers from '../../components/admin/ManageUsers.vue';
 </script>
 <template>
-  <div class="p-2">
+  <div class="w-full">
     <ManageUsers />
   </div>
 </template>

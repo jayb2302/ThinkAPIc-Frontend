@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+
 import { useCourseStore } from "../../stores/courseStore";
 import { getUserById } from "../../services/userService";
 import type { User } from "../../types/User";
@@ -29,7 +30,7 @@ onMounted(async () => {
 <template>
   <h1 class="text-2xl font-bold mb-4">My Courses</h1>
   <div
-    class="grid grid-cols-1 md:grid-cols-3 gap-4  shadow rounded-md dark:bg-gray-800"
+    class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950"
   >
     <CourseCard
       v-for="course in courseStore.courses"
