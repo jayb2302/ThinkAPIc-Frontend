@@ -14,6 +14,11 @@ import ToastService from "primevue/toastservice";
 import { definePreset } from "@primeuix/themes";
 import Aura from "@primeuix/themes/aura";
 
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
 import ConfirmPopup from "primevue/confirmpopup";
 import DatePicker from "primevue/datepicker";
 import Toast from "primevue/toast";
@@ -110,5 +115,10 @@ app.component("Accordion", Accordion);
 app.component("AccordionPanel", AccordionPanel);
 app.component("AccordionHeader", AccordionHeader);
 app.component("AccordionContent", AccordionContent);
+app.component("Tabs", Tabs);
+app.component("TabList", TabList);
+app.component("Tab", Tab);
+app.component("TabPanels", TabPanels);
+app.component("TabPanel", TabPanel);
 
 app.mount("#app");
