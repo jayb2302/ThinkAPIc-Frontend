@@ -6,6 +6,8 @@ import type { Quiz, QuizOption } from "../../types/Quiz";
 import Select from "primevue/select";
 import { useTopicStore } from "../../stores/topicStore";
 import type { Topic } from "../../types/Topic";
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 
 const quizStore = useQuizStore();
 const { fetchQuizzesByTopic } = quizStore;
@@ -58,16 +60,55 @@ const handleQuizUpdated = async () => {
 };
 
 // Delete quiz
-const deleteQuiz = async (quizId: string) => {
-  if (confirm("Are you sure you want to delete this quiz?")) {
-    await quizStore.deleteQuizById(quizId);
-    await quizStore.fetchQuizzes();
-    successMessage.value = "✅ Quiz deleted successfully!";
+const topicOptions = computed(() => {
+  const courseMap = new Map<string, { label: string; items: { label: string; value: string }[] }>();
 
-    setTimeout(() => {
-      successMessage.value = null;
-    }, 3000);
-  }
+  topicStore.topics.forEach((t: Topic) => {
+    const courseId = t.course?._id || "Unassigned";
+    const courseTitle = t.course?.title || "Unassigned";
+
+    if (!courseMap.has(courseId)) {
+      courseMap.set(courseId, { label: courseTitle, items: [] });
+    }
+
+    courseMap.get(courseId)?.items.push({
+      label: t.title,
+      value: t._id,
+    });
+  });
+
+  return Array.from(courseMap.values());
+});
+
+const confirm = useConfirm();
+const toast = useToast();
+
+const deleteQuiz = async (event: MouseEvent, quiz: Quiz) => {
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: `Are you sure you want to delete the quiz "${quiz.question}"?`,
+    icon: "pi pi-exclamation-triangle",
+    acceptLabel: "Yes",
+    rejectLabel: "No",
+    accept: async () => {
+      await quizStore.deleteQuizById(quiz._id);
+      await quizStore.fetchQuizzes();
+      toast.add({
+        severity: "success",
+        summary: "Deleted",
+        detail: "Quiz deleted successfully!",
+        life: 3000,
+      });
+    },
+    reject: () => {
+      toast.add({
+        severity: "info",
+        summary: "Cancelled",
+        detail: "Quiz deletion cancelled.",
+        life: 2500,
+      });
+    },
+  });
 };
 
 // Reset form state
@@ -84,21 +125,10 @@ watch(selectedTopic, (newTopicId) => {
   if (newTopicId) fetchByTopic(newTopicId);
   else quizStore.fetchQuizzes(); // fallback to all
 });
-
-const topicOptions = computed(() =>
-  topicStore.topics.map((t: Topic) => ({
-    label: t.title,
-    value: t._id,
-  }))
-);
 </script>
 
 <template>
-  <!-- ✅ Success Message -->
-  <div v-if="successMessage" class="bg-green-500 text-white p-3 rounded mb-4">
-    {{ successMessage }}
-  </div>
-  <div class="p-2 shadow rounded-md">
+  <div class="p-2 rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Quizzes</h2>
 
     <Button
@@ -110,13 +140,13 @@ const topicOptions = computed(() =>
 
     <!-- Quiz Form -->
     <ManageQuizForm
-      v-if="showForm"
+      v-model:visible="showForm"
       :quiz="selectedQuiz"
       @quiz-updated="handleQuizUpdated"
       @close="closeForm"
     />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">
-      <DataTable :value="quizList" tableStyle="">
+      <DataTable :value="quizList" paginator :rows="5" tableStyle="">
         <template #header>
           <div class="flex flex-wrap items-center justify-between gap-2 w-full">
             <span class="text-xl font-bold">Quizzes</span>
@@ -135,17 +165,17 @@ const topicOptions = computed(() =>
         <!-- Topic Column -->
         <Column>
           <template #header>
-            <div class="flex flex-col">
-              <Select
-                v-model="selectedTopic"
-                :options="topicOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Filter by Topic"
-                class="w-full"
-                clearable
-              />
-            </div>
+            <Select
+              v-model="selectedTopic"
+              :options="topicOptions"
+              optionGroupLabel="label"
+              optionGroupChildren="items"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Filter by Topic"
+              clearable
+              fluid
+            />
           </template>
           <template #body="slotProps">
             {{ slotProps.data.topic?.title || "No Topic" }}
@@ -153,7 +183,7 @@ const topicOptions = computed(() =>
         </Column>
 
         <!-- Actions Column -->
-        <Column header="Actions">
+        <Column header="Actions" class="space-x-2">
           <template #body="slotProps">
             <Button
               @click="editQuiz(slotProps.data)"
@@ -161,7 +191,7 @@ const topicOptions = computed(() =>
               icon="pi pi-pencil"
             />
             <Button
-              @click="deleteQuiz(slotProps.data._id)"
+              @click="(event) => deleteQuiz(event, slotProps.data)"
               severity="danger"
               icon="pi pi-trash"
             />
@@ -178,5 +208,7 @@ const topicOptions = computed(() =>
         </template>
       </DataTable>
     </div>
+    <ConfirmPopup />
+    <Toast />
   </div>
 </template>

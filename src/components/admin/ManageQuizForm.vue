@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
+import { useToast } from "primevue/usetoast";
 import draggable from "vuedraggable";
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../services/api";
@@ -7,10 +8,11 @@ import type { Quiz, QuizOption } from "../../types/Quiz";
 import type { Topic } from "../../types/Topic";
 
 const authStore = useAuthStore();
+const toast = useToast();
 const emit = defineEmits(["close", "quizUpdated"]);
 
 // Props for quiz editing
-const props = defineProps<{ quiz?: Quiz | null }>();
+const props = defineProps<{ quiz?: Quiz | null; visible: boolean }>();
 
 // Reactive form state
 const topics = ref<Topic[]>([]);
@@ -119,10 +121,20 @@ const submitQuiz = async () => {
     let response;
     if (isEditing.value && props.quiz?._id) {
       response = await api.put(`/quizzes/${props.quiz._id}`, quizData);
-      successMessage.value = "✅ Quiz updated successfully!";
+      toast.add({
+        severity: "success",
+        summary: "Updated",
+        detail: "Quiz updated successfully!",
+        life: 3000,
+      });
     } else {
       response = await api.post("/quizzes", quizData);
-      successMessage.value = "✅ Quiz added successfully!";
+      toast.add({
+        severity: "success",
+        summary: "Created",
+        detail: "Quiz created successfully!",
+        life: 3000,
+      });
     }
 
     emit("quizUpdated", response.data);
@@ -141,11 +153,25 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-6 shadow rounded-md">
-    <h1 class="text-2xl font-bold mb-4">
-      {{ isEditing ? "Edit Quiz" : "Add New Quiz" }}
-    </h1>
-
+  <Toast />
+  <Dialog
+    v-model:visible="props.visible"
+    modal
+    :header="isEditing ? 'Edit Quiz' : 'Add New Quiz'"
+    @hide="closeForm"
+    :pt="{
+      root: { class: '!border-0 !bg-transparent' },
+      mask: { class: 'backdrop-blur-sm' },
+    }"
+    class="w-full max-w-2xl"
+    style="
+      background-image: radial-gradient(
+        circle at center center,
+        var(--p-primary-400),
+        var(--p-primary-300)
+      );
+    "
+  >
     <!-- Access Restriction -->
     <div v-if="!authStore.isAdmin" class="text-red-500">
       ⛔ Access Denied. Only admins can manage quizzes.
@@ -177,7 +203,7 @@ const closeForm = () => {
       <draggable v-model="options" item-key="order">
         <template #item="{ element, index }">
           <div class="drag-item flex space-y-4 space-x-2 items-baseline w-full">
-            <span class="cursor-move">☰</span>
+            <i class="pi pi-bars"></i>
             <div class="flex-grow">
               <FloatLabel variant="on">
                 <InputText
@@ -189,13 +215,13 @@ const closeForm = () => {
                 <label :for="`option_text_${index}`">Option {{ index }}</label>
               </FloatLabel>
             </div>
-            <div class="flex">
+            
               <Checkbox
                 v-model="element.isCorrect"
                 :binary="true"
                 inputId="correct_checkbox"
               />
-            </div>
+            
             <Button
               type="button"
               @click="removeOption(index)"
@@ -230,5 +256,5 @@ const closeForm = () => {
       </p>
       <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>
-  </div>
+  </Dialog>
 </template>

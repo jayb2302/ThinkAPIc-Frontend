@@ -4,6 +4,7 @@ import type { User } from "../../types/User";
 
 const props = defineProps<{
   user: User | null;
+  visible: boolean;
 }>();
 
 const emit = defineEmits(["save", "cancel"]);
@@ -36,49 +37,61 @@ const handleSave = () => {
 </script>
 
 <template>
-  <div v-if="user" class="p-4 space-y-4 rounded shadow">
-    <h3 class="text-lg font-semibold mb-4">Edit User</h3>
-    <FloatLabel variant="on">
-      <InputText id="username" v-model="editedUsername" fluid />
-      <label for="username">Username</label>
-    </FloatLabel>
+  <Dialog
+    v-model:visible="props.visible"
+    modal
+    header="Edit User"
+    @hide="$emit('cancel')"
+    :pt="{
+      root: { class: '!border-0 !bg-transparent' },
+      mask: { class: 'backdrop-blur-sm' },
+    }"
+    style="
+      background-image: radial-gradient(
+        circle at center center,
+        var(--p-primary-400),
+        var(--p-primary-300)
+      );
+    "
+  >
+    <div class="space-y-4">
+      <FloatLabel variant="on">
+        <InputText id="username" v-model="editedUsername" fluid />
+        <label for="username">Username</label>
+      </FloatLabel>
 
-    <FloatLabel variant="on">
-      <InputText id="email" v-model="editedEmail" fluid />
-      <label for="email">Email</label>
-    </FloatLabel>
+      <FloatLabel variant="on">
+        <InputText id="email" v-model="editedEmail" fluid />
+        <label for="email">Email</label>
+      </FloatLabel>
 
-    <FloatLabel variant="on">
-      <Select
-        id="role"
-        v-model="editedRole"
-        :options="[
-          { label: 'Student', value: 'student' },
-          { label: 'Admin', value: 'admin' },
-        ]"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Select a role"
-        fluid
-      />
-      <label for="role">Role</label>
-    </FloatLabel>
-
-    <div class="button-group flex justify-end gap-2">
-      <Button
-        @click="handleSave"
-        severity="success"
-        label="Save"
-        icon="pi pi-check"
-        class="bg-green-500 text-white px-4 py-1 rounded"
-      />
-
-      <Button
-        @click="$emit('cancel')"
-        label="Cancel"
-        icon="pi pi-times"
+      <FloatLabel variant="on">
+        <Select
+          id="role"
+          v-model="editedRole"
+          :options="[
+            { label: 'Student', value: 'student' },
+            { label: 'Admin', value: 'admin' },
+          ]"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select a role"
+          fluid
         />
-      
+        <label for="role">Role</label>
+      </FloatLabel>
+
+      <div class="button-group flex justify-end gap-2">
+        <Button
+          @click="handleSave"
+          severity="success"
+          label="Save"
+          icon="pi pi-check"
+          class="bg-green-500 text-white px-4 py-1 rounded"
+        />
+
+        <Button @click="$emit('cancel')" label="Cancel" icon="pi pi-times" />
+      </div>
     </div>
-  </div>
+  </Dialog>
 </template>
