@@ -26,7 +26,7 @@ const tabs = [
     <div v-if="!authStore.user">
       <WelcomeThinkapic @open-login="showLoginModal = true" msg="Welcome to Thinkapic" />
     </div>
-    <div v-if="authStore.isAuthenticated" class="space-y-4 h-svh overflow-auto">
+    <div v-if="authStore.isAuthenticated" class="space-y-4 h-svh overflow-auto w-full">
       <Tabs v-model="selectedTab" value="0" class="w-full">
         <TabList>
           <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">{{ tab.title }}</Tab>

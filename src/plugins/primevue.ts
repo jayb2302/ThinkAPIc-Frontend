@@ -29,6 +29,7 @@ import ToastService from 'primevue/toastservice';
 import ConfirmationService from 'primevue/confirmationservice';
 
 // PrimeVue Components
+import Divider from 'primevue/divider';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
@@ -77,6 +78,7 @@ export function registerPrimeVue(app: App) {
   app.directive('ripple', Ripple);
 
   app.component('Avatar', Avatar);
+  app.component('Divider', Divider);
   app.component('Button', Button);
   app.component('Dialog', Dialog);
   app.component('Toast', Toast);
