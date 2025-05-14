@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
-import { useToast } from "primevue/usetoast";
+import { useAppToast } from "../../services/toastService";
 import draggable from "vuedraggable";
 import { useAuthStore } from "../../stores/authStore";
 import api from "../../services/api";
@@ -8,7 +8,7 @@ import type { Quiz, QuizOption } from "../../types/Quiz";
 import type { Topic } from "../../types/Topic";
 
 const authStore = useAuthStore();
-const toast = useToast();
+const toast = useAppToast();
 const emit = defineEmits(["close", "quizUpdated"]);
 
 // Props for quiz editing
@@ -121,27 +121,16 @@ const submitQuiz = async () => {
     let response;
     if (isEditing.value && props.quiz?._id) {
       response = await api.put(`/quizzes/${props.quiz._id}`, quizData);
-      toast.add({
-        severity: "success",
-        summary: "Updated",
-        detail: "Quiz updated successfully!",
-        life: 3000,
-      });
+      toast.success("Quiz updated successfully!");
     } else {
       response = await api.post("/quizzes", quizData);
-      toast.add({
-        severity: "success",
-        summary: "Created",
-        detail: "Quiz created successfully!",
-        life: 3000,
-      });
+      toast.success("Quiz created successfully!");
     }
 
     emit("quizUpdated", response.data);
     resetForm();
   } catch (error) {
-    errorMessage.value = "Failed to submit quiz.";
-    //console.error("❌ Error Submitting Quiz:", error);
+    toast.error("Failed to submit quiz.");
   }
 };
 
@@ -236,7 +225,7 @@ const closeForm = () => {
         label="Add Option"
         icon="pi pi-plus"
         @click="addOption"
-        severity="info"
+        severity="secondary"
       />
 
       <div class="button-group flex justify-end space-x-2">
@@ -250,11 +239,6 @@ const closeForm = () => {
           @click="closeForm"
         />
       </div>
-
-      <p v-if="successMessage" class="text-green-500 mt-4">
-        {{ successMessage }}
-      </p>
-      <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
     </form>
   </Dialog>
 </template>
