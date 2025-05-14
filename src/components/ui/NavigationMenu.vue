@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { computed, onMounted, watchEffect, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { useAppToast } from "../../services/toastService";
 import { useAuthStore } from "../../stores/authStore";
 import { useCourseStore } from "../../stores/courseStore";
 import { useTopicStore } from "../../stores/topicStore";
-import { computed, onMounted, watchEffect, ref } from "vue";
 import type { MenuItem } from "primevue/menuitem";
-import { storeToRefs } from "pinia";
-import { useModalStore } from "../../stores/modalStore";
 import { useKeyboardShortcuts } from "../../utils/useKeyboardShorts";
 
 const router = useRouter();
@@ -14,8 +14,8 @@ const props = defineProps<{
   type: "default" | "admin";
 }>();
 
-// Keyboard shortcuts
-const modalStore = useModalStore();
+const toast = useAppToast();
+
 const authStore = useAuthStore();
 const { isAuthenticated, username, role, user, token } = storeToRefs(authStore);
 const { fetchCurrentUser, logOut } = authStore;
@@ -51,11 +51,11 @@ watchEffect(async () => {
 
 watchEffect(() => {
   const currentPath = router.currentRoute.value.path;
-  if (currentPath.startsWith('/courses/')) {
-    expandedKeys.value['Courses'] = true;
+  if (currentPath.startsWith("/courses/")) {
+    expandedKeys.value["Courses"] = true;
   }
-  if (currentPath.startsWith('/topics/')) {
-    expandedKeys.value['Topics'] = true;
+  if (currentPath.startsWith("/topics/")) {
+    expandedKeys.value["Topics"] = true;
   }
 });
 
@@ -64,18 +64,26 @@ const navigate = (path: string) => async () => {
   showSidebar.value = false;
 };
 
-// Register keyboard shortcuts after navigate is defined
+// Keyboard shortcuts
 useKeyboardShortcuts([
-  { combo: '⌃+H', callback: navigate('/') },
-  { combo: '⌃+Q', callback: navigate(props.type === 'admin' ? '/admin/quizzes' : '/quizzes') },
-  { combo: '⌃+T', callback: navigate('/topics') },
-  { combo: '⌃+A', callback: navigate('/admin') },
+  { combo: "⌃+H", callback: navigate("/") },
+  {
+    combo: "⌃+Q",
+    callback: navigate(props.type === "admin" ? "/admin/quizzes" : "/quizzes"),
+  },
+  { combo: "⌃+T", callback: navigate("/topics") },
+  { combo: "⌃+A", callback: navigate("/admin") },
 ]);
 
 const items = computed<MenuItem[]>(() => {
   if (props.type === "admin") {
     return [
-      { label: "Home", icon: "pi pi-home", shortcut: "⌃+H", command: navigate("/") },
+      {
+        label: "Home",
+        icon: "pi pi-home",
+        shortcut: "⌃+H",
+        command: navigate("/"),
+      },
       {
         label: "Dashboard",
         icon: "pi pi-th-large",
@@ -105,7 +113,12 @@ const items = computed<MenuItem[]>(() => {
     ];
   } else {
     return [
-      { label: "Home", icon: "pi pi-home", command: navigate("/"), shortcut: "⌃+H" },
+      {
+        label: "Home",
+        icon: "pi pi-home",
+        command: navigate("/"),
+        shortcut: "⌃+H",
+      },
       {
         label: "Courses",
         icon: "pi pi-book",
@@ -147,33 +160,36 @@ const items = computed<MenuItem[]>(() => {
   }
 });
 
-const logout = () => {
+const logout = async () => {
   logOut();
-  navigate("/");
+  toast.info('See you next time!');
+  await navigate("/")();
 };
 </script>
 
 <template>
   <!-- Mobile Sidebar and Toggle -->
-  <div class=" md:hidden w-full">
-    <div class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50  dark:from-gray-800 dark:to-gray-950 justify-between p-2">
+  <div class="md:hidden w-full">
+    <div
+      class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50 dark:from-gray-800 dark:to-gray-950 justify-between p-2"
+    >
       <div class="mobile-navigation flex items-center gap-2">
         <img
           src="/ExplodingHead.svg"
           alt="Logo"
           @click="navigate('/')"
-          class="w-10 h-10 rounded-full shadow-md "
+          class="w-10 h-10 rounded-full shadow-md"
         />
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
           ThinkAPIc
         </h1>
       </div>
-        <Button
-          icon="pi pi-bars"
-          @click="showSidebar = true"
-          aria-label="Open Menu"
-          class="p-button-rounded p-button-text"
-        />
+      <Button
+        icon="pi pi-bars"
+        @click="showSidebar = true"
+        aria-label="Open Menu"
+        class="p-button-rounded p-button-text"
+      />
     </div>
     <Drawer
       v-model:visible="showSidebar"
@@ -188,23 +204,21 @@ const logout = () => {
         </div>
       </template>
       <div class="space-y-4 flex flex-col items-start">
-        <div v-if="isAuthenticated" class="capitalize">
-          <span class="pi pi-user pr-2"></span>
-          {{ username }}
-          <p class="flex flex-col italic">{{ role }}</p>
+        <div v-if="isAuthenticated" class="capitalize flex items-baseline">
+          <Avatar class="mr-2 !bg-gray-100 dark:!bg-gray-900" shape="circle">
+            <i
+              :class="role === 'admin' ? 'pi pi-cog' : 'pi pi-graduation-cap'"
+              class=""
+            />
+          </Avatar>
+
+          <p class="font-bold">{{ username }} - <span class="font-medium">{{ role }} </span></p>
         </div>
-        <Button
-          v-else
-          icon="pi pi-user"
-          label="Login"
-          @click="modalStore.showLoginModal = true"
-          class="p-2"
-          fluid
-        />
+
         <PanelMenu
           :model="items"
           :expandedKeys="expandedKeys"
-          @update:expandedKeys="val => expandedKeys = val"
+          @update:expandedKeys="(val) => (expandedKeys = val)"
           class="bg-gray-200 dark:bg-gray-950 text-white rounded-md shadow-md w-full"
         >
           <template #item="{ item }">
@@ -243,25 +257,22 @@ const logout = () => {
 
   <!-- Desktop Sidebar -->
   <nav
-    class="bg-gray-100 dark:bg-gray-950 p-2 space-y-4 min-w-80 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
+    class="bg-gray-100 dark:bg-gray-950 p-2 space-y-4 md:w-3/12 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
   >
     <div v-if="isAuthenticated" class="capitalize">
-      <span class="pi pi-user pr-2"></span>
+      <Avatar
+        :label="username?.charAt(0).toUpperCase()"
+        class="mr-2 bg-gray-500"
+        shape="circle"
+      />
       {{ username }}
       <p class="flex flex-col italic">{{ role }}</p>
     </div>
-    <Button
-      v-else
-      icon="pi pi-user"
-      label="Login"
-      @click="modalStore.showLoginModal = true"
-      class="p-2"
-      fluid
-    />
+
     <PanelMenu
       :model="items"
       :expandedKeys="expandedKeys"
-      @update:expandedKeys="val => expandedKeys = val"
+      @update:expandedKeys="(val) => (expandedKeys = val)"
       class="bg-gray-200 dark:bg-gray-900 text-white rounded-md shadow-md w-full"
     >
       <template #item="{ item }">
@@ -288,7 +299,7 @@ const logout = () => {
       v-if="isAuthenticated"
       @click="logout"
       icon="pi pi-sign-out"
-      class="p-2 "
+      class="p-2"
       label="Logout"
       fluid
       severity="danger"

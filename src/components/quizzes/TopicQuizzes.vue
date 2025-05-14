@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed, watch, onBeforeMount } from "vue";
 import { storeToRefs } from "pinia";
+import { useAppToast } from "../../services/toastService";
 import { useProgressStore } from "../../stores/progressStore";
 import { useQuizStore } from "../../stores/quizStore";
 import { getTopicById } from "../../services/topicService";
@@ -12,9 +13,9 @@ const props = defineProps<{
   topicId: string;
   courseId: string;
 }>();
-
 const emit = defineEmits(["update:visible"]);
 
+const toast = useAppToast();
 const quizStore = useQuizStore();
 const { quizzes } = storeToRefs(quizStore);
 const { fetchQuizzesByTopic, submitAllQuizzes } = quizStore;
@@ -31,6 +32,42 @@ const isLastQuiz = computed(
   () => currentQuizIndex.value === quizzes.value.length - 1
 );
 const currentQuiz = computed(() => quizzes.value[currentQuizIndex.value]);
+
+const answeredCount = computed(
+  () =>
+    quizzes.value.filter((q) => selectedOptions.value[q._id] !== undefined)
+      .length
+);
+
+const progressPercent = computed(() =>
+  quizzes.value.length > 0
+    ? Math.round((answeredCount.value / quizzes.value.length) * 100)
+    : 0
+);
+
+const progressBarStyle = computed(() => {
+  const percentage = progressPercent.value;
+
+  // Custom deep red to green tones
+  const startColor = [113, 37, 37]; // #712525
+  const endColor = [37, 113, 37]; // #257125
+
+  const r = Math.round(
+    startColor[0] + (endColor[0] - startColor[0]) * (percentage / 100)
+  );
+  const g = Math.round(
+    startColor[1] + (endColor[1] - startColor[1]) * (percentage / 100)
+  );
+  const b = Math.round(
+    startColor[2] + (endColor[2] - startColor[2]) * (percentage / 100)
+  );
+
+  const backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+  return {
+    "--p-progressbar-value-bg": backgroundColor,
+  };
+});
 
 onMounted(async () => {
   if (!authStore.user && authStore.token) {
@@ -112,7 +149,7 @@ const submitQuizzesAndHandleProgress = async () => {
 
 const logProgressIfNeeded = async (allCorrect: boolean) => {
   if (!allCorrect) {
-    console.log("🚫 Some answers incorrect, progress not logged");
+    toast.warn("Some answers were incorrect. Please review your answers.");
     return;
   }
 
@@ -125,7 +162,7 @@ const logProgressIfNeeded = async (allCorrect: boolean) => {
     activityId: props.topicId,
     isCorrect: true,
   });
-  console.log("🏁 Topic completed and progress logged");
+  toast.success("Progress logged successfully!");
 };
 
 const retakeQuiz = () => {
@@ -134,6 +171,17 @@ const retakeQuiz = () => {
   results.value = {};
   quizzes.value.forEach((q) => (selectedOptions.value[q._id] = undefined));
 };
+
+onBeforeMount(() => {
+  const style = document.createElement("style");
+  style.innerHTML = `
+    .custom-progressbar .p-progressbar-value {
+      background-color: var(--p-progressbar-value-bg) !important;
+      transition: background-color 0.3s ease;
+    }
+  `;
+  document.head.appendChild(style);
+});
 </script>
 
 <template>
@@ -141,23 +189,33 @@ const retakeQuiz = () => {
     :visible="props.visible"
     modal
     :header="topicTitle"
-
-    class="w-full md:w-1/3 "
+    class="w-full md:w-2/4"
     :dismissable-mask="true"
     :closable="true"
     @update:visible="closeDialog"
+    :pt="{
+      root: { class: '!border-0 !bg-transparent' },
+      mask: { class: 'backdrop-blur-sm' },
+    }"
+    style="
+      background-image: radial-gradient(
+        circle at center center,
+        var(--p-primary-400),
+        var(--p-primary-300)
+      );
+    "
   >
-    <div class="">
+    <div>
       <div v-if="quizzes.length === 0">No quizzes found for this topic.</div>
 
       <div v-else-if="!submitted">
-        <Card v-if="currentQuiz">
+        <Card v-if="currentQuiz" class="">
           <template #title> {{ currentQuiz.question }}</template>
           <template #content>
             <div
               v-for="option in currentQuiz.options"
               :key="option.order"
-              class=""
+              class="space-y-2 flex items-baseline"
             >
               <RadioButton
                 :inputId="`${currentQuiz._id}-${option.order}`"
@@ -165,17 +223,26 @@ const retakeQuiz = () => {
                 :value="option.order"
                 v-model="selectedOptions[currentQuiz._id]"
               />
-              <label :for="`${currentQuiz._id}-${option.order}`" class="ml-2">
+              <label :for="`${currentQuiz._id}-${option.order}`" class="ml-2 text-pretty">
                 {{ option.text }}
               </label>
             </div>
 
             <Button
-              class="mt-8"
+              class="my-4"
               :label="isLastQuiz ? 'Submit All' : 'Next'"
               @click="isLastQuiz ? submitAll() : nextQuiz()"
               fluid
             />
+            <ProgressBar
+              :value="progressPercent"
+              :style="progressBarStyle"
+              showValue
+              class="custom-progressbar mb-2"
+            />
+            <p class="text-sm text-gray-500 text-center ">
+              {{ answeredCount }} / {{ quizzes.length }} answered
+            </p>
           </template>
         </Card>
       </div>
@@ -198,11 +265,12 @@ const retakeQuiz = () => {
                 </strong>
               </p>
               <p class="mt-2">
-                Result:
-                <span v-if="results[quiz._id]?.isCorrect" class="text-green-600"
-                  >✅ Correct</span
-                >
-                <span v-else class="text-red-600">❌ Incorrect</span>
+                <span v-if="results[quiz._id]?.isCorrect" class="text-green-600">
+                 <i class="pi pi-check"></i> Correct
+                </span>
+                <span v-else class="text-red-600">
+                  <i class="pi pi-times"></i> Incorrect
+                </span>
               </p>
             </template>
           </Card>
@@ -212,7 +280,8 @@ const retakeQuiz = () => {
           v-if="Object.values(results).some((r) => !r.isCorrect)"
         >
           <Button
-            label="🔄 Retake Quiz"
+            label="Retake Quiz"
+            icon="pi pi-refresh"
             severity="warning"
             @click="retakeQuiz"
           />

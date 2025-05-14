@@ -14,10 +14,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 .p-button-danger {
   border-color: #b91c1c !important;
   background-color: #712525 !important;
-  
 }
 .p-button-info {
   background-color: #065985 !important;

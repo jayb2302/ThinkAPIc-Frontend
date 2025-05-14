@@ -1,22 +1,39 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useModalStore } from "../stores/modalStore";
+import { useAuthStore } from "../stores/authStore";
 import Login from "../components/ui/Login.vue";
 import NavigationMenu from "../components/ui/NavigationMenu.vue";
 
 const modalStore = useModalStore();
 const { showLoginModal } = storeToRefs(modalStore);
+const authStore = useAuthStore();
 </script>
 
 <template>
   <div
-    class="flex flex-col md:flex-row-reverse h-svh w-full bg-gray-50 overflow-auto"
+    :class="[
+      'bg-gray-50',
+      authStore.user
+        ? 'flex flex-col md:flex-row w-full h-svh'
+        : 'flex flex-col items-center justify-center w-full h-svh',
+    ]"
   >
-    <!-- Sidebar NavigationMenu fixed only on md+ screens -->
+    <div class="w-full md:w-3/12">
+      <NavigationMenu
+        v-if="authStore.user"
+        type="default"
+        @open-login="showLoginModal = true"
+      />
+    </div>
 
-    <NavigationMenu type="default" @open-login="showLoginModal = true" />
-
-    <main class="w-full flex mt-14 md:mt-0 overflow-auto md:pl-80">
+    <main
+      :class="[
+        authStore.user
+          ? 'w-full md:w-9/12 mt-14 md:mt-0'
+          : 'w-full h-full flex items-center justify-center',
+      ]"
+    >
       <router-view />
     </main>
 

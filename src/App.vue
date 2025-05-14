@@ -1,19 +1,22 @@
 <script setup lang="ts">
-// import Home from '@/pages/Home.vue'
-// import QuizList from '@/components/quizzes/QuizList.vue'
 import { onMounted, onBeforeUnmount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from './stores/authStore';
 import { useTopicStore } from './stores/topicStore';
+import { useProgressStore } from './stores/progressStore';
 
 const toast = useToast();
 
 const authStore = useAuthStore();
 const topicStore = useTopicStore();
+const progressStore = useProgressStore();
 
 onMounted(async() => {
   if (localStorage.getItem('token') && !authStore.isAuthenticated) {
     authStore.fetchCurrentUser();
+  }
+  if (authStore.user?._id) {
+    await progressStore.fetchProgress(authStore.user._id);
   }
   if (!topicStore.topicsLoaded) {
     await topicStore.fetchTopics();
@@ -40,19 +43,6 @@ onBeforeUnmount(() => {
 
 <template>
   <router-view />
+  <Toast position="top-center" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
