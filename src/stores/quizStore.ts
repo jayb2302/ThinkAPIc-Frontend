@@ -290,6 +290,21 @@ export const useQuizStore = defineStore("quizzes", () => {
     });
   };
 
+  const fetchQuizCountForTopics = async (topicIds: string[]): Promise<Record<string, number>> => {
+    const counts: Record<string, number> = {};
+  
+    for (const topicId of topicIds) {
+      try {
+        const data = await getQuizzesByTopic(topicId);
+        counts[topicId] = data.length;
+      } catch (err: any) {
+        counts[topicId] = 0;
+      }
+    }
+  
+    return counts;
+  };
+
   // --- Return store API ---
   return {
     quizzes,
@@ -312,5 +327,6 @@ export const useQuizStore = defineStore("quizzes", () => {
     updateStore,
     handleError,
     filterQuizzesByCourseAndTopic,
+    fetchQuizCountForTopics
   };
 });
