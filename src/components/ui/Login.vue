@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useAuthStore } from "../../stores/authStore";
+import { useAppToast } from "../../services/toastService";
 import { useRouter } from "vue-router";
 
+const toast = useAppToast();
 const props = defineProps<{ visible: boolean }>();
 const emit = defineEmits(["update:visible"]);
 
@@ -21,27 +23,27 @@ const handleLogin = async () => {
   try {
     await authStore.logIn(email.value, password.value);
     if (authStore.isAuthenticated) {
-      errorMessage.value = "";
+      toast.success("Welcome back!");
       emit("update:visible", false); // Close dialog after successful login
       router.push("/admin");
     }
   } catch (error) {
-    errorMessage.value = "Invalid email or password"; // Show error message
+    toast.error("Login failed. Please check your credentials.");
   }
 };
 
 // Handle registration
 const handleRegister = async () => {
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = "Passwords do not match";
+    toast.error("Passwords do not match");
     return;
   }
   try {
     await authStore.registerUser(username.value, email.value, password.value);
-    errorMessage.value = "";
+    toast.success("Registration successful! Please log in.");
     isRegistering.value = false; // Switch back to login mode
   } catch (error) {
-    errorMessage.value = "Registration failed";
+    toast.error("Registration failed. Please try again.");
   }
 };
 
@@ -58,7 +60,7 @@ const toggleForm = () => {
       :visible="props.visible"
       @update:visible="(value) => emit('update:visible', value)"
       modal
-      class="w-full md:w-auto "
+      class="w-full md:w-auto"
       :pt="{
         root: { class: '!border-0 !bg-transparent' },
         mask: { class: 'backdrop-blur-sm' },
@@ -93,7 +95,7 @@ const toggleForm = () => {
                 required
                 fluid
               />
-              <label for="username" class="font-semibold ">Email</label>
+              <label for="username" class="font-semibold">Email</label>
             </FloatLabel>
           </div>
 
@@ -144,7 +146,7 @@ const toggleForm = () => {
                 id="name"
                 v-model="username"
                 type="text"
-                class="!bg-white/20 !border-0 !text-slate-300 "
+                class="!bg-white/20 !border-0"
                 required
                 fluid
               />
@@ -183,7 +185,9 @@ const toggleForm = () => {
           <div class="text-center mt-2">
             <span v-if="!isRegistering">
               Don't have an account?
-              <a href="#" @click="toggleForm" class="text-slate-900">Register</a>
+              <a href="#" @click="toggleForm" class="text-slate-900"
+                >Register</a
+              >
             </span>
             <span v-if="isRegistering">
               Already have an account?
