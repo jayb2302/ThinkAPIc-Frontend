@@ -28,7 +28,7 @@ onMounted(async () => {
     totalUsers.value = usersRes.data.length;
 
     // Get the latest 5 quizzes
-    latestQuizzes.value = quizzesRes.data.slice(-5);
+    latestQuizzes.value = quizzesRes.data.slice(-4);
   } catch (error) {
     console.error("❌ Error fetching dashboard data:", error);
   }
@@ -41,7 +41,7 @@ const goTo = (route: string) => {
 </script>
 
 <template>
-  <div class="dark:bg-gray-800 dark:text-gray-100 w-full p-2 shadow rounded-md">
+  <div class="dark:bg-gray-800 dark:text-gray-100 w-full h-full p-2 shadow rounded-md">
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->
@@ -52,9 +52,7 @@ const goTo = (route: string) => {
     <!-- Dashboard Stats -->
     <div v-else>
       <div class="overflow-x-auto mb-6">
-        <div
-          class="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2 text-md"
-        >
+        <div class="flex sm:grid sm:grid-cols-2 md:grid-cols-4 gap-2 text-md">
           <Panel
             header="Courses"
             class="min-w-[15rem] sm:min-w-0 bg-purple-500 font-bold text-white rounded-md shadow-md"
@@ -87,7 +85,7 @@ const goTo = (route: string) => {
           </Panel>
           <Panel
             header="Quizzes"
-            class="min-w-[15rem] sm:min-w-0 bg-blue-500 text-white rounded-md shadow-md w-full"
+            class="min-w-[15rem] sm:min-w-0 rounded-md shadow-md w-full"
           >
             <p class="text-3xl font-bold text-center">{{ totalQuizzes }}</p>
             <template #footer>
@@ -99,38 +97,46 @@ const goTo = (route: string) => {
             </template>
           </Panel>
           <Panel
-            header="Students"
-            class="min-w-[15rem] sm:min-w-0 bg-yellow-500 text-white rounded-md shadow-md"
+            header="Users"
+            class="min-w-[15rem] sm:min-w-0 rounded-md shadow-md"
           >
             <p class="text-3xl font-bold text-center">{{ totalUsers }}</p>
             <template #footer>
-            <Button
-              @click="goTo('/admin/users')"
-              label="Manage Students"
-              class="w-full bg-purple-300 p-2 rounded-md"
-            />
+              <Button
+                @click="goTo('/admin/users')"
+                label="Manage Users"
+                class="w-full p-2 rounded-md"
+              />
             </template>
           </Panel>
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div class="grid grid-cols-4 gap-4 mb-6"></div>
-
       <!-- Recent Quizzes -->
-      <div class="bg-gray-100 dark:bg-gray-700 shadow text-left p-4 rounded-md">
-        <h2 class="text-xl font-bold mb-3">Recent Quizzes</h2>
-        <ul class="divide-y divide-gray-300">
-          <li
-            v-for="quiz in latestQuizzes"
-            :key="quiz._id"
-            class="mb-2 flex flex-col"
-          >
-            <strong> 📝 {{ quiz.question }} </strong>
-            Topic: {{ quiz.topic.title }}
-          </li>
-        </ul>
-      </div>
+      <Card class=" dark:bg-gray-700 !shadow-md text-left rounded-md">
+        <template #title>
+          <h2 class="text-2xl font-bold">Recent Quizzes</h2>
+          <Divider />
+        </template>
+        <template #content>
+          <ul class="divide-y divide-gray-300/40 dark:divide-gray-600/40">
+            <li
+              v-for="quiz in latestQuizzes"
+              :key="quiz._id"
+              class="mb-2 flex flex-col "
+            >
+              <strong class="mb-2"> {{ quiz.question }} </strong>
+              <span class="">
+                <Chip icon="pi pi-th-large" :label="quiz.topic.title" />
+              </span>
+              <span class="text-sm text-gray-500 text-right ">
+                <i class="pi pi-calendar mr-1"></i>
+                {{ new Date(quiz.createdAt).toLocaleDateString() }}
+              </span>
+            </li>
+          </ul>
+        </template>
+      </Card>
     </div>
   </div>
 </template>

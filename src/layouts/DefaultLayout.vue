@@ -19,7 +19,7 @@ const authStore = useAuthStore();
         : 'flex flex-col items-center justify-center w-full h-svh',
     ]"
   >
-    <div class="w-full md:w-3/12">
+    <div class="w-full md:w-3/12 sticky top-0 left-0 z-50">
       <NavigationMenu
         v-if="authStore.user"
         type="default"
