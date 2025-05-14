@@ -25,6 +25,7 @@ const {
   setSelectedCourseId,
   editCourse,
   resetCourseDraft,
+  fetchCourses,
 } = courseStore;
 
 const { handleTopicCreated } = topicStore;
@@ -159,9 +160,11 @@ const closeTopicForm = () => {
             <h2 class="text-xl font-semibold">Courses</h2>
             <Button
               icon="pi pi-refresh"
+              aria-label="Refresh"
               rounded
+              outlined
               raised
-              @click="courseStore.fetchCourses()"
+              @click="fetchCourses()"
             />
           </div>
         </template>
@@ -192,7 +195,7 @@ const closeTopicForm = () => {
         </Column>
 
         <!-- Actions -->
-        <Column header="Actions" class="space-x-2 ">
+        <Column header="Actions" class="space-x-2">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"

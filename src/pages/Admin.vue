@@ -1,8 +1,6 @@
 <script setup>
 import { useAuthStore } from "@/stores/authStore";
 import { onMounted } from "vue";
-import AddQuizForm from "@/components/quizzes/AddQuizForm.vue";
-
 </script>
 
 <template>
@@ -11,10 +9,6 @@ import AddQuizForm from "@/components/quizzes/AddQuizForm.vue";
 
     <div v-if="!authStore.isAdmin" class="text-red-500">
       ⛔ Access Denied. Only admins can access this page.
-    </div>
-
-    <div v-else>
-      <AddQuizForm />
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from './stores/authStore';
 import { useTopicStore } from './stores/topicStore';
@@ -11,17 +11,7 @@ const authStore = useAuthStore();
 const topicStore = useTopicStore();
 const progressStore = useProgressStore();
 
-onMounted(async() => {
-  if (localStorage.getItem('token') && !authStore.isAuthenticated) {
-    authStore.fetchCurrentUser();
-  }
-  if (authStore.user?._id) {
-    await progressStore.fetchProgress(authStore.user._id);
-  }
-  if (!topicStore.topicsLoaded) {
-    await topicStore.fetchTopics();
-  }
-});
+const isMobile = ref(false);
 
 const handleTokenExpired = () => {
   toast.add({
@@ -32,17 +22,39 @@ const handleTokenExpired = () => {
   });
 };
 
-onMounted(() => {
+onMounted(async () => {
+
+  // Auth / User
+  if (localStorage.getItem('token') && !authStore.isAuthenticated) {
+    authStore.fetchCurrentUser();
+  }
+  if (authStore.user?._id) {
+    await progressStore.fetchProgress(authStore.user._id);
+  }
+
+  // Topics
+  if (!topicStore.topicsLoaded) {
+    await topicStore.fetchTopics();
+  }
+
+  // Expired token event
   window.addEventListener('token-expired', handleTokenExpired);
+
+  const checkMobile = () => {
+    isMobile.value = window.innerWidth < 640;
+  };
+
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('token-expired', handleTokenExpired);
+  window.removeEventListener('resize', () => {});
 });
 </script>
 
 <template>
   <router-view />
-  <Toast position="top-center" />
+  <Toast :position="isMobile ? 'bottom-center' : 'top-right'" class="!w-[90%] sm:!w-[25rem] text-sm" />
 </template>
-

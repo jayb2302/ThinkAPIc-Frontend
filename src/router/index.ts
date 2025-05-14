@@ -100,9 +100,7 @@ async function tryRestoreUser(
   if (localStorage.getItem('token') && !authStore.user) {
     try {
       await authStore.fetchCurrentUser();
-      console.log('✅ User restored successfully', authStore.user);
     } catch (e) {
-      console.error('❌ Failed to fetch user during navigation:', e);
       modalStore.showLoginModal = true;
       return false;
     }
@@ -116,7 +114,6 @@ function shouldShowLogin(
   modalStore: ModalStore
 ): boolean {
   if (to.meta?.requiresAuth && !isAuthenticated) {
-    console.warn("⛔ Needs auth, opening login dialog");
     modalStore.showLoginModal = true;
     return true;
   }
@@ -128,7 +125,6 @@ function shouldBlockNonAdmin(
   isAdmin: boolean
 ): boolean {
   if (to.meta?.requiresAdmin && !isAdmin) {
-    console.warn("⛔ Needs admin, redirecting to home page");
     return true;
   }
   return false;

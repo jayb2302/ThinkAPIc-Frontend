@@ -21,6 +21,7 @@ const tabs = [
   { title: 'Progress', value: '2' },
 ];
 </script>
+
 <template>
   <div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 w-full">
     <div v-if="!authStore.user">

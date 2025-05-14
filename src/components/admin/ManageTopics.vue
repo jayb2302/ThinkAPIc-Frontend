@@ -120,7 +120,9 @@ const closeForm = () => {
             <span class="text-xl font-bold">Topics</span>
             <Button
               icon="pi pi-refresh"
+              aria-label="Refresh"
               rounded
+              outlined
               raised
               @click="refreshTopics"
             />
@@ -152,7 +154,6 @@ const closeForm = () => {
         </template>
       </DataTable>
     </div>
-    <Toast />
     <ConfirmPopup />
   </div>
 </template>

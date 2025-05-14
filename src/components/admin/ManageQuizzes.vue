@@ -61,7 +61,10 @@ const handleQuizUpdated = async () => {
 
 // Delete quiz
 const topicOptions = computed(() => {
-  const courseMap = new Map<string, { label: string; items: { label: string; value: string }[] }>();
+  const courseMap = new Map<
+    string,
+    { label: string; items: { label: string; value: string }[] }
+  >();
 
   topicStore.topics.forEach((t: Topic) => {
     const courseId = t.course?._id || "Unassigned";
@@ -146,13 +149,15 @@ watch(selectedTopic, (newTopicId) => {
       @close="closeForm"
     />
     <div class="rounded-lg overflow-hidden shadow border border-gray-200">
-      <DataTable :value="quizList" paginator :rows="5" tableStyle="">
+      <DataTable :value="quizList" paginator :rows="4" tableStyle="">
         <template #header>
           <div class="flex flex-wrap items-center justify-between gap-2 w-full">
             <span class="text-xl font-bold">Quizzes</span>
             <Button
-              icon="pi pi-refresh"
+              icon="pi pi-filter-slash"
+              aria-label="Clear Filters"
               rounded
+              outlined
               raised
               @click="refreshQuizzes"
             />

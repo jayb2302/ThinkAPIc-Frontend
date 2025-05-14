@@ -68,16 +68,4 @@ button:focus-visible {
   border: 1px solid red;
 }
 
-/* #app {
-  max-width: 1480px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-} */
 
-/* @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #fcf9f9;
-  }
-} */

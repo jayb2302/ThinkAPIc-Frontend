@@ -32,7 +32,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      console.error('API Error:', error.response.status, error.response.data);
 
       const isLoginRequest = error.config?.url?.includes('/auth/login');
       const isJwtExpired = error.response.status === 401 && error.response.data.message === 'jwt expired';
@@ -47,7 +46,7 @@ api.interceptors.response.use(
         }
       }
     } else {
-      console.error('Network/Server Error:', error);
+      //console.error('Network/Server Error:', error);
     }
 
     return Promise.reject(error);

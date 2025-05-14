@@ -36,17 +36,16 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
       No quiz attempts yet.
     </div>
 
-    <div v-else class="overflow-x-auto mb-6">
+    <div v-else class="mb-6">
       <div
-        class="flex sm:grid sm:grid-rows-1 md:grid-cols-3 lg:grid-cols-2 gap-4"
+        class="grid sm:grid sm:grid-col-1 md:grid-cols-3 lg:grid-cols-2 gap-4"
       >
         <Card
           v-for="topic in completedTopics"
           :key="topic.topicId"
-          class="shadow-md min-w-[20rem] "
+          class="shadow-md"
         >
           <template #title>
-
             {{ topic.topicTitle }}
           </template>
           <template #content>
@@ -54,7 +53,6 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
               v-if="topic.isCompleted"
               value="✔ Completed"
               severity="success"
-
             />
             <Badge v-else value="⌛︎ In Progress" severity="warning" />
             <p class="mb-2">
@@ -65,8 +63,8 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
               <span class="font-semibold">Quizzes Completed:</span>
               {{ topic.quizzesCompleted }} / {{ topic.totalQuizzes }}
             </p>
-            <p class="mb-2">
-              <span class="font-semibold">Last Activity:</span>
+            <p class="">
+              <i class="pi pi-calendar mr-1"></i>
               {{ formatDateTime(topic.lastCompletedAt) }}
             </p>
             <div class="mt-3 flex flex-col gap-2 justify-between">
@@ -74,7 +72,7 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
                 v-if="!topic.isCompleted"
                 label="Retake Quiz"
                 icon="pi pi-refresh"
-                severity="info"
+                severity="secondary"
                 @click="openRetakeDialog(topic.topicId, topic.courseId)"
               />
             </div>

@@ -39,17 +39,16 @@ onMounted(() => {
     v-if="topic"
   >
     <h1 class="text-2xl font-bold mb-2">{{ topic.title }}</h1>
-    <span class="flex gap-2 dark:text-gray-300">
-      <p class="mb-2"><strong>Week:</strong> {{ topic.week }}</p>
-      |
+    <span class="flex flex-col gap-2  dark:text-gray-300">
       <div v-if="topic.course && typeof topic.course === 'object'">
         <strong>Course: </strong>
-        <router-link :to="`/courses/${topic.course._id}`" class="text-gray-100">
+        <RouterLink :to="`/courses/${topic.course._id}`" class="">
           <span class="hover:font-bold">
             {{ topic.course.title || "Untitled Course" }}
           </span>
-        </router-link>
+        </RouterLink>
       </div>
+      <p class="mb-2"><strong>Week:</strong> {{ topic.week }}</p>
     </span>
     <p class="mb-4">{{ topic.summary || "No summary available." }}</p>
 
@@ -57,8 +56,7 @@ onMounted(() => {
       <h2 class="font-semibold mb-2">Key Points:</h2>
       <ul class="list-inside mb-4">
         <li v-for="(point, index) in topic.key_points" :key="index">
-          <i class="pi pi-ethereum text-gray-600">
-          </i> 
+          <i class="pi pi-caret-right text-gray-300"> </i>
           {{ point }}
         </li>
       </ul>
@@ -72,7 +70,7 @@ onMounted(() => {
           <a
             :href="resource.link"
             target="_blank"
-            class="text-gray-600 dark:text-gray-100 hover:underline"
+            class="text-gray-600 dark:text-gray-100 hover:!underline"
           >
             {{ resource.title }}
           </a>

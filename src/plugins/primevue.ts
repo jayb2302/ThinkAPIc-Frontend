@@ -3,6 +3,7 @@ import Ripple from 'primevue/ripple';
 import Aura from '@primeuix/themes/aura';
 
 import Avatar from 'primevue/avatar';
+import Chip from 'primevue/chip';
 import DatePicker from 'primevue/datepicker';
 import Card from 'primevue/card';
 import RadioButton from 'primevue/radiobutton';
@@ -10,6 +11,7 @@ import Password from 'primevue/password';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputNumber from 'primevue/inputnumber';
+import ToggleSwitch from 'primevue/toggleswitch';
 import Checkbox from 'primevue/checkbox';
 import Textarea from 'primevue/textarea';
 import Drawer from 'primevue/drawer';
@@ -79,6 +81,7 @@ export function registerPrimeVue(app: App) {
   app.directive('ripple', Ripple);
 
   app.component('Avatar', Avatar);
+  app.component('Chip', Chip);
   app.component('Divider', Divider);
   app.component('Button', Button);
   app.component('Dialog', Dialog);
@@ -86,6 +89,7 @@ export function registerPrimeVue(app: App) {
   app.component('Toast', Toast);
   app.component('ConfirmPopup', ConfirmPopup);
   app.component('InputText', InputText);
+  app.component('ToggleSwitch', ToggleSwitch);
   app.component('Select', Select);
   app.component('Skeleton', Skeleton);
   app.component('PanelMenu', PanelMenu);

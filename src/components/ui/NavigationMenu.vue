@@ -162,7 +162,7 @@ const items = computed<MenuItem[]>(() => {
 
 const logout = async () => {
   logOut();
-  toast.info('See you next time!');
+  toast.info("See you next time!");
   await navigate("/")();
 };
 </script>
@@ -174,15 +174,16 @@ const logout = async () => {
       class="flex absolute top-0 w-full left-0 bg-gradient-to-b from-gray-400 to-gray-50 dark:from-gray-800 dark:to-gray-950 justify-between p-2"
     >
       <div class="mobile-navigation flex items-center gap-2">
-        <img
-          src="/ExplodingHead.svg"
-          alt="Logo"
-          @click="navigate('/')"
-          class="w-10 h-10 rounded-full shadow-md"
-        />
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-          ThinkAPIc
-        </h1>
+        <RouterLink to="/" class="flex items-center gap-2">
+          <img
+            src="/ExplodingHead.svg"
+            alt="Logo"
+            class="w-10 h-10 rounded-full shadow-md"
+          />
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+            ThinkAPIc
+          </h1>
+        </RouterLink>
       </div>
       <Button
         icon="pi pi-bars"
@@ -212,14 +213,16 @@ const logout = async () => {
             />
           </Avatar>
 
-          <p class="font-bold">{{ username }} - <span class="font-medium">{{ role }} </span></p>
+          <p class="font-bold">
+            {{ username }} - <span class="font-medium">{{ role }} </span>
+          </p>
         </div>
 
         <PanelMenu
           :model="items"
           :expandedKeys="expandedKeys"
           @update:expandedKeys="(val) => (expandedKeys = val)"
-          class="bg-gray-200 dark:bg-gray-950 text-white rounded-md shadow-md w-full"
+          class="bg-gray-50 dark:bg-gray-950 text-white rounded-md shadow-md w-full"
         >
           <template #item="{ item }">
             <a
@@ -257,23 +260,24 @@ const logout = async () => {
 
   <!-- Desktop Sidebar -->
   <nav
-    class="bg-gray-100 dark:bg-gray-950 p-2 space-y-4 md:w-3/12 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
+    class="bg-gray-50 dark:bg-gray-950 p-2 space-y-4 md:w-3/12 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
   >
-    <div v-if="isAuthenticated" class="capitalize">
+    <div v-if="isAuthenticated" class="capitalize flex items-baseline">
       <Avatar
         :label="username?.charAt(0).toUpperCase()"
         class="mr-2 bg-gray-500"
         shape="circle"
       />
-      {{ username }}
-      <p class="flex flex-col italic">{{ role }}</p>
+      <p class="font-bold">
+        {{ username }} - <span class="font-medium">{{ role }} </span>
+      </p>
     </div>
 
     <PanelMenu
       :model="items"
       :expandedKeys="expandedKeys"
       @update:expandedKeys="(val) => (expandedKeys = val)"
-      class="bg-gray-200 dark:bg-gray-900 text-white rounded-md shadow-md w-full"
+      class="bg-gray-50 dark:bg-gray-900 text-white rounded-md shadow-md w-full"
     >
       <template #item="{ item }">
         <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">
