@@ -5,7 +5,7 @@ import { useAppToast } from "../../services/toastService";
 import { useRouter } from "vue-router";
 
 const toast = useAppToast();
-const props = defineProps<{ visible: boolean }>();
+defineProps<{ visible: boolean }>();
 const emit = defineEmits(["update:visible"]);
 
 const username = ref("");
@@ -57,7 +57,7 @@ const toggleForm = () => {
 <template>
   <div class="card flex justify-center">
     <Dialog
-      :visible="props.visible"
+      :visible="visible"
       @update:visible="(value) => emit('update:visible', value)"
       modal
       class="w-full md:w-auto"
