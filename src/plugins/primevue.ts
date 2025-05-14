@@ -30,6 +30,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 
 // PrimeVue Components
 import Divider from 'primevue/divider';
+import ProgressBar from 'primevue/progressbar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Toast from 'primevue/toast';
@@ -81,6 +82,7 @@ export function registerPrimeVue(app: App) {
   app.component('Divider', Divider);
   app.component('Button', Button);
   app.component('Dialog', Dialog);
+  app.component('ProgressBar', ProgressBar);
   app.component('Toast', Toast);
   app.component('ConfirmPopup', ConfirmPopup);
   app.component('InputText', InputText);

@@ -3,15 +3,20 @@ import { onMounted, onBeforeUnmount } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from './stores/authStore';
 import { useTopicStore } from './stores/topicStore';
+import { useProgressStore } from './stores/progressStore';
 
 const toast = useToast();
 
 const authStore = useAuthStore();
 const topicStore = useTopicStore();
+const progressStore = useProgressStore();
 
 onMounted(async() => {
   if (localStorage.getItem('token') && !authStore.isAuthenticated) {
     authStore.fetchCurrentUser();
+  }
+  if (authStore.user?._id) {
+    await progressStore.fetchProgress(authStore.user._id);
   }
   if (!topicStore.topicsLoaded) {
     await topicStore.fetchTopics();
