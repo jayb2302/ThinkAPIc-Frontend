@@ -13,7 +13,7 @@ const authStore = useAuthStore();
 <template>
   <div
     :class="[
-      'bg-gray-50',
+      '',
       authStore.user
         ? 'flex flex-col md:flex-row w-full h-svh'
         : 'flex flex-col items-center justify-center w-full h-svh',

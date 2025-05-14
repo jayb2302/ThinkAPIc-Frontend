@@ -23,7 +23,7 @@ const tabs = [
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 w-full">
+  <div class="flex flex-col items-center justify-center  w-full">
     <div v-if="!authStore.user">
       <WelcomeThinkapic @open-login="showLoginModal = true" msg="Welcome to Thinkapic" />
     </div>
