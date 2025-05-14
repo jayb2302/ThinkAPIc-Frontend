@@ -155,7 +155,7 @@ watch(selectedTopic, (newTopicId) => {
             <span class="text-xl font-bold">Quizzes</span>
             <Button
               icon="pi pi-filter-slash"
-              aria-label="Clear"
+              aria-label="Clear Filters"
               rounded
               outlined
               raised

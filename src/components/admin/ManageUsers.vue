@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
+import { useAppToast } from "../../services/toastService";
 import ManageUsersForm from "./ManageUsersForm.vue";
 import { useUserStore } from "../../stores/userStore";
 import { useMessageStore } from "../../stores/messageStore";
 import type { User, UserRole } from "../../types/User";
 
 const confirm = useConfirm();
-const toast = useToast();
+const toast = useAppToast();
 const messageStore = useMessageStore();
 const userStore = useUserStore();
 
@@ -60,32 +60,16 @@ const handleSave = async (updated: {
     await saveUser(updated);
     await fetchAllUsers();
     selectedUser.value = null;
-    toast.add({
-      severity: "success",
-      summary: "Success",
-      detail: "✅ User updated successfully.",
-      life: 3000,
-    });
+    toast.success("User updated successfully.");
   } catch (err) {
-    console.error("Error saving user:", err);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "❌ Failed to update user.",
-      life: 3000,
-    });
+    toast.error("Failed to update user.");
   }
 };
 
 const handleDelete = async (event: MouseEvent, userId: string) => {
   const confirmPhrase = prompt("⚠ To confirm deletion, type YES:");
   if (confirmPhrase !== "YES") {
-    toast.add({
-      severity: "warn",
-      summary: "Cancelled",
-      detail: "⚠ Deletion cancelled: Incorrect confirmation phrase.",
-      life: 3000,
-    });
+    toast.warn("Deletion cancelled: Incorrect confirmation phrase.");
     return;
   }
 
@@ -99,29 +83,14 @@ const handleDelete = async (event: MouseEvent, userId: string) => {
       try {
         await removeUser(userId);
         await fetchAllUsers();
-        toast.add({
-          severity: "success",
-          summary: "Deleted",
-          detail: "✅ User deleted successfully.",
-          life: 3000,
-        });
+        toast.success("User deleted successfully.");
       } catch (err) {
         console.error("Error deleting user:", err);
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: "❌ Failed to delete user.",
-          life: 3000,
-        });
+        toast.error("Failed to delete user.");
       }
     },
     reject: () => {
-      toast.add({
-        severity: "warn",
-        summary: "Cancelled",
-        detail: "⚠ Deletion cancelled",
-        life: 3000,
-      });
+      toast.info("⚠ User deletion cancelled.");
     },
   });
 };
@@ -143,8 +112,10 @@ const handleDelete = async (event: MouseEvent, userId: string) => {
           <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold">Users</h2>
             <Button
-              icon="pi pi-refresh"
+              icon="pi pi-filter-slash"
+              aria-label="Clear Filters"
               rounded
+              outlined
               raised
               @click="
                 () => {
@@ -207,6 +178,5 @@ const handleDelete = async (event: MouseEvent, userId: string) => {
       @cancel="cancelEdit"
     />
     <ConfirmPopup />
-    <Toast />
   </div>
 </template>

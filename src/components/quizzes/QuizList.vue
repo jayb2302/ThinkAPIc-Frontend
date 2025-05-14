@@ -78,13 +78,13 @@ watch(selectedCourse, () => {
 
     <div class="flex items-center gap-2 mb-4">
       <ToggleSwitch v-model="showAnswers" />
-      <label class="text-sm font-medium">Study Mode</label>
+      <label class="text-sm font-medium">Show Answers</label>
     </div>
 
     <div
-      class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
+      class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
     >
-      <div class="filter-wrapper space-x-2">
+      <div class="filter-wrapper space-y-2 md:space-x-2">
         <Select
           v-model="selectedTopic"
           :options="topicOptions"

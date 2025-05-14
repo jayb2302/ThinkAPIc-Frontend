@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { useToast } from "primevue/usetoast";
+import { useAppToast } from "../../services/toastService";
 
 // 🏪 Stores
 import { useCourseStore } from "../../stores/courseStore";
@@ -27,13 +27,15 @@ const props = defineProps<{
   visible: boolean;
 }>();
 
+const toast = useAppToast();
+
 // 🏬 Store setup
 const courseStore = useCourseStore();
 const { fetchCourses } = courseStore;
 
 const topicStore = useTopicStore();
 const { saveTopic } = topicStore;
-const toast = useToast();
+
 
 // 🧠 State
 const title = ref("");
@@ -199,22 +201,12 @@ const handleSuccess = (savedTopic: Topic) => {
   successMessage.value = message;
   emit("topicUpdated", savedTopic);
   resetForm();
-  toast.add({
-    severity: "success",
-    summary: "Success",
-    detail: message,
-    life: 3000,
-  });
+  toast.success('Topic saved successfully!');
 };
 
 const handleFailure = (error: unknown) => {
   handleError(error, errorMessage);
-  toast.add({
-    severity: "error",
-    summary: "Error",
-    detail: errorMessage.value,
-    life: 3000,
-  });
+  toast.error('Failed to save topic');
 };
 
 const closeForm = () => {
@@ -255,7 +247,6 @@ onMounted(async () => {
           );
         "
       >
-        <Toast />
         <h1 class="text-2xl font-bold">
           <i class="pi pi-thumbtack text-4xl"> </i>
           {{ isEditing ? "Edit Topic" : "Add New Topic" }}

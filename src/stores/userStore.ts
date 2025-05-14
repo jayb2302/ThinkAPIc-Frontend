@@ -18,9 +18,7 @@ export const useUserStore = defineStore("user", () => {
     loading.value = true;
     try {
       users.value = await getAllUsers();
-      //console.log("✅ Users fetched successfully:", users.value);
     } catch (err) {
-      //console.error("❌ Error fetching users:", err);
       error.value = "Failed to load users.";
     } finally {
       loading.value = false;
@@ -44,7 +42,7 @@ export const useUserStore = defineStore("user", () => {
       const index = users.value.findIndex((u: User) => u._id === updated._id);
       if (index !== -1) users.value[index] = updatedUser;
     } catch (err) {
-      console.error("Error updating user:", err);
+      error.value = "Failed to update user.";
     }
   };
 
@@ -52,9 +50,7 @@ export const useUserStore = defineStore("user", () => {
     try {
       await deleteUser(userId);
       users.value = users.value.filter((u) => u._id !== userId);
-      console.log("🗑️ User deleted:", userId);
     } catch (err) {
-      console.error("❌ Error deleting user:", err);
       error.value = "Failed to delete user.";
     }
   };

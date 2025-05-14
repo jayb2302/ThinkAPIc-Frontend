@@ -126,7 +126,7 @@ onMounted(async () => {
           </h2>
           <Button
             icon="pi pi-filter-slash"
-            label="Clear"
+            aria-label="Clear"
             rounded
             outlined
             @click="

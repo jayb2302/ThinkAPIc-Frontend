@@ -56,5 +56,5 @@ onBeforeUnmount(() => {
 
 <template>
   <router-view />
-  <Toast :position="isMobile ? 'bottom-center' : 'top-center'" class="!w-[90%] sm:!w-[25rem] text-sm" />
+  <Toast :position="isMobile ? 'bottom-center' : 'top-right'" class="!w-[90%] sm:!w-[25rem] text-sm" />
 </template>
