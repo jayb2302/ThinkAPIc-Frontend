@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import type { Exercise } from '../../types/Exercise';
-import { useExerciseStore } from '../../stores/exerciseStore';
-import { useAuthStore } from '../../stores/authStore';
+// import { useExerciseStore } from '../../stores/exerciseStore';
+// import { useAuthStore } from '../../stores/authStore';
 import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
@@ -33,11 +33,11 @@ const textAnswer = computed({
   },
 });
 
-const exerciseStore = useExerciseStore();
-const authStore = useAuthStore();
+// const exerciseStore = useExerciseStore();
+// const authStore = useAuthStore();
 
 const submit = async () => {
-  const timeSpent = 0;
+  // const timeSpent = 0;
 
   const currentQ = props.exercise.questions[currentQuestionIndex.value];
   const userAnswer = answers.value[currentQuestionIndex.value];
@@ -53,14 +53,14 @@ const submit = async () => {
   }
 
   try {
-    await exerciseStore.submitExerciseAttempt(
-      props.exercise._id,
-      authStore.user?._id || '',
-      props.courseId,
-      timeSpent,
-      isCorrect,
-      isCorrect
-    );
+    // await exerciseStore.submitExerciseAttempt(
+    //   props.exercise._id,
+    //   authStore.user?._id || '',
+    //   props.courseId,
+    //   timeSpent,
+    //   isCorrect,
+    //   isCorrect
+    // );
 
     toast.add({
       severity: 'success',

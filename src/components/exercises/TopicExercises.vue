@@ -5,7 +5,7 @@ import ExerciseAttempt from "../users/ExerciseAttempt.vue";
 import type { Exercise } from "../../types/Exercise";
 import Badge from "primevue/badge";
 
-const { topicId, visible, courseId } = defineProps<{
+const { visible, courseId } = defineProps<{
   visible: boolean;
   topicId: string;
   courseId: string;
@@ -19,7 +19,7 @@ const selectedExercise = ref<Exercise | null>(null);
 const showAttemptDialog = ref(false);
 
 onMounted(async () => {
-  await exerciseStore.fetchExercisesByTopic(topicId);
+  //await exerciseStore.fetchExercisesByTopic(topicId);
   exercises.value = exerciseStore.exercises;
 });
 
