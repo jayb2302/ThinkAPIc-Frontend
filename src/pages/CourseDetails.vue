@@ -5,6 +5,7 @@ import { formatDate } from "../utils/formatDate";
 import { getCourseById } from "../services/courseService";
 import { getUserById } from "../services/userService";
 import { useTopicStore } from "../stores/topicStore";
+import { useQuizStore } from "../stores/quizStore";
 import type { Course } from "../types/Course";
 import type { Topic } from "../types/Topic";
 import type { User } from "../types/User";
@@ -12,6 +13,9 @@ import TopicCard from "../components/topics/TopicCard.vue";
 
 const route = useRoute();
 const topicStore = useTopicStore();
+const quizStore = useQuizStore();
+const { fetchQuizCountForTopics } = quizStore;
+
 const course = ref<(Course & { topics: string[] }) | null>(null);
 const teacher = ref<User | null>(null);
 
@@ -38,7 +42,11 @@ async function loadCourse() {
   const id = route.params.id as string;
   const fetchedCourse = await getCourseById(id);
   course.value = fetchedCourse as Course & { topics: string[] };
+
   await topicStore.fetchTopics();
+
+  const topicIds = course.value.topics ;
+  quizCounts.value = await fetchQuizCountForTopics(topicIds);
   if (course.value?.teacher) {
     try {
       teacher.value = await getUserById(course.value.teacher);
@@ -50,7 +58,7 @@ async function loadCourse() {
 </script>
 
 <template>
-  <div v-if="course" class="p-4 bg-gray-50 dark:bg-gray-800">
+  <div v-if="course" class="p-4 bg-gray-50 dark:bg-gray-950">
     <h1 class="text-2xl font-bold mb-4">{{ course.title }}</h1>
     <span class="flex gap-2 text-sm divide-x-1 divide-gray-300 dark:divide-gray-500 md:divide-x-1 md:divide-y-0">
       <p class="mb-2 pr-3">

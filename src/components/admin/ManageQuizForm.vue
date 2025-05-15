@@ -9,10 +9,23 @@ import type { Topic } from "../../types/Topic";
 
 const authStore = useAuthStore();
 const toast = useAppToast();
-const emit = defineEmits(["close", "quizUpdated"]);
+const emit = defineEmits(["close", "quizUpdated", "update:visible"]);
 
 // Props for quiz editing
 const props = defineProps<{ quiz?: Quiz | null; visible: boolean }>();
+
+const visibleRef = ref(props.visible);
+
+watch(
+  () => props.visible,
+  (val) => {
+    visibleRef.value = val;
+  }
+);
+
+const updateVisible = (val: boolean) => {
+  emit("update:visible", val);
+};
 
 // Reactive form state
 const topics = ref<Topic[]>([]);
@@ -142,9 +155,9 @@ const closeForm = () => {
 </script>
 
 <template>
-  <Toast />
   <Dialog
-    v-model:visible="props.visible"
+    v-model:visible="visibleRef"
+    @update:visible="updateVisible"
     modal
     :header="isEditing ? 'Edit Quiz' : 'Add New Quiz'"
     @hide="closeForm"
@@ -152,7 +165,7 @@ const closeForm = () => {
       root: { class: '!border-0 !bg-transparent' },
       mask: { class: 'backdrop-blur-sm' },
     }"
-    class="w-full max-w-2xl"
+    class=" w-full"
     style="
       background-image: radial-gradient(
         circle at center center,
@@ -170,16 +183,16 @@ const closeForm = () => {
     <form
       v-else
       @submit.prevent="submitQuiz"
-      class="p-4 space-y-4 shadow-md rounded-md"
+      class="py-2 space-y-4 shadow-md rounded-md"
     >
-      <FloatLabel class="w-full mb-4" variant="on">
+      <FloatLabel class="" variant="on">
         <Select
           v-model="selectedTopic"
           :options="topics"
           optionLabel="title"
           optionValue="_id"
           inputId="topic_select"
-          class="w-full"
+          fluid
         />
         <label for="topic_select">Select Topic</label>
       </FloatLabel>
@@ -204,13 +217,13 @@ const closeForm = () => {
                 <label :for="`option_text_${index}`">Option {{ index }}</label>
               </FloatLabel>
             </div>
-            
-              <Checkbox
-                v-model="element.isCorrect"
-                :binary="true"
-                inputId="correct_checkbox"
-              />
-            
+
+            <Checkbox
+              v-model="element.isCorrect"
+              :binary="true"
+              inputId="correct_checkbox"
+            />
+
             <Button
               type="button"
               @click="removeOption(index)"
@@ -228,15 +241,21 @@ const closeForm = () => {
         severity="secondary"
       />
 
-      <div class="button-group flex justify-end space-x-2">
-        <Button type="submit" severity="success">
-          {{ isEditing ? "Update Quiz" : "Submit Quiz" }}
-        </Button>
+      <div class="flex justify-end space-x-2">
         <Button
           type="button"
           label="Cancel"
           icon="pi pi-times"
           @click="closeForm"
+          class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50"
+        />
+        <Button
+          :label="isEditing ? 'Update' : 'Submit'"
+          icon="pi pi-check"
+          type="submit"
+          text
+          severity="success"
+          class="!p-2 w-full !text-gray-600 !border !border-green-600/30 hover:!bg-green-700/10 hover:!text-gray-50"
         />
       </div>
     </form>
