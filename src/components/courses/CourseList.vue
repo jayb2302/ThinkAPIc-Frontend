@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { useCourseStore } from "../../stores/courseStore";
 import { getUserById } from "../../services/userService";
 import type { User } from "../../types/User";
-import CourseCard from './CourseCard.vue';
+import CourseCard from "./CourseCard.vue";
 
 const courseStore = useCourseStore();
 const router = useRouter();
@@ -39,7 +39,9 @@ onMounted(async () => {
     </div>
   </template>
   <template v-else>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950">
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950"
+    >
       <CourseCard
         v-for="course in courseStore.courses"
         :key="course._id"

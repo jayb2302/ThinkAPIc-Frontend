@@ -1,25 +1,25 @@
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import WelcomeThinkapic from './WelcomeThinkapic.vue'
+import { describe, it, expect } from "vitest";
+import { mount } from "@vue/test-utils";
+import WelcomeThinkapic from "./WelcomeThinkapic.vue";
 
-describe('WelcomeThinkapic.vue', () => {
-  it('renders the welcome message', () => {
+describe("WelcomeThinkapic.vue", () => {
+  it("renders the welcome message", () => {
     const wrapper = mount(WelcomeThinkapic, {
-      props: { msg: 'Welcome to Thinkapic' }
-    })
+      props: { msg: "Welcome to Thinkapic" },
+    });
 
-    expect(wrapper.text()).toContain('Welcome to Thinkapic')
-    expect(wrapper.text()).toContain('Practice with quizzes and exercises')
-  })
+    expect(wrapper.text()).toContain("Welcome to Thinkapic");
+    expect(wrapper.text()).toContain("Practice with quizzes and exercises");
+  });
 
-  it('emits open-login when button is clicked', async () => {
+  it("emits open-login when button is clicked", async () => {
     const wrapper = mount(WelcomeThinkapic, {
-      props: { msg: 'Test' }
-    })
+      props: { msg: "Test" },
+    });
 
-    const button = wrapper.find('button')
-    await button.trigger('click')
+    const button = wrapper.find("button");
+    await button.trigger("click");
 
-    expect(wrapper.emitted()).toHaveProperty('open-login')
-  })
-})
+    expect(wrapper.emitted()).toHaveProperty("open-login");
+  });
+});

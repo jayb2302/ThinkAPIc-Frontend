@@ -214,6 +214,5 @@ watch(selectedTopic, (newTopicId) => {
       </DataTable>
     </div>
     <ConfirmPopup />
-    <Toast />
   </div>
 </template>

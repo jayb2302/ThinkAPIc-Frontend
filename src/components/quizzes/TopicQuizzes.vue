@@ -223,7 +223,10 @@ onBeforeMount(() => {
                 :value="option.order"
                 v-model="selectedOptions[currentQuiz._id]"
               />
-              <label :for="`${currentQuiz._id}-${option.order}`" class="ml-2 text-pretty">
+              <label
+                :for="`${currentQuiz._id}-${option.order}`"
+                class="ml-2 text-pretty"
+              >
                 {{ option.text }}
               </label>
             </div>
@@ -240,7 +243,7 @@ onBeforeMount(() => {
               showValue
               class="custom-progressbar mb-2"
             />
-            <p class="text-sm text-gray-500 text-center ">
+            <p class="text-sm text-gray-500 text-center">
               {{ answeredCount }} / {{ quizzes.length }} answered
             </p>
           </template>
@@ -265,8 +268,11 @@ onBeforeMount(() => {
                 </strong>
               </p>
               <p class="mt-2">
-                <span v-if="results[quiz._id]?.isCorrect" class="text-green-600">
-                 <i class="pi pi-check"></i> Correct
+                <span
+                  v-if="results[quiz._id]?.isCorrect"
+                  class="text-green-600"
+                >
+                  <i class="pi pi-check"></i> Correct
                 </span>
                 <span v-else class="text-red-600">
                   <i class="pi pi-times"></i> Incorrect

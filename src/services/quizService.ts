@@ -37,7 +37,12 @@ export const deleteQuiz = async (id: string) => {
 
 export const attemptQuiz = async (
   quizId: string,
-  payload: { userId: string; selectedOptionOrder: number; courseId: string; isCorrect: boolean }
+  payload: {
+    userId: string;
+    selectedOptionOrder: number;
+    courseId: string;
+    isCorrect: boolean;
+  }
 ) => {
   const { data } = await api.post(`/quizzes/${quizId}/attempt`, payload);
   return data;

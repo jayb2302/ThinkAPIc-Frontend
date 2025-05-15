@@ -7,7 +7,7 @@ const selectedWeek = ref<number | null>(null);
 
 <template>
   <div class="flex flex-col w-full space-y-4">
-    <TopicList :week="selectedWeek"/>
+    <TopicList :week="selectedWeek" />
     <!-- <div class="code-challange">
       <h2 class="text-lg font-bold py-2">Try a Code Challenge</h2>
       <CodeChallenge />

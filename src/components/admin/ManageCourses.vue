@@ -213,7 +213,6 @@ const closeTopicForm = () => {
         </Column>
       </DataTable>
     </div>
-    <Toast />
     <ConfirmPopup />
     <Popover ref="topicPopoverRef">
       <div v-if="selectedCourseTopics" class="p-2 w-72 max-h-48 overflow-auto">

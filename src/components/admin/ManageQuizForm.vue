@@ -165,7 +165,7 @@ const closeForm = () => {
       root: { class: '!border-0 !bg-transparent' },
       mask: { class: 'backdrop-blur-sm' },
     }"
-    class=" w-full"
+    class="w-full"
     style="
       background-image: radial-gradient(
         circle at center center,

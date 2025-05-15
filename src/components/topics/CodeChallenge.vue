@@ -119,15 +119,14 @@ onMounted(() => {
           @click="revealHint"
         />
         <div class="bg-gray-100 p-2 rounded mt-2">
-        <p
-          v-for="(hint, index) in challenge.hints.slice(0, hintIndex)"
-          :key="index"
-          class="text-gray-700 bg-gray-200 p-2 rounded mt-2"
-        >
-           {{ hint }}
-        </p>
+          <p
+            v-for="(hint, index) in challenge.hints.slice(0, hintIndex)"
+            :key="index"
+            class="text-gray-700 bg-gray-200 p-2 rounded mt-2"
+          >
+            {{ hint }}
+          </p>
         </div>
-        
       </div>
     </div>
     <div class="editor-container mt-4">
@@ -145,7 +144,7 @@ onMounted(() => {
 
     <!-- Reveal Answer (Toggles Code Editor Content) -->
     <div class="mt-4 flex gap-2 justify-end">
-    <Button severity="success" @click="runCode">Run Code</Button>
+      <Button severity="success" @click="runCode">Run Code</Button>
       <Button @click="toggleAnswer">
         {{ showAnswer ? "Hide Answer" : "Show Answer" }}
       </Button>

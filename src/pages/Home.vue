@@ -13,24 +13,32 @@ const { showLoginModal } = storeToRefs(modalStore);
 const authStore = useAuthStore();
 const selectedWeek = ref(null);
 
-const selectedTab = ref('0');
+const selectedTab = ref("0");
 
 const tabs = [
-  { title: 'Courses', value: '0' },
-  { title: 'Topics', value: '1' },
-  { title: 'Progress', value: '2' },
+  { title: "Courses", value: "0" },
+  { title: "Topics", value: "1" },
+  { title: "Progress", value: "2" },
 ];
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center  w-full">
+  <div class="flex flex-col items-center justify-center w-full">
     <div v-if="!authStore.user">
-      <WelcomeThinkapic @open-login="showLoginModal = true" msg="Welcome to Thinkapic" />
+      <WelcomeThinkapic
+        @open-login="showLoginModal = true"
+        msg="Welcome to Thinkapic"
+      />
     </div>
-    <div v-if="authStore.isAuthenticated" class="space-y-4 h-svh overflow-auto w-full">
+    <div
+      v-if="authStore.isAuthenticated"
+      class="space-y-4 h-svh overflow-auto w-full"
+    >
       <Tabs v-model="selectedTab" value="0" class="w-full">
         <TabList>
-          <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">{{ tab.title }}</Tab>
+          <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">{{
+            tab.title
+          }}</Tab>
         </TabList>
         <TabPanels>
           <TabPanel value="0">

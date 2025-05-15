@@ -41,7 +41,9 @@ const goTo = (route: string) => {
 </script>
 
 <template>
-  <div class="dark:bg-gray-800 dark:text-gray-100 w-full h-full p-2 shadow rounded-md">
+  <div
+    class="dark:bg-gray-800 dark:text-gray-100 w-full h-full p-2 shadow rounded-md"
+  >
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
     <!-- Access Restriction -->
@@ -113,7 +115,7 @@ const goTo = (route: string) => {
       </div>
 
       <!-- Recent Quizzes -->
-      <Card class=" dark:bg-gray-700 !shadow-md text-left rounded-md">
+      <Card class="dark:bg-gray-700 !shadow-md text-left rounded-md">
         <template #title>
           <h2 class="text-2xl font-bold">Recent Quizzes</h2>
           <Divider />
@@ -123,13 +125,13 @@ const goTo = (route: string) => {
             <li
               v-for="quiz in latestQuizzes"
               :key="quiz._id"
-              class="mb-2 flex flex-col "
+              class="mb-2 flex flex-col"
             >
               <strong class="mb-2"> {{ quiz.question }} </strong>
               <span class="">
                 <Chip icon="pi pi-th-large" :label="quiz.topic.title" />
               </span>
-              <span class="text-sm text-gray-500 text-right ">
+              <span class="text-sm text-gray-500 text-right">
                 <i class="pi pi-calendar mr-1"></i>
                 {{ new Date(quiz.createdAt).toLocaleDateString() }}
               </span>

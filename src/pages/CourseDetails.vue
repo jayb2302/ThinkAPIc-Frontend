@@ -45,7 +45,7 @@ async function loadCourse() {
 
   await topicStore.fetchTopics();
 
-  const topicIds = course.value.topics ;
+  const topicIds = course.value.topics;
   quizCounts.value = await fetchQuizCountForTopics(topicIds);
   if (course.value?.teacher) {
     try {
@@ -60,7 +60,9 @@ async function loadCourse() {
 <template>
   <div v-if="course" class="p-4 bg-gray-50 dark:bg-gray-950">
     <h1 class="text-2xl font-bold mb-4">{{ course.title }}</h1>
-    <span class="flex gap-2 text-sm divide-x-1 divide-gray-300 dark:divide-gray-500 md:divide-x-1 md:divide-y-0">
+    <span
+      class="flex gap-2 text-sm divide-x-1 divide-gray-300 dark:divide-gray-500 md:divide-x-1 md:divide-y-0"
+    >
       <p class="mb-2 pr-3">
         <strong><i class="pi pi-thumbtack"></i></strong>
         {{ formatDate(course.createdAt) }}
