@@ -16,6 +16,7 @@ import AdminLayout from "../layouts/AdminLayout.vue";
 
 import AdminDashboard from "../pages/admin/AdminDashboard.vue";
 import AdminQuizzes from "../pages/admin/AdminQuizzes.vue";
+import AdminExercises from "../pages/admin/AdminExercises.vue";
 import AdminTopics from "../pages/admin/AdminTopics.vue";
 import AdminCourses from "../pages/admin/AdminCourses.vue";
 import AdminUsers from "../pages/admin/AdminUsers.vue";
@@ -56,6 +57,7 @@ const routes = [
     children: [
       { path: "", component: AdminDashboard },
       { path: "quizzes", component: AdminQuizzes },
+      { path: "exercises", component: AdminExercises },
       { path: "topics", component: AdminTopics },
       { path: "courses", component: AdminCourses },
       { path: "users", component: AdminUsers },

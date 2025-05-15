@@ -12,7 +12,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandler[]) {
     if (e.ctrlKey) combo += '⌃+';
     if (e.altKey) combo += '⌥+';
     if (e.shiftKey) combo += '⇧+';
-    combo += e.key.toUpperCase();
+    if (e.key) combo += e.key.toUpperCase();
     return combo;
   };
   const listener = (e: KeyboardEvent) => {

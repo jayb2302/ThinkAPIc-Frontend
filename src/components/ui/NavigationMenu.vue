@@ -89,14 +89,9 @@ const items = computed<MenuItem[]>(() => {
         icon: "pi pi-th-large",
         items: [
           {
-            label: "Manage Quizzes",
-            icon: "pi pi-question-circle",
-            command: navigate("/admin/quizzes"),
-          },
-          {
-            label: "Manage Topics",
-            icon: "pi pi-list",
-            command: navigate("/admin/topics"),
+            label: "Manage Users",
+            icon: "pi pi-users",
+            command: navigate("/admin/users"),
           },
           {
             label: "Manage Courses",
@@ -104,9 +99,19 @@ const items = computed<MenuItem[]>(() => {
             command: navigate("/admin/courses"),
           },
           {
-            label: "Manage Users",
-            icon: "pi pi-users",
-            command: navigate("/admin/users"),
+            label: "Manage Topics",
+            icon: "pi pi-list",
+            command: navigate("/admin/topics"),
+          },
+          {
+            label: "Manage Quizzes",
+            icon: "pi pi-question-circle",
+            command: navigate("/admin/quizzes"),
+          },
+          {
+            label: "WIP",
+            icon: "pi pi-wrench",
+            command: navigate("/admin/exercises"),
           },
         ],
       },

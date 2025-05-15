@@ -68,19 +68,17 @@ const toggleAnswer = () => {
   code.value = showAnswer.value ? challenge.value.solution : ""; // Fill or clear the editor
 };
 
-console.log("Vue script is running");
-
 // Simulate fetching challenge on mount
 onMounted(() => {
-  console.log("Challenge loaded:", challenge.value);
+  //console.log("Challenge loaded:", challenge.value);
 });
 </script>
 
 <template>
   <div class="w-full">
-    <h3 class="text-md bg-amber-200 font-semibold p-2 rounded">
-      Topic Challenge:
-      <span class="font-bold">
+    <h3 class="text-2xl flex flex-col font-bold p-2 rounded">
+      Topic Challenge
+      <span class="font-semibold">
         {{ challenge.topic }}
       </span>
     </h3>
