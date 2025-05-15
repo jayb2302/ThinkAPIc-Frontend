@@ -7,4 +7,3 @@ import ManageQuizzes from "@/components/admin/ManageQuizzes.vue";
     <ManageQuizzes />
   </div>
 </template>
-

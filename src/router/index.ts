@@ -3,8 +3,8 @@ import { useAuthStore } from "../stores/authStore";
 import { storeToRefs } from "pinia";
 import { useModalStore } from "../stores/modalStore";
 
-import type { AuthStore } from '../stores/authStore';
-import type { ModalStore } from '../stores/modalStore';
+import type { AuthStore } from "../stores/authStore";
+import type { ModalStore } from "../stores/modalStore";
 
 import Home from "../pages/Home.vue";
 import Quizzes from "../pages/Quizzes.vue";
@@ -30,7 +30,7 @@ const routes = [
     path: "/",
     component: DefaultLayout,
     children: [
-      { path: "/", name: "Home",  component: Home },
+      { path: "/", name: "Home", component: Home },
       { path: "quizzes", component: Quizzes },
       { path: "topics", component: Topics },
       { path: "courses", component: Courses },
@@ -43,10 +43,10 @@ const routes = [
         component: () => import("../pages/TopicDetails.vue"),
       },
       {
-        path: '/courses/:courseId/topics/:topicId/quizzes',
-        component: () => import('@/components/quizzes/TopicQuizzes.vue'),
+        path: "/courses/:courseId/topics/:topicId/quizzes",
+        component: () => import("@/components/quizzes/TopicQuizzes.vue"),
         meta: { requiresAuth: true },
-      }
+      },
     ],
   },
   {
@@ -79,15 +79,15 @@ router.beforeEach(async (to, _, next) => {
   const { isAuthenticated, isAdmin } = storeToRefs(authStore);
 
   if (!(await tryRestoreUser(authStore, modalStore))) {
-    return next({ name: 'Home' });
+    return next({ name: "Home" });
   }
 
   if (shouldShowLogin(to, isAuthenticated.value, modalStore)) {
-    return next({ name: 'Home' });
+    return next({ name: "Home" });
   }
 
   if (shouldBlockNonAdmin(to, isAdmin.value)) {
-    return next({ name: 'Home' });
+    return next({ name: "Home" });
   }
 
   next();
@@ -97,7 +97,7 @@ async function tryRestoreUser(
   authStore: AuthStore,
   modalStore: ModalStore
 ): Promise<boolean> {
-  if (localStorage.getItem('token') && !authStore.user) {
+  if (localStorage.getItem("token") && !authStore.user) {
     try {
       await authStore.fetchCurrentUser();
     } catch (e) {

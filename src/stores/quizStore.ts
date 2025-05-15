@@ -290,9 +290,11 @@ export const useQuizStore = defineStore("quizzes", () => {
     });
   };
 
-  const fetchQuizCountForTopics = async (topicIds: string[]): Promise<Record<string, number>> => {
+  const fetchQuizCountForTopics = async (
+    topicIds: string[]
+  ): Promise<Record<string, number>> => {
     const counts: Record<string, number> = {};
-  
+
     for (const topicId of topicIds) {
       try {
         const data = await getQuizzesByTopic(topicId);
@@ -301,7 +303,7 @@ export const useQuizStore = defineStore("quizzes", () => {
         counts[topicId] = 0;
       }
     }
-  
+
     return counts;
   };
 
@@ -327,6 +329,6 @@ export const useQuizStore = defineStore("quizzes", () => {
     updateStore,
     handleError,
     filterQuizzesByCourseAndTopic,
-    fetchQuizCountForTopics
+    fetchQuizCountForTopics,
   };
 });

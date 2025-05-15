@@ -33,17 +33,20 @@ defineProps<{
             {{ quiz.topic.title }}
           </RouterLink>
           <p v-else class="text-gray-500">No Topic</p>
-          <h3 class="text-lg font-bold my-2 text-pretty">{{ quiz.question }}</h3>
+          <h3 class="text-lg font-bold my-2 text-pretty">
+            {{ quiz.question }}
+          </h3>
           <ul class="mt-2">
             <li
               v-for="option in quiz.options"
               :key="option._id"
               class="pl-2"
               :class="{
-                'bg-emerald-600/20 rounded-md pl-2 font-semibold': showAnswers && option.isCorrect,
-                'text-gray-300 rounded-md pl-2 ': showAnswers && !option.isCorrect,
+                'bg-emerald-600/20 rounded-md pl-2 font-semibold':
+                  showAnswers && option.isCorrect,
+                'text-gray-300 rounded-md pl-2 ':
+                  showAnswers && !option.isCorrect,
               }"
-
             >
               {{ option.text }}
             </li>
@@ -53,4 +56,3 @@ defineProps<{
     </template>
   </div>
 </template>
-

@@ -148,7 +148,7 @@ watch(selectedTopic, (newTopicId) => {
       @quiz-updated="handleQuizUpdated"
       @close="closeForm"
     />
-    <div class="rounded-lg overflow-hidden shadow border border-gray-200">
+    <div class="rounded-lg  shadow border border-gray-200">
       <DataTable :value="quizList" paginator :rows="4" tableStyle="">
         <template #header>
           <div class="flex flex-wrap items-center justify-between gap-2 w-full">
@@ -165,7 +165,7 @@ watch(selectedTopic, (newTopicId) => {
         </template>
 
         <!-- Question Column -->
-        <Column field="question" header="Question" class="w-1/2"></Column>
+        <Column field="question" header="Question" class="md:w-1/2 min-w-xs"></Column>
 
         <!-- Topic Column -->
         <Column>
@@ -214,6 +214,5 @@ watch(selectedTopic, (newTopicId) => {
       </DataTable>
     </div>
     <ConfirmPopup />
-    <Toast />
   </div>
 </template>

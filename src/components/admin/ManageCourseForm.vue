@@ -387,5 +387,4 @@ const closeForm = () => {
       </div>
     </template>
   </Dialog>
-  <Toast />
 </template>

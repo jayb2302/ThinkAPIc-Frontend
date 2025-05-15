@@ -36,7 +36,6 @@ const { fetchCourses } = courseStore;
 const topicStore = useTopicStore();
 const { saveTopic } = topicStore;
 
-
 // 🧠 State
 const title = ref("");
 const week = ref<number | null>(null);
@@ -201,12 +200,12 @@ const handleSuccess = (savedTopic: Topic) => {
   successMessage.value = message;
   emit("topicUpdated", savedTopic);
   resetForm();
-  toast.success('Topic saved successfully!');
+  toast.success("Topic saved successfully!");
 };
 
 const handleFailure = (error: unknown) => {
   handleError(error, errorMessage);
-  toast.error('Failed to save topic');
+  toast.error("Failed to save topic");
 };
 
 const closeForm = () => {
@@ -357,7 +356,7 @@ onMounted(async () => {
                 resource.link
               }}</a>
             </span>
-            <div v-else class=" w-full gap-2">
+            <div v-else class="w-full gap-2">
               <InputText
                 v-model="resources[index].title"
                 label="Resource Title"
@@ -375,20 +374,19 @@ onMounted(async () => {
                 />
               </IconField>
             </div>
-            
-              <Button
-                type="button"
-                @click="toggleEditingResource(index)"
-                :severity="getButtonState(index, true).severity"
-                :icon="getButtonState(index, true).icon"
-              />
-              <Button
-                type="button"
-                @click="removeResource(index)"
-                severity="danger"
-                icon="pi pi-times"
-              />
-            
+
+            <Button
+              type="button"
+              @click="toggleEditingResource(index)"
+              :severity="getButtonState(index, true).severity"
+              :icon="getButtonState(index, true).icon"
+            />
+            <Button
+              type="button"
+              @click="removeResource(index)"
+              severity="danger"
+              icon="pi pi-times"
+            />
           </div>
 
           <div

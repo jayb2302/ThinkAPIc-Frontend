@@ -98,7 +98,6 @@ const closeForm = () => {
 <template>
   <div class="p-2 rounded-md">
     <h2 class="text-2xl font-bold mb-4">Manage Topics</h2>
-
     <Button
       @click="showForm = true"
       class="bg-blue-500 text-white px-4 py-2 rounded mb-4"

@@ -84,10 +84,8 @@ onMounted(async () => {
 
     <div class="mb-4 flex items-center gap-4">
       <Button
-
         :icon="useCalendar ? 'pi pi-list' : 'pi pi-calendar'"
         @click="useCalendar = !useCalendar"
-        
       />
       <Select
         v-if="!useCalendar"
@@ -139,9 +137,15 @@ onMounted(async () => {
         </div>
       </template>
       <template #grid="slotProps">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 h-[calc(100vh-20rem)] overflow-auto">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 h-[calc(100vh-20rem)] overflow-auto"
+        >
           <template v-if="loading">
-            <div v-for="n in 4" :key="'skeleton-' + n" class="space-y-2 p-4 border rounded shadow-sm">
+            <div
+              v-for="n in 4"
+              :key="'skeleton-' + n"
+              class="space-y-2 p-4 border rounded shadow-sm"
+            >
               <Skeleton width="8rem" height="1.5rem" class="mb-2" />
               <Skeleton width="100%" height="1.5rem" class="mb-4" />
               <Skeleton width="60%" height="1rem" class="mb-2" />

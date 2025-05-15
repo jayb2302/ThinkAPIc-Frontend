@@ -83,7 +83,12 @@ const handleSave = () => {
       </FloatLabel>
 
       <div class="button-group flex justify-end gap-2">
-        <Button @click="$emit('cancel')" label="Cancel" icon="pi pi-times" class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50" />
+        <Button
+          @click="$emit('cancel')"
+          label="Cancel"
+          icon="pi pi-times"
+          class="!p-2 w-full !text-gray-600 !bg-transparent !border !border-red-600/30 hover:!bg-red-700/10 hover:!text-gray-50"
+        />
         <Button
           @click="handleSave"
           severity="success"

@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import { getUserProgress, addProgressLog } from '../services/progressService';
+import { defineStore } from "pinia";
+import { getUserProgress, addProgressLog } from "../services/progressService";
 
-export const useProgressStore = defineStore('progress', {
+export const useProgressStore = defineStore("progress", {
   state: () => ({
     logs: [] as any[],
   }),
@@ -10,15 +10,15 @@ export const useProgressStore = defineStore('progress', {
       try {
         this.logs = await getUserProgress(userId);
       } catch (error) {
-        console.error('❌ Failed to fetch progress', error);
+        console.error("❌ Failed to fetch progress", error);
       }
     },
     async logProgress(progressData: any) {
       try {
         await addProgressLog(progressData);
-        console.log('✅ Progress logged successfully');
+        console.log("✅ Progress logged successfully");
       } catch (error) {
-        console.error('❌ Failed to log progress', error);
+        console.error("❌ Failed to log progress", error);
       }
     },
   },
@@ -26,19 +26,21 @@ export const useProgressStore = defineStore('progress', {
     completedTopics(state) {
       const topicsMap = buildTopicsMap(state.logs);
       return calculateTopicCompletion(topicsMap);
-    }
-  }
+    },
+  },
 });
 
 function buildTopicsMap(logs: any[]) {
   const map = new Map<string, any>();
 
   for (const log of logs) {
-    if (log.activityType !== 'quiz') continue;
+    if (log.activityType !== "quiz") continue;
 
-    const topicId = typeof log.topic === 'object' ? log.topic._id : log.topic;
-    const topicTitle = typeof log.topic === 'object' ? log.topic.title : 'Unknown Topic';
-    const courseId = typeof log.course === 'object' ? log.course._id : log.course;
+    const topicId = typeof log.topic === "object" ? log.topic._id : log.topic;
+    const topicTitle =
+      typeof log.topic === "object" ? log.topic.title : "Unknown Topic";
+    const courseId =
+      typeof log.course === "object" ? log.course._id : log.course;
 
     if (!topicId) continue;
 
@@ -47,7 +49,7 @@ function buildTopicsMap(logs: any[]) {
         topicId,
         courseId,
         topicTitle,
-        courseTitle: log.course?.title || 'Unknown Course',
+        courseTitle: log.course?.title || "Unknown Course",
         quizzes: new Map<string, any>(),
         lastCompletedAt: log.completedAt,
       });
@@ -62,8 +64,10 @@ function buildTopicsMap(logs: any[]) {
 }
 
 function calculateTopicCompletion(topicsMap: Map<string, any>) {
-  return Array.from(topicsMap.values()).map(topic => {
-    const allCorrect = Array.from(topic.quizzes.values()).every((log: any) => log.isCorrect);
+  return Array.from(topicsMap.values()).map((topic) => {
+    const allCorrect = Array.from(topic.quizzes.values()).every(
+      (log: any) => log.isCorrect
+    );
 
     return {
       ...topic,

@@ -14,7 +14,7 @@ export const useAuthStore = defineStore("auth", () => {
   const isAuthenticated = computed(() => !!user.value && !!token.value);
   const isAdmin = computed(() => role.value === "admin");
   const getUser = computed(() => user.value);
-  
+
   const fetchCurrentUser = async () => {
     if (!token.value) return;
     try {
@@ -22,7 +22,6 @@ export const useAuthStore = defineStore("auth", () => {
       user.value = data.user;
       role.value = data.user.role;
       username.value = data.user.username;
-      
     } catch (error) {
       console.error("Fetching user failed", error);
       logOut();
@@ -31,7 +30,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const logIn = async (email: string, password: string) => {
     try {
-      const { data } = await login(email, password)
+      const { data } = await login(email, password);
       user.value = data.user;
       token.value = data.token;
       role.value = data.user.role;
@@ -40,18 +39,22 @@ export const useAuthStore = defineStore("auth", () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
       localStorage.setItem("username", data.user.username);
-  
     } catch (error: any) {
       throw new Error("Invalid credentials");
     }
   };
 
   // Register
-  const registerUser = async (username: string, email: string, password: string, role: string = "student") => {
+  const registerUser = async (
+    username: string,
+    email: string,
+    password: string,
+    role: string = "student"
+  ) => {
     try {
-      const userResponse = await register(username, email, password, role); 
-      user.value = userResponse; 
-      token.value = userResponse.token; 
+      const userResponse = await register(username, email, password, role);
+      user.value = userResponse;
+      token.value = userResponse.token;
       username = userResponse.username;
 
       localStorage.setItem("token", token.value);

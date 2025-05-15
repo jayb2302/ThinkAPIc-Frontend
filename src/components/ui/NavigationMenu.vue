@@ -178,7 +178,7 @@ const logout = async () => {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 32 32"
-            class="w-8 h-8  text-gray-950 dark:text-gray-100"
+            class="w-8 h-8 text-gray-950 dark:text-gray-100"
             fill="currentColor"
           >
             <g fill="currentColor">
