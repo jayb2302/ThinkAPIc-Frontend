@@ -33,18 +33,6 @@ onMounted(async () => {
   await courseStore.fetchCourses();
 });
 
-// // manually trigger loading
-// onMounted(async () => {
-//   loading.value = true;
-
-//   setTimeout(async () => {
-//     await quizStore.fetchQuizzes();
-//     await topicStore.fetchTopics();
-//     await courseStore.fetchCourses();
-//     loading.value = false; // stop loading after data is fetched
-//   }, 2000); // 2 second fake delay
-// });
-
 const mapTopics = (topicsList: typeof topics.value) =>
   topicsList.map((t) => ({
     label: t.title,
@@ -139,7 +127,7 @@ watch(selectedCourse, () => {
 
       <template #grid="slotProps">
         <div
-          class="grid grid-cols-1 h-[calc(100vh-20rem)] overflow-auto sm-grid-col-2 bg-gray-50 gap-4 w-full"
+          class="grid grid-cols-1 h-[calc(100vh-20rem)] overflow-auto sm-grid-col-2  gap-4 w-full"
         >
           <QuizCard
             v-for="(quiz, index) in slotProps.items"

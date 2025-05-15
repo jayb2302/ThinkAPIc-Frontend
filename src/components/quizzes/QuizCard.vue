@@ -9,7 +9,7 @@ defineProps<{
 </script>
 <template>
   <div
-    class="surface-card border-sm rounded-md hover:shadow-4 transition-shadow duration-150"
+    class="surface-card border-sm rounded-md hover:shadow-4 shadow-md dark:shadow-gray-800 transition-shadow duration-150"
   >
     <template v-if="loading">
       <Skeleton width="8rem" height="1.5rem" class="mb-2" />

@@ -82,14 +82,14 @@ onMounted(() => {
         {{ challenge.topic }}
       </span>
     </h3>
-    <p class="mb-4 p-2 font-bold flex flex-col space-y-4 bg-red-50 rounded">
+    <p class="mb-4 p-2 font-bold flex flex-col space-y-4 dark:shadow-gray-800 shadow-md rounded">
       ⚠️ Problem:
       <span class="font-light text-xl">
         {{ challenge.problem }}
       </span>
     </p>
 
-    <div class="example bg-gray-100 p-2 rounded">
+    <div class="example  p-2 rounded">
       <p>
         <strong>Example Input:</strong>
         <code>{{ challenge.example_input }}</code>
@@ -116,11 +116,11 @@ onMounted(() => {
           v-if="hintIndex < challenge.hints.length"
           @click="revealHint"
         />
-        <div class="bg-gray-100 p-2 rounded mt-2">
+        <div class="p-2 rounded mt-2">
           <p
             v-for="(hint, index) in challenge.hints.slice(0, hintIndex)"
             :key="index"
-            class="text-gray-700 bg-gray-200 p-2 rounded mt-2"
+            class=" p-2 rounded mt-2"
           >
             {{ hint }}
           </p>

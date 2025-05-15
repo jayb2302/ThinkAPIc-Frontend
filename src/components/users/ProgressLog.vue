@@ -29,10 +29,10 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
 </script>
 
 <template>
-  <div class="dark:bg-gray-950 p-0 mt-4">
+  <div class=" p-0 mt-4">
     <h2 class="text-2xl font-bold mb-4">Progress</h2>
 
-    <div v-if="progressStore.logs.length === 0" class="text-gray-500">
+    <div v-if="progressStore.logs.length === 0" class="text-gray-500 dark:text-gray-300">
       No quiz attempts yet.
     </div>
 
@@ -43,7 +43,7 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
         <Card
           v-for="topic in completedTopics"
           :key="topic.topicId"
-          class="shadow-md"
+          class="!shadow-md dark:!shadow-gray-800"
         >
           <template #title>
             {{ topic.topicTitle }}

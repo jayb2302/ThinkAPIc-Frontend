@@ -58,7 +58,7 @@ async function loadCourse() {
 </script>
 
 <template>
-  <div v-if="course" class="p-4 bg-gray-50 dark:bg-gray-950">
+  <div v-if="course" class="p-4">
     <h1 class="text-2xl font-bold mb-4">{{ course.title }}</h1>
     <span
       class="flex gap-2 text-sm divide-x-1 divide-gray-300 dark:divide-gray-500 md:divide-x-1 md:divide-y-0"
@@ -92,7 +92,7 @@ async function loadCourse() {
       :rows="4"
       layout="grid"
       dataKey="_id"
-      class="my-6"
+      class="my-6 !rounded-md"
     >
       <template #header>
         <h2 class="text-xl font-semibold mb-2">
@@ -124,7 +124,7 @@ async function loadCourse() {
           <p><i class="pr-2 pi pi-clipboard"></i> Learning Objectives</p>
         </AccordionHeader>
         <AccordionContent>
-          <ul class="">
+          <ul class="pt-2">
             <li v-for="(objective, i) in course.learningObjectives" :key="i">
               <i class="pi pi-caret-right text-gray-300"> </i> {{ objective }}
             </li>
@@ -137,7 +137,7 @@ async function loadCourse() {
           <p><i class="pr-2 pi pi-cog"></i> Skills</p>
         </AccordionHeader>
         <AccordionContent>
-          <ul class="">
+          <ul class="pt-2">
             <li v-for="(skill, i) in course.skills" :key="i">
               <i class="pi pi-caret-right text-gray-300"> </i> {{ skill }}
             </li>
@@ -150,7 +150,7 @@ async function loadCourse() {
           <p><i class="pr-2 pi pi-trophy"></i>Competencies</p>
         </AccordionHeader>
         <AccordionContent>
-          <ul class="">
+          <ul class="pt-2">
             <li v-for="(competency, i) in course.competencies" :key="i">
               <i class="pi pi-caret-right text-gray-300"> </i> {{ competency }}
             </li>

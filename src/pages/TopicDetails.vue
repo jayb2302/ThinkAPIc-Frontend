@@ -35,7 +35,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="p-4 bg-gray-50 dark:bg-gray-950 overflow-auto w-full"
+    class="p-4 overflow-auto w-full"
     v-if="topic"
   >
     <h1 class="text-2xl font-bold mb-2">{{ topic.title }}</h1>
@@ -54,7 +54,7 @@ onMounted(() => {
 
     <div
       v-if="topic.key_points?.length"
-      class="mb-4 shadow-md dark:bg-gray-900 p-4 rounded"
+      class="mb-4 shadow-md dark:bg-gray-950 p-4 rounded-md"
     >
       <h2 class="font-semibold mb-2">Key Points:</h2>
       <ul class="list-inside mb-4">
@@ -67,7 +67,7 @@ onMounted(() => {
 
     <div
       v-if="topic.resources?.length"
-      class="mb-4 shadow p-4 dark:bg-gray-900 rounded"
+      class="mb-4 shadow p-4 dark:bg-gray-950 rounded-md"
     >
       <h2 class="font-semibold mb-2">Resources:</h2>
       <ul class="list-inside">

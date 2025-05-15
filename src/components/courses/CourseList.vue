@@ -40,7 +40,7 @@ onMounted(async () => {
   </template>
   <template v-else>
     <div
-      class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md dark:bg-gray-950"
+      class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-md "
     >
       <CourseCard
         v-for="course in courseStore.courses"

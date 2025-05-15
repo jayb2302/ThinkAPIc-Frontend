@@ -77,8 +77,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mt-4 text-gray-600 h-full">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Topics</h2>
+  <div class="mt-4 h-full">
+    <h2 class="text-2xl font-bold mb-4">Topics</h2>
 
     <div v-if="error" class="text-red-500 mt-4">{{ error }}</div>
 

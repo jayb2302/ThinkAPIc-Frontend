@@ -42,7 +42,7 @@ const goTo = (route: string) => {
 
 <template>
   <div
-    class="dark:bg-gray-800 dark:text-gray-100 w-full h-full p-2 shadow rounded-md"
+    class=" w-full h-full p-2 shadow rounded-md"
   >
     <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
 
@@ -115,7 +115,7 @@ const goTo = (route: string) => {
       </div>
 
       <!-- Recent Quizzes -->
-      <Card class="dark:bg-gray-700 !shadow-md text-left rounded-md">
+      <Card class="dark:bg-gray-700 dark:!shadow-gray-800 !shadow-md text-left rounded-md">
         <template #title>
           <h2 class="text-2xl font-bold">Recent Quizzes</h2>
           <Divider />

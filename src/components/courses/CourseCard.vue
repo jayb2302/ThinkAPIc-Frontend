@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
   <Card
-    class="shadow-md cursor-pointer !hover:shadow-lg transition"
+    class="!shadow-md dark:!shadow-gray-800 cursor-pointer !hover:shadow-lg transition"
     @click="() => onClick(course._id)"
   >
     <template #title>
