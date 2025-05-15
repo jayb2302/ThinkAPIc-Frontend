@@ -109,8 +109,8 @@ const items = computed<MenuItem[]>(() => {
             command: navigate("/admin/quizzes"),
           },
           {
-            label: "Manage Exercises",
-            icon: "pi pi-file",
+            label: "WIP",
+            icon: "pi pi-wrench",
             command: navigate("/admin/exercises"),
           },
         ],

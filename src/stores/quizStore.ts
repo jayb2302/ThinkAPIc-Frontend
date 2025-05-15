@@ -272,8 +272,10 @@ export const useQuizStore = defineStore("quizzes", () => {
   };
 
   const handleError = (message: string, err: unknown) => {
-    console.error(`❌ ${message}:`, err);
     error.value = message;
+    if (err instanceof Error) {
+      //console.error(`❌ ${message}:`, err.message);
+    }
   };
 
   const filterQuizzesByCourseAndTopic = (

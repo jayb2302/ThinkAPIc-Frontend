@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue";
-import { useToast } from "primevue/usetoast";
+import { useAppToast } from "../../services/toastService";
 
 import { useExerciseStore } from "../../stores/exerciseStore";
 import { useTopicStore } from "../../stores/topicStore";
@@ -16,20 +16,23 @@ const props = defineProps<{
   visible: boolean;
 }>();
 
-const toast = useToast();
+const toast = useAppToast();
 const topicStore = useTopicStore();
 const { fetchTopics } = topicStore;
 
 const groupedTopics = computed(() => {
   const grouped = new Map();
   for (const topic of topicStore.topics) {
-    const courseTitle = topic.course?.title ?? 'Unassigned';
+    const courseTitle = topic.course?.title ?? "Unassigned";
     if (!grouped.has(courseTitle)) {
       grouped.set(courseTitle, []);
     }
     grouped.get(courseTitle)?.push(topic);
   }
-  return Array.from(grouped.entries()).map(([label, items]) => ({ label, items }));
+  return Array.from(grouped.entries()).map(([label, items]) => ({
+    label,
+    items,
+  }));
 });
 
 const exerciseStore = useExerciseStore();
@@ -58,10 +61,10 @@ const questions = ref<
 ]);
 
 const questionTypeOptions = [
-  { label: 'Multiple Choice', value: 'multiple-choice' },
-  { label: 'Fill in the Blank', value: 'fill-in-the-blank' },
-  { label: 'Coding', value: 'coding' },
-  { label: 'Short Answer', value: 'short-answer' },
+  { label: "Multiple Choice", value: "multiple-choice" },
+  { label: "Fill in the Blank", value: "fill-in-the-blank" },
+  { label: "Coding", value: "coding" },
+  { label: "Short Answer", value: "short-answer" },
 ];
 
 const isEditing = ref(false);
@@ -221,7 +224,6 @@ function areQuestionsValid(): boolean {
   console.log("🧪 Validating Questions:", questions.value);
   for (const q of questions.value) {
     if (!q.question.trim()) {
-      console.log("❌ Question text missing");
       return false;
     }
 
@@ -249,49 +251,31 @@ function areQuestionsValid(): boolean {
 }
 
 const submitExercise = async () => {
-  console.log("🔵 submitExercise called");
   const input = buildExerciseInput();
   if (!isFormValid()) {
-    toast.add({
-      severity: "error",
-      summary: "Validation Error",
-      detail:
-        "Please fill in all required fields and add at least one valid question.",
-    });
+    toast.error(
+      "Please fill in all required fields and ensure at least one question is valid."
+    );
     return;
   }
 
   try {
     let updatedExercise;
     if (isEditing.value && props.exercise && props.exercise._id) {
-      console.log("🟡 Exercise payload for update:", input);
       // Pass input with topicId, not topic
       updatedExercise = await updateExercise(props.exercise._id, input);
-      toast.add({
-        severity: "success",
-        summary: "Exercise Updated",
-        detail: "Exercise was updated successfully.",
-      });
+      toast.success("Exercise updated successfully.");
     } else {
       // Pass input with topicId, not topic
       updatedExercise = await createExercise(input);
-      toast.add({
-        severity: "success",
-        summary: "Exercise Created",
-        detail: "Exercise was created successfully.",
-      });
+      toast.success("Exercise created successfully.");
     }
     emit("exerciseUpdated", updatedExercise);
     emit("update:visible", false);
     resetForm();
     isEditing.value = false;
   } catch (error) {
-    console.error("🔴 Error during update:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "Failed to save exercise.",
-    });
+    toast.error("Failed to save exercise.");
   }
 };
 
@@ -310,11 +294,10 @@ function setExerciseFields(newExercise: Exercise) {
       return {
         question: q.question,
         type: q.type as ExerciseQuestion["type"],
-        options:
-          q.options?.map((opt) => ({
-            text: opt.text,
-            isCorrect: opt.isCorrect,
-          })) || [{ text: "", isCorrect: false }],
+        options: q.options?.map((opt) => ({
+          text: opt.text,
+          isCorrect: opt.isCorrect,
+        })) || [{ text: "", isCorrect: false }],
         correctAnswer: "",
       };
     } else {
@@ -330,13 +313,13 @@ function setExerciseFields(newExercise: Exercise) {
 </script>
 <template>
   <Dialog
-    v-model:visible="props.visible"
+    :visible="props.visible"
+    @update:visible="emit('update:visible', $event)"
     modal
     :closable="true"
     :header="isEditing ? 'Edit Exercise' : 'Add Exercise'"
     :style="{ width: '650px', maxWidth: '95vw' }"
-    @update:visible="emit('update:visible', $event)"
-    class="overflow-auto "
+    class="overflow-auto"
   >
     <template #container="{ closeCallback }">
       <div
@@ -350,11 +333,14 @@ function setExerciseFields(newExercise: Exercise) {
         "
       >
         <h2 class="text-2xl font-bold">
-        <i class="pi pi-thumbtack text-2xl mr-2"></i>
+          <i class="pi pi-thumbtack text-2xl mr-2"></i>
           {{ isEditing ? "Edit Exercise" : "Add Exercise" }}
         </h2>
 
-        <form @submit.prevent="submitExercise" class="flex flex-col space-y-4 gap-5">
+        <form
+          @submit.prevent="submitExercise"
+          class="flex flex-col space-y-4 gap-5"
+        >
           <div class="flex flex-col gap-4">
             <FloatLabel>
               <InputText
@@ -448,7 +434,6 @@ function setExerciseFields(newExercise: Exercise) {
                     required
                     placeholder="Question"
                   />
-
                 </FloatLabel>
                 <div class="flex gap-3 mt-2">
                   <FloatLabel class="flex-1">
@@ -480,7 +465,6 @@ function setExerciseFields(newExercise: Exercise) {
                         class="w-full"
                         :placeholder="`Option ${oIndex + 1}`"
                       />
-                      
                     </FloatLabel>
                     <div class="flex items-center gap-1">
                       <Checkbox
