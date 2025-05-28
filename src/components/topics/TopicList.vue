@@ -2,18 +2,27 @@
 import { ref, watch, computed, onMounted } from "vue";
 import { useTopicStore } from "../../stores/topicStore";
 import { useQuizStore } from "../../stores/quizStore";
+import { useCourseStore } from "../../stores/courseStore";
 import { format, addDays } from "date-fns";
 import TopicCard from "./TopicCard.vue";
+import { storeToRefs } from "pinia";
 
 const topicStore = useTopicStore();
-const { topics, loading, error } = topicStore;
+const { topics, loading, error, fetchTopics } = topicStore;
 const quizStore = useQuizStore();
 const quizCounts = ref<Record<string, number>>({});
 
+const courseStore = useCourseStore();
+const { courses } = storeToRefs(courseStore);
+const { fetchCourses } = courseStore;
+
 const props = defineProps<{
   week: number | null;
+  active: boolean;
 }>();
 const selectedWeek = ref<number | null>(null);
+
+const selectedCourseId = ref<string | null>(null);
 
 const useCalendar = ref(false);
 const calendarDate = ref<Date | null>(null);
@@ -48,6 +57,13 @@ const weekOptions = computed(() => {
   ];
 });
 
+const courseOptions = computed(() =>
+  courses.value.map((c) => ({
+    label: c.title,
+    value: c._id,
+  }))
+);
+
 const weekFromCalendar = computed(() => {
   if (!calendarDate.value) return null;
   const diff = Math.floor(
@@ -59,7 +75,13 @@ const weekFromCalendar = computed(() => {
 
 const filteredTopics = computed(() => {
   const week = useCalendar.value ? weekFromCalendar.value : selectedWeek.value;
-  return week ? topics.filter((t) => t.week === week) : topics;
+  return topics.filter((t) => {
+    const matchesWeek = week ? t.week === week : true;
+    const matchesCourse = selectedCourseId.value
+      ? t.course._id === selectedCourseId.value
+      : true;
+    return matchesWeek && matchesCourse;
+  });
 });
 
 watch(topics, (newTopics) => {
@@ -67,17 +89,18 @@ watch(topics, (newTopics) => {
 });
 
 onMounted(async () => {
-  if (topics.length === 0) {
-    await topicStore.fetchTopics();
-  }
+  await Promise.all([
+    topics.length === 0 ? fetchTopics() : Promise.resolve(),
+    fetchCourses() // Always fetch to avoid stale state
+  ]);
 
-  const topicIds = topics.map((topic) => topic._id);
+  const topicIds = topicStore.topics.map((topic) => topic._id);
   quizCounts.value = await quizStore.fetchQuizCountForTopics(topicIds);
 });
 </script>
 
 <template>
-  <div class="mt-4 h-full">
+  <div class="mt-4 h-full px-2">
     <h2 class="text-2xl font-bold mb-4">Topics</h2>
 
     <div v-if="error" class="text-red-500 mt-4">{{ error }}</div>
@@ -95,6 +118,17 @@ onMounted(async () => {
         optionValue="value"
         placeholder="Filter by Week"
         class="w-60"
+        showClear
+      />
+      <Select
+        v-if="!useCalendar"
+        v-model="selectedCourseId"
+        :options="courseOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Filter by Course"
+        class="w-60"
+        showClear
       />
       <DatePicker
         v-else
@@ -131,6 +165,7 @@ onMounted(async () => {
               () => {
                 selectedWeek = null;
                 calendarDate = null;
+                selectedCourseId = null;
               }
             "
           />

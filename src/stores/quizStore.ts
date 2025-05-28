@@ -302,6 +302,10 @@ export const useQuizStore = defineStore("quizzes", () => {
         const data = await getQuizzesByTopic(topicId);
         counts[topicId] = data.length;
       } catch (err: any) {
+        const status = err?.response?.status;
+        if (status !== 404) {
+          //console.error(`❌ Error fetching quizzes for topic ${topicId}:`, err);
+        }
         counts[topicId] = 0;
       }
     }
