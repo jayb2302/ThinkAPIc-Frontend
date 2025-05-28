@@ -2,10 +2,15 @@
 import { onMounted, computed, ref } from "vue";
 import { formatDateTime } from "../../utils/formatDate";
 import { useProgressStore } from "../../stores/progressStore";
+import { useTopicStore } from "../../stores/topicStore";
 import { useAuthStore } from "../../stores/authStore";
 import TopicQuizzes from "../quizzes/TopicQuizzes.vue";
+import { storeToRefs } from "pinia";
 
 const progressStore = useProgressStore();
+const { completedTopics, courseOptions, totalQuizzesCompleted, correctRate, topicsCompletionRate } = storeToRefs(progressStore);
+const topicStore = useTopicStore();
+const totalTopics = computed(() => topicStore.topics.length);
 const authStore = useAuthStore();
 
 const showDialog = ref(false);
@@ -14,7 +19,14 @@ const selectedTopicForRetake = ref<{
   courseId: string;
 } | null>(null);
 
-const completedTopics = computed(() => progressStore.completedTopics);
+const selectedCourseId = ref<string | null>(null);
+
+const filteredTopics = computed(() => {
+  if (!selectedCourseId.value) return progressStore.completedTopics;
+  return progressStore.completedTopics.filter(
+    (topic) => topic.courseId === selectedCourseId.value
+  );
+});
 
 onMounted(() => {
   if (authStore.user) {
@@ -29,19 +41,61 @@ const openRetakeDialog = (topicId: string, courseId: string) => {
 </script>
 
 <template>
-  <div class=" p-0 mt-4">
+  <div class="p-0 mt-4">
     <h2 class="text-2xl font-bold mb-4">Progress</h2>
 
-    <div v-if="progressStore.logs.length === 0" class="text-gray-500 dark:text-gray-300">
+    <div
+      v-if="progressStore.logs.length === 0"
+      class="text-gray-500 dark:text-gray-300"
+    >
       No quiz attempts yet.
     </div>
-
+    
     <div v-else class="mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    
+        <Card>
+          <template #title>Completed Quizzes</template>
+          <template #content>
+            <p class="text-2xl font-bold text-center">
+              {{ totalQuizzesCompleted }}
+            </p>
+          </template>
+        </Card>
+        
+        <Card>
+          <template #title>Completed Topics</template>
+          <template #content>
+            <ProgressBar :value="topicsCompletionRate" showValue class="mb-2" />
+            <p class="text-sm text-gray-500 text-center">
+              {{ completedTopics.length }} / {{ totalTopics }}
+            </p>
+          </template>
+        </Card>
+
+        <Card>
+          <template #title>Correct Answer Rate</template>
+          <template #content>
+            <ProgressBar :value="correctRate" showValue class="mb-2" />
+            <p class="text-sm text-gray-500 text-center">{{ correctRate }}%</p>
+          </template>
+        </Card>
+      </div>
+      <Select
+        v-model="selectedCourseId"
+        :options="courseOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Filter by Course"
+        showClear
+        class="mb-4 w-full sm:w-64"
+      />
+
       <div
         class="grid sm:grid sm:grid-col-1 md:grid-cols-3 lg:grid-cols-2 gap-4"
       >
         <Card
-          v-for="topic in completedTopics"
+          v-for="topic in filteredTopics"
           :key="topic.topicId"
           class="!shadow-md dark:!shadow-gray-800"
         >
