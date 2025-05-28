@@ -94,6 +94,7 @@ onMounted(() => {
     <TopicQuizzes
       v-if="topic"
       v-model:visible="showQuizDialog"
+      :key="topic._id"
       :topicId="topic._id"
       :courseId="topic.course._id"
       @hide="showQuizDialog = false"

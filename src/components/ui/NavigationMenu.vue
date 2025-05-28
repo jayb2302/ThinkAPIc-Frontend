@@ -141,11 +141,16 @@ const items = computed<MenuItem[]>(() => {
         items: courseStore.courses.map((course) => ({
           label: course.title,
           key: `topics-course-${course._id}`,
-          items: (course.topics || []).map((topicId) => ({
-            label: topicStore.getTopicTitleById(topicId),
-            key: `topic-${topicId}`,
-            command: navigate(`/topics/${topicId}`),
-          })),
+          items: Array.isArray(course.topics)
+            ? course.topics.map((topic: any) => {
+                const topicId = typeof topic === 'string' ? topic : topic._id;
+                return {
+                  label: topicStore.getTopicTitleById(topicId),
+                  key: `topic-${topicId}`,
+                  command: navigate(`/topics/${topicId}`),
+                };
+              })
+            : [],
         })),
       },
       {
@@ -218,7 +223,7 @@ const logout = async () => {
       position="right"
       modal
       style="width: 25rem"
-      class="bg-gray-50 dark:!bg-gray-950"
+      class=""
     >
       <template #header>
         <div class="flex justify-between items-center w-full">
@@ -281,7 +286,7 @@ const logout = async () => {
 
   <!-- Desktop Sidebar -->
   <nav
-    class="bg-gray-50 dark:bg-gray-950 p-2 space-y-4 md:w-3/12 h-full flex-col items-start rounded hidden md:flex md:fixed md:top-0 md:left-0 md:z-50"
+    class="p-2 space-y-4 md:w-3/12 h-full flex-col items-start rounded hidden md:flex md:fixed shadow-[4px_0_8px_-2px_rgba(0,0,0,0.1)] md:top-0 md:left-0 md:z-50 "
   >
     <div v-if="isAuthenticated" class="capitalize flex items-baseline">
       <Avatar
@@ -298,7 +303,7 @@ const logout = async () => {
       :model="items"
       :expandedKeys="expandedKeys"
       @update:expandedKeys="(val) => (expandedKeys = val)"
-      class="bg-gray-50 dark:bg-gray-900 text-white rounded-md shadow-md w-full"
+      class="rounded-md shadow-md w-full"
     >
       <template #item="{ item }">
         <a v-ripple class="flex items-center px-4 py-2 cursor-pointer group">

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import Courses from "./Courses.vue";
 import ProgressLog from "../components/users/ProgressLog.vue";
@@ -45,7 +45,7 @@ const tabs = [
             <Courses />
           </TabPanel>
           <TabPanel value="1">
-            <Topics :week="selectedWeek" />
+            <Topics :week="selectedWeek" :active="selectedTab === '1'" />
           </TabPanel>
           <TabPanel value="2">
             <ProgressLog />

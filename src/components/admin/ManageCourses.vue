@@ -18,7 +18,7 @@ const toast = useToast();
 const courseStore = useCourseStore();
 const topicStore = useTopicStore();
 
-const { selectedCourse, showForm } = storeToRefs(courseStore);
+const { selectedCourse, courses, selectedCourseId, showForm } = storeToRefs(courseStore);
 const {
   closeForm,
   handleCourseUpdated,
@@ -40,9 +40,8 @@ const newCourse = () => {
 };
 
 const selectedCourseForTopicForm = computed<Course | null>(() => {
-  const id = courseStore.selectedCourseId;
-  if (!id) return null;
-  return courseStore.courses.find((c) => c._id === id) || null;
+  if (!selectedCourseId.value) return null;
+  return courses.value.find((c) => c._id === selectedCourseId.value) || null;
 });
 
 const adminUsers = ref<AdminUser[]>([]);
@@ -134,7 +133,6 @@ const closeTopicForm = () => {
       class="mb-4"
     />
 
-    <!-- Course Form -->
     <ManageCourseForm
       :visible="showForm"
       @update:visible="showForm = $event"
@@ -146,13 +144,19 @@ const closeTopicForm = () => {
       @newCourseId="(id) => setSelectedCourseId(id)"
     />
 
-    <!-- Topic Form -->
     <ManageTopicForm
       v-model:visible="showTopicForm"
       :course="selectedCourseForTopicForm"
       @topic-updated="handleTopicCreated"
       @close="closeTopicForm"
     />
+
+    [ ManageCourses ]
+        ├── [ManageCourseForm]
+        │       ↓ emits newCourseId, showTopicForm
+        └── [ManageTopicForm]
+                ← uses selectedCourseId to prefill course
+
     <div class="rounded-md shadow border border-gray-200">
       <DataTable :value="courseStore.courses" paginator :rows="6" tableStyle="">
         <template #header>
