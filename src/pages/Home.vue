@@ -33,6 +33,7 @@ const tabs = [
     <div
       v-if="authStore.isAuthenticated"
       class="space-y-4 h-svh overflow-auto w-full"
+      data-testid="home-authenticated"
     >
       <Tabs v-model="selectedTab" value="0" class="w-full">
         <TabList>
