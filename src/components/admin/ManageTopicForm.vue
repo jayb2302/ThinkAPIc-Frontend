@@ -80,7 +80,14 @@ watch(
       isEditing.value = true;
       setTopicFields(newTopic);
       await ensureCoursesLoaded();
-      selectedCourse.value = newTopic.course;
+      selectedCourse.value =
+        courseStore.courses.find(
+          (c) =>
+            c._id ===
+            (typeof newTopic.course === "string"
+              ? newTopic.course
+              : newTopic.course._id)
+        ) || null;
     }
   },
   { immediate: true }

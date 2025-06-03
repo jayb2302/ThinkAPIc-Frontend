@@ -14,6 +14,7 @@ const topicStore = useTopicStore();
 const { draftCourse, successMessage, isEditing, showTopicForm } =
   storeToRefs(courseStore);
 const { resetCourseDraft, submitDraftCourse } = courseStore;
+const { fetchTopics } = topicStore;
 const { topics } = storeToRefs(topicStore);
 
 const toast = useToast();
@@ -83,7 +84,7 @@ const getButtonState = (sectionLabel: string, index: number) => {
 
 // Fetch topics and admin users on mount
 onMounted(async () => {
-  await topicStore.fetchTopics();
+  await fetchTopics();
   try {
     adminUsers.value = await getAdminUsers();
   } catch (err) {
@@ -282,8 +283,13 @@ const closeForm = () => {
               <span class="capitalize font-bold">
                 -
                 {{
-                  topics.find((t) => t._id === topicId)?.title ||
-                  "Unknown Topic"
+                  topics.find(
+                    (t: any) =>
+                      t._id ===
+                      (typeof topicId === "string"
+                        ? topicId
+                        : (topicId as any)._id)
+                  )?.title || "Unknown Topic"
                 }}
               </span>
               <Button

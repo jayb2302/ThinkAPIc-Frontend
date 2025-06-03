@@ -18,7 +18,8 @@ const toast = useToast();
 const courseStore = useCourseStore();
 const topicStore = useTopicStore();
 
-const { selectedCourse, courses, selectedCourseId, showForm } = storeToRefs(courseStore);
+const { selectedCourse, courses, selectedCourseId, showForm } =
+  storeToRefs(courseStore);
 const {
   closeForm,
   handleCourseUpdated,
@@ -49,13 +50,14 @@ const adminUsers = ref<AdminUser[]>([]);
 const topicPopoverRef = ref();
 const selectedCourseTopics = ref<Topic[] | null>(null);
 
-const getCourseTopics = (course: Course) => {
-  return [
-    ...new Set(
-      course.topics.map((id) => topicStore.topics.find((t) => t._id === id))
-    ),
-  ];
-};
+const getCourseTopics = (course: Course) =>
+  course.topics
+    .map((entry: string | Topic) =>
+      topicStore.topics.find((t) =>
+        String(t._id) === String(typeof entry === 'string' ? entry : entry._id)
+      )
+    )
+    .filter(Boolean) as Topic[];
 
 const displayTopics = (event: Event, course: Course) => {
   topicPopoverRef.value?.hide();
@@ -220,9 +222,9 @@ const closeTopicForm = () => {
           <li
             v-for="topic in selectedCourseTopics"
             class="pl-2"
-            :key="topic._id"
+            :key="topic?._id"
           >
-            {{ topic.title || "Unknown Topic" }}
+            {{ topic?.title || "Unknown Topic" }}
           </li>
         </ul>
       </div>
