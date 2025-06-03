@@ -151,12 +151,6 @@ const closeTopicForm = () => {
       @close="closeTopicForm"
     />
 
-    [ ManageCourses ]
-        ├── [ManageCourseForm]
-        │       ↓ emits newCourseId, showTopicForm
-        └── [ManageTopicForm]
-                ← uses selectedCourseId to prefill course
-
     <div class="rounded-md shadow border border-gray-200">
       <DataTable :value="courseStore.courses" paginator :rows="6" tableStyle="">
         <template #header>
